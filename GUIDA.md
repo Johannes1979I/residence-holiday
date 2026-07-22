@@ -74,17 +74,33 @@ In alto cinque numeri, sempre aggiornati: quante prenotazioni sono arrivate, qua
 partecipanti, quante pizze in tutto, quanto hai **incassato** e quanto ti resta **da
 incassare**.
 
-### Registrare una prenotazione
-Quando ti arriva il messaggio su WhatsApp o Telegram:
+### Registrare una prenotazione — tre modi
+Quando un condomino prenota, il suo messaggio WhatsApp contiene in fondo un **link**
+«Organizzatori, tocca qui per registrarla». Il modo più semplice:
 
-1. Tienilo premuto e scegli **Copia**.
-2. Nell'admin incollalo nel riquadro grande e premi **📥 Leggi il messaggio e aggiungi**.
+1. **Tocca quel link** dal messaggio: si apre l'admin e la prenotazione entra da sola nel
+   registro. Aprilo sempre **dallo stesso dispositivo** dove tieni il registro.
 
-Nome, telefono, appartamento, partecipanti, ordine, quota e totale vengono letti da soli.
-Se qualcuno ti prenota a voce, usa **✍️ Aggiungi a mano**: scrivi il nome e l'ordine
-(una riga per pizza, es. `2 x Margherita`) e i prezzi li mette lui dal menù.
+Se preferisci, restano gli altri due modi:
 
-Se incolli due volte lo stesso messaggio non si duplica: il codice viene riconosciuto.
+2. **Incolla il messaggio** — tienilo premuto, **Copia**, poi nell'admin incollalo nel
+   riquadro grande e premi **📥 Leggi il messaggio e aggiungi**. Nome, telefono,
+   appartamento, partecipanti, ordine, pizze speciali, quota e totale vengono letti da soli.
+3. **✍️ Aggiungi a mano** — per chi ti prenota a voce: scrivi nome e ordine (una riga per
+   pizza, es. `2 x Margherita`) e i prezzi li prende dal menù. Con **⚠️ Esigenze
+   alimentari** aggiungi le pizze senza glutine, senza lattosio o entrambi.
+
+> Se hai fatto tu una prenotazione di prova dal sito, riaprendo l'admin **dallo stesso
+> browser** compare in alto un riquadro verde che ti propone di aggiungerla al registro.
+
+Un messaggio già registrato non si duplica: il codice viene riconosciuto.
+
+### Modificare, eliminare, recuperare
+Sotto ogni prenotazione:
+- **✏️ Modifica** — cambi dati, ordine, pizze speciali e totale, poi salvi.
+- **🗑️ Sposta nel cestino** — non la cancella davvero: finisce nel **Cestino**, più in
+  basso, da dove puoi **↩️ Ripristinarla** in qualsiasi momento. Solo «Elimina per sempre»
+  la toglie definitivamente.
 
 ### Segnare chi ha pagato
 Sotto ogni prenotazione c'è **✅ Segna pagato**. La riga diventa verde e i totali

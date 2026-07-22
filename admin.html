@@ -134,6 +134,20 @@
   .reg-allerta-forte b{display:block;margin-bottom:5px;letter-spacing:.5px}
   .reg-privacy{background:#fff8e6;border:1px solid var(--c3);border-radius:12px;padding:13px 15px;font-size:.85rem;line-height:1.5}
   .reg-vuoto{color:var(--muted);font-size:.9rem;padding:14px;text-align:center;border:1px dashed #cddde3;border-radius:12px}
+  .reg-proposta{background:#e8f6ec;border:2px solid #7fcf9c;border-radius:12px;padding:13px 15px;margin:12px 0;font-size:.9rem}
+  .reg-proposta b{display:block;margin-bottom:6px}
+  .reg-speciali-editor{border:2px solid var(--c1);border-radius:12px;padding:12px 14px;margin-top:14px;background:rgba(230,57,70,.05)}
+  .reg-speciali-editor > b{color:var(--c1)}
+  .reg-sp-riga{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+  .reg-sp-riga input#reg_sp_q{width:64px;flex:0 0 auto}
+  .reg-sp-riga input#reg_sp_nome{flex:1 1 150px}
+  .reg-sp-riga select{flex:1 1 190px;padding:10px 12px;border:2px solid #d5e2e8;border-radius:10px;font-family:inherit;font-size:.95rem}
+  .reg-sp-voce{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;
+               border:1px solid #f0c2c6;border-radius:9px;padding:8px 11px;margin-top:6px;font-size:.88rem}
+  .reg-sp-voce b{color:var(--c1)}
+  .reg-cestino-riga{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+                    background:#f6f8f9;border:1px dashed #c3d4da;border-radius:10px;padding:10px 12px;margin-bottom:7px;font-size:.88rem}
+  .reg-riga.in-modifica{border-color:var(--c2);box-shadow:0 0 0 3px rgba(18,182,201,.18)}
 
   /* ---------- foglio stampabile (ordine pizzeria / lista ingresso) ----------
      E' dentro la pagina invece che in una finestra nuova: i browser bloccano
@@ -280,7 +294,9 @@
 
       <div class="reg-cruscotto" id="reg_cruscotto"></div>
 
-      <h3 class="sub-h">Aggiungi una prenotazione</h3>
+      <div id="reg_proposta" class="reg-proposta" style="display:none"></div>
+
+      <h3 class="sub-h" id="reg_titoloForm">Aggiungi una prenotazione</h3>
       <p class="hint" style="margin-bottom:8px">
         Quando ti arriva una prenotazione su WhatsApp o Telegram, copia il messaggio e
         incollalo qui sotto: i dati vengono letti da soli. In alternativa compila a mano.
@@ -304,8 +320,25 @@
         <label for="reg_m_ordine">Ordine</label>
         <textarea id="reg_m_ordine" rows="3" placeholder="Una riga per pizza, es.&#10;2 x Margherita&#10;1 x Diavola"></textarea>
         <p class="hint">Scrivi una riga per tipo di pizza. I prezzi vengono presi dal menù qui sopra.</p>
+        <div class="reg-speciali-editor">
+          <b>⚠️ Esigenze alimentari</b>
+          <p class="hint">Da controllare sempre: sono richieste che riguardano la salute.</p>
+          <div id="reg_m_specialiElenco"></div>
+          <div class="reg-sp-riga">
+            <input id="reg_sp_q" inputmode="numeric" value="1" aria-label="Quantità" />
+            <input id="reg_sp_nome" placeholder="Nome della pizza" aria-label="Pizza" list="reg_listaPizze" />
+            <select id="reg_sp_tipo" aria-label="Tipo di richiesta">
+              <option value="glutine">senza glutine (celiaci)</option>
+              <option value="lattosio">senza lattosio</option>
+              <option value="entrambi">senza glutine E senza lattosio</option>
+            </select>
+            <button class="reg-mini" type="button" id="reg_btnAddSpeciale">+ Aggiungi</button>
+          </div>
+          <datalist id="reg_listaPizze"></datalist>
+        </div>
+
         <div class="grid2">
-          <div><label for="reg_m_note">Note</label><input id="reg_m_note" placeholder="Allergie, richieste…" /></div>
+          <div><label for="reg_m_note">Note</label><input id="reg_m_note" placeholder="Richieste, orari…" /></div>
           <div><label for="reg_m_totale">Totale € <span class="hint" style="font-weight:normal">(vuoto = calcolalo tu)</span></label><input id="reg_m_totale" inputmode="decimal" /></div>
         </div>
         <div class="reg-azioni">
@@ -334,6 +367,13 @@
         tipologia con quantità e prezzi, pizze speciali in evidenza, totale finale e
         l’elenco di chi ha già versato la quota.
       </p>
+
+      <h3 class="sub-h">🗑️ Cestino <span class="conta" id="reg_contaCestino"></span></h3>
+      <p class="hint" style="margin-bottom:8px">
+        Le prenotazioni eliminate finiscono qui e si possono recuperare. Si svuota solo
+        quando lo decidi tu.
+      </p>
+      <div id="reg_cestino"></div>
 
       <h3 class="sub-h">Salvataggio e backup</h3>
       <div class="reg-privacy">
@@ -1475,7 +1515,11 @@ function collegaEventi(){
    Per passarlo a un altro organizzatore si usa il backup in JSON.
    ========================================================= */
 const REG_CHIAVE = 'rh_registro';
+const REG_CESTINO_CHIAVE = 'rh_registro_cestino';
 let REGISTRO = [];
+let CESTINO = [];
+let regModificaCodice = null;   /* codice in corso di modifica, null = nuova */
+let regFormSpeciali = [];       /* esigenze alimentari del modulo aperto */
 
 function regLeggi(){
   try{
@@ -1483,11 +1527,19 @@ function regLeggi(){
     const d = grezzo ? JSON.parse(grezzo) : null;
     REGISTRO = (d && Array.isArray(d.elenco)) ? d.elenco : [];
   }catch(e){ REGISTRO = []; }
+  try{
+    const g2 = localStorage.getItem(REG_CESTINO_CHIAVE);
+    const d2 = g2 ? JSON.parse(g2) : null;
+    CESTINO = (d2 && Array.isArray(d2.elenco)) ? d2.elenco : [];
+  }catch(e){ CESTINO = []; }
 }
 function regSalva(){
   try{
     localStorage.setItem(REG_CHIAVE, JSON.stringify({
       aggiornato: new Date().toISOString(), elenco: REGISTRO
+    }));
+    localStorage.setItem(REG_CESTINO_CHIAVE, JSON.stringify({
+      aggiornato: new Date().toISOString(), elenco: CESTINO
     }));
   }catch(e){
     toast('⚠️ Non riesco a salvare il registro in questo browser (memoria piena o navigazione privata).', 8000);
@@ -1565,13 +1617,18 @@ function regInterpreta(testo){
      Sono la parte piu' delicata del messaggio, quindi si leggono anche se
      l'emoji iniziale si perde per strada. */
   p.speciali = [];
-  const reSpec = /^(?:‼️|!!|⚠️)?\s*(\d+)\s*[×x]\s*(.+?)\s+SENZA\s+(GLUTINE|LATTOSIO)\b.*$/gim;
+  /* l'alternativa combinata va cercata per prima, altrimenti "SENZA GLUTINE E
+     SENZA LATTOSIO" verrebbe letta come sola assenza di glutine */
+  const reSpec = /^(?:‼️|!!|⚠️)?\s*(\d+)\s*[×x]\s*(.+?)\s+SENZA\s+(GLUTINE\s+E\s+SENZA\s+LATTOSIO|GLUTINE|LATTOSIO)\b.*$/gim;
   let sm;
   while((sm = reSpec.exec(t)) !== null){
+    const coda = sm[3].toUpperCase();
+    const haGlutine  = coda.indexOf('GLUTINE') !== -1;
+    const haLattosio = coda.indexOf('LATTOSIO') !== -1;
     p.speciali.push({
       quantita: Number(sm[1]) || 0,
       nome: sm[2].trim(),
-      tipo: sm[3].toUpperCase() === 'GLUTINE' ? 'glutine' : 'lattosio'
+      tipo: (haGlutine && haLattosio) ? 'entrambi' : (haGlutine ? 'glutine' : 'lattosio')
     });
   }
 
@@ -1672,7 +1729,8 @@ function regDisegna(){
   }
 
   visibili.forEach(p => {
-    const riga = crea('div', 'reg-riga' + (p.pagato ? ' pagata' : ''));
+    const riga = crea('div', 'reg-riga' + (p.pagato ? ' pagata' : '') +
+                              (regModificaCodice === p.codice ? ' in-modifica' : ''));
 
     const testa = crea('div','reg-testa');
     testa.appendChild(crea('span','reg-codice', p.codice));
@@ -1705,7 +1763,7 @@ function regDisegna(){
       all.appendChild(crea('b', null, '⚠️ Esigenze alimentari'));
       p.speciali.forEach(s => {
         all.appendChild(crea('div', null, '• ' + s.quantita + ' × ' + s.nome + ' — ' +
-          (s.tipo === 'glutine' ? 'SENZA GLUTINE (celiaci)' : 'SENZA LATTOSIO')));
+          regEtichettaSpeciale(s.tipo)));
       });
       dett.appendChild(all);
     }
@@ -1739,13 +1797,20 @@ function regDisegna(){
       azioni.appendChild(bWa);
     }
 
-    const bDel = crea('button','reg-mini rossa','🗑️ Elimina');
+    const bMod = crea('button','reg-mini','✏️ Modifica');
+    bMod.type = 'button';
+    bMod.addEventListener('click', () => regApriModifica(p));
+    azioni.appendChild(bMod);
+
+    const bDel = crea('button','reg-mini rossa','🗑️ Sposta nel cestino');
     bDel.type = 'button';
     bDel.addEventListener('click', () => {
-      if(!confirm('Elimino la prenotazione ' + p.codice + ' di ' + p.nome + '?')) return;
+      p.eliminatoIl = new Date().toISOString();
+      CESTINO.unshift(p);
       REGISTRO = REGISTRO.filter(x => x !== p);
+      if(regModificaCodice === p.codice) regChiudiForm();
       regSalva(); regDisegna();
-      toast('Prenotazione eliminata.');
+      toast('Spostata nel cestino: la trovi più in basso e puoi recuperarla.', 6000);
     });
     azioni.appendChild(bDel);
 
@@ -1754,7 +1819,55 @@ function regDisegna(){
     cont.appendChild(riga);
   });
 
+  regDisegnaCestino();
   regDisegnaOrdine();
+}
+
+/* ---------- cestino ---------- */
+function regDisegnaCestino(){
+  const cont = $('reg_cestino');
+  const conta = $('reg_contaCestino');
+  if(!cont) return;
+  cont.textContent = '';
+  if(conta) conta.textContent = CESTINO.length ? (CESTINO.length + ' nel cestino') : 'vuoto';
+
+  if(!CESTINO.length){
+    cont.appendChild(crea('div','reg-vuoto','Il cestino è vuoto.'));
+    return;
+  }
+  CESTINO.forEach(p => {
+    const riga = crea('div','reg-cestino-riga');
+    const info = crea('div');
+    info.appendChild(crea('b', null, p.nome + ' — ' + p.codice));
+    info.appendChild(crea('div', null, regTestoPersone(p) + ' · ' + regEuro(p.totale)));
+    riga.appendChild(info);
+
+    const azioni = crea('div','reg-azioni');
+    const bRip = crea('button','reg-mini','↩️ Ripristina');
+    bRip.type = 'button';
+    bRip.addEventListener('click', () => {
+      if(REGISTRO.some(x => x.codice === p.codice)){
+        toast('⚠️ Nel registro c’è già una prenotazione con il codice ' + p.codice + '.', 7000);
+        return;
+      }
+      delete p.eliminatoIl;
+      REGISTRO.push(p);
+      CESTINO = CESTINO.filter(x => x !== p);
+      regSalva(); regDisegna();
+      toast('Prenotazione ripristinata.', 4000);
+    });
+    const bVia = crea('button','reg-mini rossa','✕ Elimina per sempre');
+    bVia.type = 'button';
+    bVia.addEventListener('click', () => {
+      if(!confirm('Elimino definitivamente la prenotazione di ' + p.nome + '?\nQuesta non si può annullare.')) return;
+      CESTINO = CESTINO.filter(x => x !== p);
+      regSalva(); regDisegna();
+      toast('Eliminata definitivamente.', 4000);
+    });
+    azioni.appendChild(bRip); azioni.appendChild(bVia);
+    riga.appendChild(azioni);
+    cont.appendChild(riga);
+  });
 }
 
 /* somma di tutte le pizze prenotate, con prezzo unitario e importo:
@@ -1778,6 +1891,13 @@ function regTotalePizze(){
   }).sort((a,b) => b.quantita-a.quantita || a.nome.localeCompare(b.nome,'it'));
 }
 
+/* etichetta della richiesta alimentare, identica in tutti i punti dell'admin */
+function regEtichettaSpeciale(tipo){
+  if(tipo === 'entrambi') return 'SENZA GLUTINE E SENZA LATTOSIO';
+  if(tipo === 'glutine')  return 'SENZA GLUTINE (celiaci)';
+  return 'SENZA LATTOSIO';
+}
+
 /* tutte le esigenze alimentari, raggruppate e con il nome di chi le ha chieste */
 function regSpecialiTotali(){
   const mappa = {};
@@ -1788,7 +1908,8 @@ function regSpecialiTotali(){
     if(mappa[chiave].chi.indexOf(p.nome) === -1) mappa[chiave].chi.push(p.nome);
   }));
   return Object.keys(mappa).map(k => mappa[k])
-    .sort((a,b) => (a.tipo===b.tipo ? a.nome.localeCompare(b.nome,'it') : (a.tipo==='glutine'?-1:1)));
+    .sort((a,b) => { const ord={entrambi:0,glutine:1,lattosio:2};
+      return (ord[a.tipo]-ord[b.tipo]) || a.nome.localeCompare(b.nome,'it'); });
 }
 
 /* totale delle quote a persona (la bagnina) su tutte le prenotazioni */
@@ -1816,7 +1937,7 @@ function regDisegnaOrdine(){
     all.appendChild(crea('b', null, '⚠️ ATTENZIONE — PIZZE SPECIALI'));
     speciali.forEach(s => {
       all.appendChild(crea('div', null, '• ' + s.quantita + ' × ' + s.nome + ' — ' +
-        (s.tipo === 'glutine' ? 'SENZA GLUTINE (celiaci)' : 'SENZA LATTOSIO') +
+        regEtichettaSpeciale(s.tipo) +
         '  [' + s.chi.join(', ') + ']'));
     });
     box.appendChild(all);
@@ -1867,7 +1988,7 @@ function regTestoOrdine(){
   if(speciali.length){
     r.push('⚠️ ATTENZIONE — PIZZE SPECIALI (allergie e intolleranze):');
     speciali.forEach(s => r.push('‼️ ' + s.quantita + ' × ' + s.nome + ' — ' +
-      (s.tipo === 'glutine' ? 'SENZA GLUTINE (celiaci)' : 'SENZA LATTOSIO')));
+      regEtichettaSpeciale(s.tipo)));
     r.push('');
   }
   voci.forEach(v => r.push('• ' + v.quantita + ' × ' + v.nome +
@@ -1925,6 +2046,192 @@ function regStampaLista(){
   regMostraFoglio('Lista per l’ingresso', html);
 }
 
+/* ---------- modulo: aggiunta e modifica ---------- */
+
+/* elenco dei nomi di pizza, per il suggerimento automatico */
+function regAggiornaListaPizze(){
+  const dl = $('reg_listaPizze');
+  if(!dl) return;
+  dl.textContent = '';
+  ((DATA && DATA.menu && DATA.menu.categorie) || []).forEach(c => {
+    (Array.isArray(c.voci) ? c.voci : []).forEach(v => {
+      const o = document.createElement('option');
+      o.value = String(v.nome || '');
+      dl.appendChild(o);
+    });
+  });
+}
+
+function regDisegnaFormSpeciali(){
+  const cont = $('reg_m_specialiElenco');
+  cont.textContent = '';
+  if(!regFormSpeciali.length){
+    const p = crea('p','hint','Nessuna richiesta particolare.');
+    p.style.marginTop = '6px';
+    cont.appendChild(p);
+    return;
+  }
+  regFormSpeciali.forEach((s, i) => {
+    const r = crea('div','reg-sp-voce');
+    const t = crea('span');
+    t.appendChild(crea('b', null, s.quantita + ' × ' + s.nome + ' '));
+    t.appendChild(document.createTextNode(regEtichettaSpeciale(s.tipo)));
+    r.appendChild(t);
+    const x = crea('button','reg-mini rossa','✕');
+    x.type = 'button';
+    x.addEventListener('click', () => { regFormSpeciali.splice(i,1); regDisegnaFormSpeciali(); });
+    r.appendChild(x);
+    cont.appendChild(r);
+  });
+}
+
+function regApriForm(){
+  $('reg_manuale').style.display = '';
+  regAggiornaListaPizze();
+  regDisegnaFormSpeciali();
+  $('reg_manuale').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function regChiudiForm(){
+  regModificaCodice = null;
+  regFormSpeciali = [];
+  ['reg_m_nome','reg_m_tel','reg_m_app','reg_m_ordine','reg_m_note','reg_m_totale']
+    .forEach(id => { $(id).value = ''; });
+  $('reg_m_adulti').value = '2'; $('reg_m_bambini').value = '0';
+  $('reg_manuale').style.display = 'none';
+  $('reg_titoloForm').textContent = 'Aggiungi una prenotazione';
+  $('reg_btnSalvaManuale').textContent = '➕ Aggiungi al registro';
+  regDisegnaFormSpeciali();
+}
+
+function regApriModifica(p){
+  regModificaCodice = p.codice;
+  regFormSpeciali = (p.speciali || []).map(s => ({ quantita:s.quantita, nome:s.nome, tipo:s.tipo }));
+  $('reg_m_nome').value = p.nome || '';
+  $('reg_m_tel').value = p.telefono || '';
+  $('reg_m_app').value = p.appartamento || '';
+  $('reg_m_adulti').value = String(p.adulti || 0);
+  $('reg_m_bambini').value = String(p.bambini || 0);
+  $('reg_m_ordine').value = (p.righe || []).map(r => r.quantita + ' x ' + r.nome).join('\n');
+  $('reg_m_note').value = p.note || '';
+  $('reg_m_totale').value = scriviNumero(p.totale);
+  $('reg_titoloForm').textContent = 'Modifica la prenotazione ' + p.codice;
+  $('reg_btnSalvaManuale').textContent = '💾 Salva le modifiche';
+  regApriForm();
+  regDisegna();
+}
+
+/* legge il modulo e salva: nuova prenotazione oppure modifica di una esistente */
+function regSalvaDalForm(){
+  const nome = $('reg_m_nome').value.trim();
+  if(!nome){ toast('⚠️ Serve almeno il nome.', 5000); return; }
+
+  const righe = $('reg_m_ordine').value.split('\n').map(r => r.trim()).filter(Boolean).map(r => {
+    const m = r.match(/^(\d+)\s*[×x]?\s*(.+)$/);
+    const q = m ? Number(m[1]) : 1;
+    const n = m ? m[2].trim() : r;
+    return { quantita:q, nome:n, importo: regPrezzoDi(n) * q };
+  });
+  const adulti = Number($('reg_m_adulti').value)||0;
+  const bambini = Number($('reg_m_bambini').value)||0;
+  const perTesta = Number((DATA && DATA.menu && DATA.menu.copertoPersona) || 0);
+  const coperto = perTesta * (adulti + bambini);
+  let totale = leggiNumero($('reg_m_totale').value);
+  if(!totale) totale = righe.reduce((s,r)=>s+(Number(r.importo)||0),0) + coperto;
+
+  if(regModificaCodice){
+    const p = REGISTRO.filter(x => x.codice === regModificaCodice)[0];
+    if(!p){ toast('⚠️ Prenotazione non trovata.', 5000); regChiudiForm(); return; }
+    p.nome = nome;
+    p.telefono = $('reg_m_tel').value.trim();
+    p.appartamento = $('reg_m_app').value.trim();
+    p.adulti = adulti; p.bambini = bambini;
+    p.righe = righe;
+    p.speciali = regFormSpeciali.slice();
+    p.coperto = coperto;
+    p.totale = totale;
+    p.note = $('reg_m_note').value.trim();
+    p.modificatoIl = new Date().toISOString();
+    regSalva(); regChiudiForm(); regDisegna();
+    toast('✅ Prenotazione aggiornata.', 4000);
+    return;
+  }
+
+  const ok = regAggiungi({
+    nome, telefono:$('reg_m_tel').value.trim(), appartamento:$('reg_m_app').value.trim(),
+    adulti, bambini, righe, speciali:regFormSpeciali.slice(),
+    note:$('reg_m_note').value.trim(), totale
+  });
+  if(ok){ regChiudiForm(); toast('✅ Prenotazione aggiunta.', 4000); }
+}
+
+/* ---------- arrivo automatico delle prenotazioni ---------- */
+
+/* 1) dal link contenuto nel messaggio: l'organizzatore lo tocca e basta */
+function regImportaDaLink(){
+  const h = String(location.hash || '');
+  if(h.indexOf('#p=') !== 0) return;
+  let carico = null;
+  try{
+    let b64 = h.slice(3).replace(/-/g,'+').replace(/_/g,'/');
+    while(b64.length % 4) b64 += '=';
+    carico = JSON.parse(decodeURIComponent(escape(atob(b64))));
+  }catch(e){ carico = null; }
+  history.replaceState(null, '', location.pathname + location.search);
+  if(!carico || !carico.n){ toast('⚠️ Il link della prenotazione non è leggibile.', 7000); return; }
+
+  const gia = REGISTRO.some(x => x.codice === carico.c);
+  if(gia){ toast('La prenotazione ' + carico.c + ' era già nel registro.', 5000); return; }
+
+  regAggiungi({
+    codice: carico.c, nome: carico.n, telefono: carico.t, appartamento: carico.a,
+    adulti: carico.ad, bambini: carico.ba, coperto: carico.q, totale: carico.tot,
+    note: carico.no,
+    righe: (carico.r||[]).map(x => ({ quantita:x[0], nome:x[1], importo:x[2] })),
+    speciali: (carico.s||[]).map(x => ({ quantita:x[0], nome:x[1], tipo:x[2] }))
+  });
+  toast('✅ Registrata la prenotazione di ' + carico.n + '.', 6000);
+}
+
+/* 2) prenotazione fatta da questo stesso browser (tipico della prova) */
+function regProponiLocale(){
+  const box = $('reg_proposta');
+  if(!box) return;
+  box.style.display = 'none';
+  box.textContent = '';
+  let p = null;
+  try{ p = JSON.parse(localStorage.getItem('rh_prenotazione') || 'null'); }catch(e){ p = null; }
+  if(!p || !p.codice || !p.conto) return;
+  if(REGISTRO.some(x => x.codice === p.codice)) return;
+  if(CESTINO.some(x => x.codice === p.codice)) return;
+
+  box.appendChild(crea('b', null, '📥 C’è una prenotazione fatta da questo browser'));
+  box.appendChild(crea('div', null, p.nome + ' — ' + p.codice + ' · ' +
+    regEuro(p.conto.totale) + ' · non è ancora nel registro.'));
+  const azioni = crea('div','reg-azioni');
+  const b = crea('button','btn btn-p','➕ Aggiungila al registro');
+  b.type = 'button';
+  b.addEventListener('click', () => {
+    const c = p.conto;
+    const speciali = [];
+    (c.speciali || []).forEach(r => {
+      if(r.entrambi > 0) speciali.push({quantita:r.entrambi, nome:r.nome, tipo:'entrambi'});
+      if(r.celiaci > 0)  speciali.push({quantita:r.celiaci, nome:r.nome, tipo:'glutine'});
+      if(r.lattosio > 0) speciali.push({quantita:r.lattosio, nome:r.nome, tipo:'lattosio'});
+    });
+    regAggiungi({
+      codice:p.codice, nome:p.nome, telefono:p.telefono, appartamento:p.appartamento,
+      adulti:p.adulti, bambini:p.bambini, note:p.note,
+      righe:(c.righe||[]).map(r => ({quantita:r.quantita, nome:r.nome, importo:r.importo})),
+      speciali, coperto:c.coperto, totale:c.totale
+    });
+    toast('✅ Aggiunta al registro.', 5000);
+  });
+  azioni.appendChild(b);
+  box.appendChild(azioni);
+  box.style.display = '';
+}
+
 /* ---------- documento d'ordine completo per gli organizzatori ---------- */
 function regDocumentoOrdine(){
   if(!REGISTRO.length){ toast('Non c’è ancora nessuna prenotazione.', 5000); return; }
@@ -1951,7 +2258,7 @@ function regDocumentoOrdine(){
         <tbody>${speciali.map(s => `<tr>
           <td class="c"><b>${s.quantita}</b></td>
           <td>${escHtml(s.nome)}</td>
-          <td class="forte">${s.tipo === 'glutine' ? 'SENZA GLUTINE (celiaci)' : 'SENZA LATTOSIO'}</td>
+          <td class="forte">${escHtml(regEtichettaSpeciale(s.tipo))}</td>
           <td>${escHtml(s.chi.join(', '))}</td></tr>`).join('')}
         </tbody>
       </table>
@@ -2057,33 +2364,20 @@ function registroCollega(){
   });
 
   $('reg_btnManuale').addEventListener('click', () => {
-    const m = $('reg_manuale');
-    m.style.display = (m.style.display === 'none') ? '' : 'none';
+    if($('reg_manuale').style.display === 'none'){ regChiudiForm(); regApriForm(); }
+    else { regChiudiForm(); }
   });
-  $('reg_btnAnnullaManuale').addEventListener('click', () => { $('reg_manuale').style.display = 'none'; });
+  $('reg_btnAnnullaManuale').addEventListener('click', regChiudiForm);
+  $('reg_btnSalvaManuale').addEventListener('click', regSalvaDalForm);
 
-  $('reg_btnSalvaManuale').addEventListener('click', () => {
-    const nome = $('reg_m_nome').value.trim();
-    if(!nome){ toast('⚠️ Serve almeno il nome.', 5000); return; }
-    const righe = $('reg_m_ordine').value.split('\n').map(r => r.trim()).filter(Boolean).map(r => {
-      const m = r.match(/^(\d+)\s*[×x]?\s*(.+)$/);
-      const q = m ? Number(m[1]) : 1;
-      const n = m ? m[2].trim() : r;
-      return { quantita:q, nome:n, importo: regPrezzoDi(n) * q };
-    });
-    const ok = regAggiungi({
-      nome, telefono:$('reg_m_tel').value.trim(), appartamento:$('reg_m_app').value.trim(),
-      adulti:Number($('reg_m_adulti').value)||0, bambini:Number($('reg_m_bambini').value)||0,
-      righe, note:$('reg_m_note').value.trim(),
-      totale: leggiNumero($('reg_m_totale').value)
-    });
-    if(ok){
-      ['reg_m_nome','reg_m_tel','reg_m_app','reg_m_ordine','reg_m_note','reg_m_totale']
-        .forEach(id => { $(id).value = ''; });
-      $('reg_m_adulti').value = '2'; $('reg_m_bambini').value = '0';
-      $('reg_manuale').style.display = 'none';
-      toast('✅ Prenotazione aggiunta.', 4000);
-    }
+  $('reg_btnAddSpeciale').addEventListener('click', () => {
+    const q = Number($('reg_sp_q').value) || 0;
+    const nome = $('reg_sp_nome').value.trim();
+    const tipo = $('reg_sp_tipo').value;
+    if(q < 1 || !nome){ toast('Indica quantità e nome della pizza speciale.', 5000); return; }
+    regFormSpeciali.push({ quantita:q, nome, tipo });
+    $('reg_sp_q').value = '1'; $('reg_sp_nome').value = '';
+    regDisegnaFormSpeciali();
   });
 
   $('reg_cerca').addEventListener('input', regDisegna);
@@ -2147,6 +2441,8 @@ function registroCollega(){
 
 function registroAvvia(){
   regLeggi();
+  regImportaDaLink();   /* prima: una prenotazione arrivata via link va aggiunta subito */
+  regProponiLocale();   /* poi: proponi quella eventualmente fatta da questo browser */
   regDisegna();
 }
 </script>
