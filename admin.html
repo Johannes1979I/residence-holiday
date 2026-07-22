@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin — Residence Holiday</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>" />
+<style>
+  :root{
+    --c1:#e63946;          /* colore primario  */
+    --c2:#12b6c9;          /* colore secondario */
+    --c3:#ffd23f;          /* colore accento   */
+    --ink:#0d2b3e;
+    --paper:#fffdf7;
+    --muted:#5a7583;
+    --radius:22px;
+    --shadow:0 18px 45px -20px rgba(13,43,62,.5);
+    --linea:#d5e2e8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"Trebuchet MS",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(180deg,#eaf4f8 0%,#f4f9fb 240px,#f4f9fb 100%);
+    color:var(--ink);
+    line-height:1.45;
+    overflow-x:hidden;
+  }
+
+  /* ---------- gate password ---------- */
+  .gate{max-width:380px;margin:10vh auto;background:#fff;padding:30px 24px;border-radius:var(--radius);
+        text-align:center;box-shadow:var(--shadow)}
+  .gate h1{font-size:1.4rem;margin-bottom:6px}
+  .gate p{color:var(--muted);margin-bottom:18px;font-size:.9rem}
+  .gate .err{color:var(--c1);margin-top:12px;font-weight:bold;display:none}
+  #app{display:none}
+
+  /* ---------- barra in alto ---------- */
+  .top{background:linear-gradient(120deg,var(--c1),var(--c2));color:#fff;padding:16px 14px 14px;
+       text-align:center;position:sticky;top:0;z-index:10;box-shadow:0 8px 22px -12px rgba(13,43,62,.7)}
+  .top h1{font-size:1.15rem;letter-spacing:.2px}
+  .top .sub{font-size:.82rem;opacity:.92;margin-top:3px}
+  .top .actions{margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+  /* ---------- bottoni ---------- */
+  .btn{border:none;border-radius:999px;padding:12px 18px;font-weight:bold;cursor:pointer;
+       font-size:.92rem;font-family:inherit;min-height:44px;transition:transform .1s}
+  .btn:hover{transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .btn-p{background:var(--ink);color:#fff}
+  .btn-g{background:#25D366;color:#fff}
+  .btn-s{background:var(--c3);color:var(--ink)}
+  .btn-w{background:#fff;color:var(--ink)}
+  .add{background:var(--c2);color:#fff;border:none;border-radius:12px;padding:12px 18px;font-weight:bold;
+       cursor:pointer;font-size:.92rem;font-family:inherit;min-height:44px;margin-top:8px}
+  .add.small{background:#e8f7fa;color:#0b7c8a;border:2px dashed #9dd8e2}
+  .mini{min-width:44px;min-height:40px;border:2px solid var(--linea);background:#fff;color:var(--ink);
+        border-radius:10px;font-size:1rem;cursor:pointer;font-family:inherit;line-height:1}
+  .mini:hover{border-color:var(--c2)}
+  .mini.del{border-color:#f3c2c8;color:var(--c1)}
+  .mini.del:hover{background:#ffeef0;border-color:var(--c1)}
+  .toolbar{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:10px}
+
+  /* ---------- struttura ---------- */
+  .wrap{max-width:840px;margin:0 auto;padding:20px 14px 90px}
+  .card{background:#fff;border-radius:var(--radius);padding:20px 18px;margin-bottom:18px;
+        box-shadow:0 12px 32px -22px rgba(13,43,62,.55);scroll-margin-top:150px}
+  .card h2{font-size:1rem;color:var(--c1);text-transform:uppercase;letter-spacing:.6px;
+           margin-bottom:6px;border-bottom:2px solid #eef4f7;padding-bottom:8px}
+  .card .intro{font-size:.86rem;color:var(--muted);margin-bottom:8px}
+  h3.sub-h{font-size:.95rem;margin:22px 0 4px;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .conta{font-size:.78rem;font-weight:normal;color:var(--muted);background:#eef7fa;border-radius:999px;padding:3px 10px}
+
+  .sommario{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+  .sommario a{text-decoration:none;background:#fff;color:var(--ink);border:1px solid var(--linea);
+              border-radius:999px;padding:8px 13px;font-size:.82rem;font-weight:bold}
+  .sommario a:hover{border-color:var(--c2);color:#0b7c8a}
+
+  /* ---------- campi ---------- */
+  label{display:block;font-weight:bold;font-size:.86rem;margin:14px 0 5px}
+  input,textarea,select{width:100%;padding:11px 12px;border:2px solid var(--linea);border-radius:12px;
+        font-size:1rem;font-family:inherit;color:var(--ink);background:#fff;min-height:44px}
+  textarea{line-height:1.4;min-height:70px}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--c2)}
+  input[type=color]{height:46px;padding:4px}
+  input[type=file]{padding:9px;border-style:dashed}
+  .hint{font-size:.8rem;color:var(--muted);margin-top:5px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+
+  /* ---------- liste modificabili ---------- */
+  .item{border:1px solid #e0ebf0;border-radius:14px;padding:14px;margin-bottom:12px;background:#fafdff}
+  .cat{border:2px solid #cfe6ec;border-radius:16px;padding:14px;margin-bottom:16px;background:#f6fcfe}
+  .cat-head{display:grid;grid-template-columns:88px 1fr 180px;gap:10px;align-items:start}
+  @media(max-width:600px){.cat-head{grid-template-columns:1fr}}
+  .cat-tit{font-weight:bold;font-size:.95rem;color:#0b7c8a;margin-bottom:6px}
+  .voci{margin-top:12px}
+  .voce{background:#fff;border:1px solid #e3eef2;border-radius:12px;padding:12px;margin-bottom:10px}
+  .voce-top{display:grid;grid-template-columns:1fr 130px;gap:12px}
+  @media(max-width:600px){.voce-top{grid-template-columns:1fr}}
+  .vuoto{font-size:.85rem;color:var(--muted);background:#f3f8fa;border:1px dashed #c9dde5;
+         border-radius:12px;padding:12px;text-align:center;margin-bottom:10px}
+
+  .foto-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+  .foto-row img{width:54px;height:54px;object-fit:cover;border-radius:10px;background:#cde;flex:none}
+  .foto-row input{flex:1;min-width:150px}
+  .badge-prima{font-size:.72rem;background:var(--c3);color:var(--ink);border-radius:999px;padding:2px 8px;font-weight:bold}
+
+  .gh-box{background:#fff8e6;border:1px solid var(--c3);border-radius:14px;padding:16px;margin-top:12px}
+  details summary{cursor:pointer;font-weight:bold;color:#0b7c8a;padding:8px 0;min-height:44px;display:flex;align-items:center}
+  code{background:var(--ink);color:#7fe;padding:2px 7px;border-radius:6px;font-size:.85rem}
+
+  .status{position:fixed;bottom:0;left:0;right:0;background:var(--ink);color:#fff;padding:14px 16px;
+          text-align:center;transform:translateY(130%);transition:.3s;z-index:20;font-size:.92rem}
+  .status.show{transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ============ GATE PASSWORD ============ -->
+<div class="gate" id="gate">
+  <h1>⚙️ Area Admin</h1>
+  <p>Residence Holiday — inserisci la password per modificare il sito.</p>
+  <label for="pwd" style="text-align:left">Password</label>
+  <input type="password" id="pwd" autocomplete="current-password" placeholder="Password" />
+  <div style="margin-top:14px"><button class="btn btn-p" id="btnEntra">Entra</button></div>
+  <p class="err" id="gateErr">Password errata. Riprova.</p>
+</div>
+
+<!-- ============ PANNELLO ============ -->
+<div id="app">
+  <div class="top">
+    <h1>⚙️ Gestione festa in piscina</h1>
+    <div class="sub">Modifica i contenuti e poi premi “Pubblica online”.</div>
+    <div class="actions">
+      <button class="btn btn-g" id="btnPubblica">🚀 Pubblica online</button>
+      <button class="btn btn-s" id="btnScarica">💾 Scarica file</button>
+      <button class="btn btn-w" id="btnSito">👁️ Vedi il sito</button>
+      <button class="btn btn-w" id="btnLoc">🖨️ Locandina</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div id="avvisoNonCaricato" style="display:none;background:#fff3cd;border:2px solid #e0a800;border-radius:14px;padding:16px 18px;margin-bottom:18px;color:#5a4500">
+      <b>⚠️ Non ho letto i contenuti attuali del sito.</b><br>
+      Per sicurezza «Pubblica online» e «Scarica file» sono disattivati: pubblicare adesso
+      cancellerebbe quello che è già online. Ricarica la pagina, oppure carica un backup
+      dalla sezione <b>File e backup</b>.
+    </div>
+
+    <nav class="sommario" aria-label="Sezioni del pannello">
+      <a href="#sec-residence">🏠 Residence</a>
+      <a href="#sec-tema">🎨 Tema</a>
+      <a href="#sec-evento">📅 Evento</a>
+      <a href="#sec-menu">🍽️ Menù</a>
+      <a href="#sec-pagamento">💶 Pagamento</a>
+      <a href="#sec-prenotazione">🎟️ Prenotazione</a>
+      <a href="#sec-regolamento">📋 Regolamento</a>
+      <a href="#sec-foto">📷 Foto</a>
+      <a href="#sec-condivisione">📣 Condivisione</a>
+      <a href="#sec-contatti">📞 Contatti</a>
+      <a href="#sec-locandina">🖨️ Locandina</a>
+      <a href="#sec-file">🗂️ File e backup</a>
+      <a href="#sec-github">🔗 GitHub</a>
+    </nav>
+
+    <!-- ---------- RESIDENCE ---------- -->
+    <div class="card" id="sec-residence">
+      <h2>🏠 Residence</h2>
+      <p class="intro">Il nome che compare in alto nel sito, sulla locandina e sul voucher.</p>
+      <div class="grid3">
+        <div>
+          <label for="r_nome">Nome del residence</label>
+          <input id="r_nome" />
+          <p class="hint">Es. Residence Holiday.</p>
+        </div>
+        <div>
+          <label for="r_loc">Località</label>
+          <input id="r_loc" />
+          <p class="hint">Il paese o la città, es. Montalto di Castro.</p>
+        </div>
+        <div>
+          <label for="r_emoji">Emoji</label>
+          <input id="r_emoji" />
+          <p class="hint">Un simbolo decorativo, es. 🌴 🏖️ 🏊.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- TEMA ---------- -->
+    <div class="card" id="sec-tema">
+      <h2>🎨 Tema della festa</h2>
+      <p class="intro">Titoli e colori usati in tutto il sito.</p>
+      <div class="grid2">
+        <div>
+          <label for="t_titolo">Titolo della festa</label>
+          <input id="t_titolo" />
+          <p class="hint">Il titolo grande della pagina, es. Serata Pizza in Piscina.</p>
+        </div>
+        <div>
+          <label for="t_tema">Nome del tema</label>
+          <input id="t_tema" />
+          <p class="hint">La targhetta colorata sopra il titolo, es. Serata Pizza 🍕.</p>
+        </div>
+      </div>
+      <label for="t_sub">Sottotitolo</label>
+      <input id="t_sub" />
+      <p class="hint">Una frase breve sotto il titolo, es. Pizza sotto le stelle a bordo piscina.</p>
+      <div class="grid3" style="margin-top:12px">
+        <div>
+          <label for="t_c1">Colore primario</label>
+          <input type="color" id="t_c1" />
+          <p class="hint">Titoli e bottoni principali.</p>
+        </div>
+        <div>
+          <label for="t_c2">Colore secondario</label>
+          <input type="color" id="t_c2" />
+          <p class="hint">Turchese “piscina”, sfondi e dettagli.</p>
+        </div>
+        <div>
+          <label for="t_c3">Colore accento</label>
+          <input type="color" id="t_c3" />
+          <p class="hint">Giallo per le evidenziazioni.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- EVENTO ---------- -->
+    <div class="card" id="sec-evento">
+      <h2>📅 Evento</h2>
+      <p class="intro">Quando e dove si fa la festa. La data qui sotto guida anche il conto alla rovescia.</p>
+      <div class="grid2">
+        <div>
+          <label for="e_data">Data della festa</label>
+          <input type="date" id="e_data" />
+          <p class="hint" id="e_data_hint">Scegli il giorno dal calendario.</p>
+        </div>
+        <div>
+          <label for="e_luogo">Luogo</label>
+          <input id="e_luogo" />
+          <p class="hint">Es. Piscina del Residence Holiday.</p>
+        </div>
+      </div>
+      <div class="grid2">
+        <div>
+          <label for="e_ora">Ora di inizio</label>
+          <input id="e_ora" placeholder="20:00" />
+          <p class="hint">Scrivila come 20:00.</p>
+        </div>
+        <div>
+          <label for="e_oraFine">Ora di fine</label>
+          <input id="e_oraFine" placeholder="24:00" />
+          <p class="hint">Facoltativa. Se la metti, il sito mostra “20:00 – 24:00”.</p>
+        </div>
+      </div>
+      <div class="grid2">
+        <div>
+          <label for="e_dress">Dress code</label>
+          <input id="e_dress" />
+          <p class="hint">Es. Look estivo. Lascia vuoto se non serve.</p>
+        </div>
+        <div>
+          <label for="e_posti">Posti totali</label>
+          <input type="number" id="e_posti" min="0" />
+          <p class="hint">Quante persone entrano al massimo.</p>
+        </div>
+      </div>
+      <label for="e_desc">Descrizione della serata</label>
+      <textarea id="e_desc" rows="4"></textarea>
+      <p class="hint">Il testo di presentazione nella sezione “La festa”.</p>
+    </div>
+
+    <!-- ---------- MENU ---------- -->
+    <div class="card" id="sec-menu">
+      <h2>🍽️ Menù</h2>
+      <p class="intro">Le categorie e le voci che i condomini scelgono durante la prenotazione.</p>
+
+      <label for="m_desc">Descrizione del menù</label>
+      <textarea id="m_desc" rows="2"></textarea>
+      <p class="hint">Frase introduttiva sopra l’elenco, es. chi prepara le pizze.</p>
+
+      <label for="m_avviso">Avviso (facoltativo)</label>
+      <textarea id="m_avviso" rows="2"></textarea>
+      <p class="hint">Nota evidenziata sotto il menù, es. “alcuni prezzi sono in verifica”. Lascia vuoto per non mostrarla.</p>
+
+      <h3 class="sub-h">Quota a persona (bagnina)</h3>
+      <p class="hint" style="margin-bottom:10px">
+        Una cifra fissa che viene <b>aggiunta al totale per ogni partecipante</b>, oltre a pizze e bevande.
+        Serve per pagare l’assistenza della bagnina durante la serata. Metti <b>0</b> per non usarla.
+      </p>
+
+      <div class="grid2">
+        <div>
+          <label for="m_coperto">Quota a persona (€)</label>
+          <input id="m_coperto" inputmode="decimal" />
+        </div>
+        <div>
+          <label for="m_copertoEmoji">Simbolo</label>
+          <input id="m_copertoEmoji" placeholder="🛟" />
+        </div>
+      </div>
+
+      <label for="m_copertoEtichetta">Come si chiama questa quota</label>
+      <input id="m_copertoEtichetta" placeholder="Quota assistenza in piscina" />
+      <p class="hint">Compare nel riepilogo, nel voucher e sulla locandina, es. “Quota assistenza in piscina”.</p>
+
+      <label for="m_copertoNota">Spiegazione per i condomini</label>
+      <textarea id="m_copertoNota" rows="3"></textarea>
+      <p class="hint">Frase gentile mostrata nella sezione Menù del sito, per spiegare a cosa serve la quota.</p>
+
+      <h3 class="sub-h">Categorie e voci <span class="conta" id="m_conteggio"></span></h3>
+      <p class="hint" style="margin-bottom:12px">
+        Ogni categoria è un gruppo del menù (es. “Pizze rosse”, “Bevande”).
+        Le categorie di tipo <b>Cibo</b> compaiono nel passo “Scegli le pizze”,
+        quelle di tipo <b>Bevanda</b> nel passo “Bevande”.
+        Usa ↑ e ↓ per cambiare l’ordine con cui appaiono sul sito.
+      </p>
+      <div id="categorie"></div>
+      <button class="add" id="btnAddCat">+ Aggiungi categoria</button>
+    </div>
+
+    <!-- ---------- PAGAMENTO ---------- -->
+    <div class="card" id="sec-pagamento">
+      <h2>💶 Come si paga</h2>
+      <p class="intro">Il riquadro con le istruzioni di pagamento, mostrato sul sito e dentro al voucher.</p>
+
+      <label for="pg_attivo">Mostrare le informazioni di pagamento?</label>
+      <select id="pg_attivo">
+        <option value="si">Sì, mostra la sezione</option>
+        <option value="no">No, nascondi tutto</option>
+      </select>
+      <p class="hint">Se scegli “No”, la sezione sparisce dal sito e dal voucher.</p>
+
+      <div class="grid2">
+        <div>
+          <label for="pg_titolo">Titolo della sezione</label>
+          <input id="pg_titolo" placeholder="Come si paga" />
+          <p class="hint">Es. Come si paga.</p>
+        </div>
+        <div>
+          <label for="pg_ref">A chi si consegna la quota</label>
+          <input id="pg_ref" />
+          <p class="hint">Es. la bagnina della piscina. Compare anche sul voucher.</p>
+        </div>
+      </div>
+
+      <label for="pg_scad">Scadenza del pagamento</label>
+      <input type="date" id="pg_scad" />
+      <p class="hint" id="pg_scad_hint">Entro questo giorno va consegnata la quota.</p>
+
+      <label for="pg_orari">Quando si può pagare</label>
+      <input id="pg_orari" />
+      <p class="hint">Es. in piscina, tutti i giorni dalle 10:00 alle 18:00.</p>
+
+      <label for="pg_istr">Istruzioni</label>
+      <textarea id="pg_istr" rows="3"></textarea>
+      <p class="hint">Spiega in modo semplice cosa deve fare chi prenota.</p>
+
+      <label for="pg_nota">Nota finale (facoltativa)</label>
+      <textarea id="pg_nota" rows="2"></textarea>
+      <p class="hint">Es. cosa fare se non si riesce a pagare entro la scadenza.</p>
+    </div>
+
+    <!-- ---------- PRENOTAZIONE ---------- -->
+    <div class="card" id="sec-prenotazione">
+      <h2>🎟️ Prenotazione</h2>
+      <p class="intro">Come arrivano le prenotazioni agli organizzatori e come è fatto il voucher.</p>
+
+      <label for="pr_num">Numero WhatsApp degli organizzatori</label>
+      <input id="pr_num" inputmode="tel" placeholder="393331234567" />
+      <p class="hint">Con il prefisso internazionale e <b>senza</b> + né spazi: per l’Italia inizia con 39.</p>
+
+      <label for="pr_msg">Messaggio base della prenotazione</label>
+      <textarea id="pr_msg" rows="3"></textarea>
+      <p class="hint">La prima riga del messaggio WhatsApp/Telegram: sotto viene aggiunto in automatico tutto l’ordine.</p>
+
+      <label for="pr_scad">Scadenza delle prenotazioni</label>
+      <input type="date" id="pr_scad" />
+      <p class="hint" id="pr_scad_hint">Ultimo giorno utile per prenotare.</p>
+
+      <div class="grid2">
+        <div>
+          <label for="pr_appart">Chiedere l’appartamento?</label>
+          <select id="pr_appart">
+            <option value="si">Sì, chiedi appartamento/palazzina</option>
+            <option value="no">No, non chiederlo</option>
+          </select>
+          <p class="hint">Campo facoltativo per chi prenota, utile per riconoscere i condomini.</p>
+        </div>
+        <div>
+          <label for="pr_prefisso">Prefisso del codice voucher</label>
+          <input id="pr_prefisso" placeholder="RH" />
+          <p class="hint">Poche lettere maiuscole: con <b>RH</b> i codici diventano tipo <b>RH-0808-K7QA</b>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- REGOLAMENTO ---------- -->
+    <div class="card" id="sec-regolamento">
+      <h2>📋 Regolamento</h2>
+      <p class="intro">Le regole della serata, mostrate come elenco numerato. Usa ↑ e ↓ per cambiarne l’ordine.</p>
+      <div id="regole"></div>
+      <button class="add" id="btnAddRegola">+ Aggiungi regola</button>
+    </div>
+
+    <!-- ---------- FOTO ---------- -->
+    <div class="card" id="sec-foto">
+      <h2>📷 Foto</h2>
+      <p class="intro">La <b>prima</b> foto dell’elenco è quella grande in cima al sito e sulla locandina. Le altre finiscono nella galleria.</p>
+      <div id="foto"></div>
+      <button class="add" id="btnAddFoto">+ Aggiungi foto dall’elenco</button>
+
+      <label for="fileFoto" style="margin-top:18px">Carica una foto dal telefono o dal computer</label>
+      <input type="file" id="fileFoto" accept="image/*" />
+      <p class="hint">La foto viene caricata su GitHub nella cartella <code>images/</code> e aggiunta in fondo all’elenco. Serve il collegamento a GitHub configurato più in basso.</p>
+    </div>
+
+    <!-- ---------- CONDIVISIONE ---------- -->
+    <div class="card" id="sec-condivisione">
+      <h2>📣 Condivisione</h2>
+      <p class="intro">Serve per i bottoni “Condividi” e per il QR code della locandina.</p>
+      <label for="c_url">Indirizzo pubblico del sito</label>
+      <input id="c_url" placeholder="https://tuonome.github.io/residence-holiday/" />
+      <p class="hint">È l’indirizzo dentro al QR code della locandina: controlla che sia giusto prima di stampare.</p>
+      <div class="grid2" style="margin-top:12px">
+        <div>
+          <label for="c_tg">Link al gruppo Telegram (facoltativo)</label>
+          <input id="c_tg" placeholder="https://t.me/..." />
+          <p class="hint">Se lo metti, il bottone Telegram del voucher porta al gruppo.</p>
+        </div>
+        <div>
+          <label for="c_wa">Link al gruppo WhatsApp (facoltativo)</label>
+          <input id="c_wa" placeholder="https://chat.whatsapp.com/..." />
+          <p class="hint">Lascia vuoto se non c’è un gruppo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- CONTATTI ---------- -->
+    <div class="card" id="sec-contatti">
+      <h2>📞 Contatti</h2>
+      <p class="intro">Compaiono in fondo al sito. I campi vuoti non vengono mostrati.</p>
+      <div class="grid3">
+        <div>
+          <label for="k_org">Organizzatore</label>
+          <input id="k_org" />
+          <p class="hint">Es. Organizzazione festa — Residence Holiday.</p>
+        </div>
+        <div>
+          <label for="k_tel">Telefono</label>
+          <input id="k_tel" inputmode="tel" />
+          <p class="hint">Facoltativo.</p>
+        </div>
+        <div>
+          <label for="k_email">Email</label>
+          <input id="k_email" inputmode="email" />
+          <p class="hint">Facoltativa.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- LOCANDINA ---------- -->
+    <div class="card" id="sec-locandina">
+      <h2>🖨️ Locandina</h2>
+      <p class="intro">Il foglio A4 da stampare e appendere all’ingresso della piscina, con il QR code per prenotare.</p>
+
+      <label for="l_claim">Frase a effetto (claim)</label>
+      <input id="l_claim" placeholder="Tutti in piscina!" />
+      <p class="hint">Poche parole, si legge da lontano.</p>
+
+      <label for="l_qr">Istruzioni per il QR code</label>
+      <textarea id="l_qr" rows="2"></textarea>
+      <p class="hint">Es. Inquadra il QR con la fotocamera del telefono per vedere il menù e prenotare.</p>
+
+      <label for="l_nota">Nota in fondo alla locandina</label>
+      <textarea id="l_nota" rows="2"></textarea>
+      <p class="hint">Es. scadenza delle prenotazioni e a chi si consegna la quota.</p>
+
+      <div class="toolbar" style="justify-content:flex-start">
+        <button class="btn btn-s" id="btnLoc2">🖨️ Apri la locandina</button>
+      </div>
+      <p class="hint">Si apre in una nuova scheda: da lì puoi stamparla o salvarla in PDF. Ricordati di pubblicare prima le modifiche.</p>
+    </div>
+
+    <!-- ---------- FILE E BACKUP ---------- -->
+    <div class="card" id="sec-file">
+      <h2>🗂️ File e backup</h2>
+      <p class="intro">Tutti i contenuti del sito stanno in un unico file: <code>contenuti.json</code>.</p>
+      <div class="toolbar" style="justify-content:flex-start">
+        <button class="btn btn-s" id="btnScarica2">💾 Scarica il file dei contenuti</button>
+      </div>
+      <p class="hint">Tieni una copia di sicurezza sul computer. Se non usi GitHub, carica tu questo file nel sito al posto del vecchio.</p>
+
+      <label for="fileJson" style="margin-top:16px">Ricarica un file contenuti.json salvato</label>
+      <input type="file" id="fileJson" accept=".json,application/json" />
+      <p class="hint">Rimette nel pannello tutti i valori di un file scaricato prima. Non pubblica nulla: dopo devi premere “Pubblica online”.</p>
+    </div>
+
+    <!-- ---------- GITHUB ---------- -->
+    <div class="card" id="sec-github">
+      <h2>🔗 Collegamento a GitHub</h2>
+      <p class="intro">Serve al bottone “Pubblica online” e al caricamento delle foto.</p>
+      <details>
+        <summary>Apri le impostazioni GitHub</summary>
+        <div class="gh-box">
+          <p class="hint" style="margin-top:0">
+            Questi dati restano salvati <b>solo in questo browser</b>, non finiscono online.
+            Se non li imposti, usa il bottone <b>💾 Scarica file</b>.
+          </p>
+          <div class="grid2">
+            <div>
+              <label for="gh_owner">Utente o organizzazione GitHub</label>
+              <input id="gh_owner" placeholder="tuonome" />
+            </div>
+            <div>
+              <label for="gh_repo">Nome del repository</label>
+              <input id="gh_repo" placeholder="residence-holiday" />
+            </div>
+          </div>
+          <div class="grid2">
+            <div>
+              <label for="gh_branch">Ramo (branch)</label>
+              <input id="gh_branch" placeholder="main" value="main" />
+            </div>
+            <div>
+              <label for="gh_token">Token di accesso</label>
+              <input id="gh_token" type="password" placeholder="github_pat_..." autocomplete="off" />
+              <p class="hint">Token “Fine-grained”, permesso <b>Contents: Read and write</b>.</p>
+            </div>
+          </div>
+          <div class="toolbar" style="justify-content:flex-start">
+            <button class="btn btn-p" id="btnSaveGh">Salva impostazioni GitHub</button>
+          </div>
+        </div>
+      </details>
+    </div>
+
+  </div>
+</div>
+
+<div class="status" id="status" role="status" aria-live="polite"></div>
+
+<script>
+/* =========================================================
+   PASSWORD DEL PANNELLO (cambiala qui)
+   ========================================================= */
+const PASSWORD = "holiday2026";
+/* ========================================================= */
+
+/* Nota sicurezza: in questo file NON si costruisce mai HTML
+   concatenando dati. Gli elementi sono creati con createElement
+   e i valori assegnati con .value / .textContent. */
+
+const $ = id => document.getElementById(id);
+
+let DATA = null;      // oggetto JSON completo (contratto contenuti.json)
+let sporco = false;   // true se ci sono modifiche non ancora salvate
+
+/* ---------- struttura di riserva, stesso ordine di contenuti.json ---------- */
+function schemaVuoto(){
+  return {
+    versione: 2,
+    residence:{ nome:"", localita:"", emoji:"🌴" },
+    tema:{ titoloFesta:"", sottotitolo:"", nomeTema:"",
+           colorePrimario:"#e63946", coloreSecondario:"#12b6c9", coloreAccento:"#ffd23f" },
+    evento:{ data:"", orario:"", orarioFine:"", luogo:"", descrizione:"", dressCode:"", postiTotali:0 },
+    menu:{ descrizione:"", avviso:"", copertoPersona:0, copertoEtichetta:"",
+           copertoEmoji:"", copertoNota:"", categorie:[] },
+    pagamento:{ attivo:true, titolo:"Come si paga", referente:"", scadenza:"", orari:"", istruzioni:"", nota:"" },
+    prenotazione:{ whatsappNumero:"", messaggioBase:"", scadenza:"", chiediAppartamento:true, prefissoCodice:"RH" },
+    regolamento:[],
+    foto:[],
+    condivisione:{ urlSito:"", linkGruppoTelegram:"", linkGruppoWhatsApp:"" },
+    contatti:{ organizzatore:"", telefono:"", email:"" },
+    locandina:{ claim:"", istruzioniQr:"", nota:"" }
+  };
+}
+
+/* =========================================================
+   GATE
+   ========================================================= */
+function entra(){
+  if($('pwd').value === PASSWORD){
+    sessionStorage.setItem('rh_ok','1');
+    apriPannello();
+  } else {
+    $('gateErr').style.display='block';
+    $('pwd').select();
+  }
+}
+function apriPannello(){
+  $('gate').style.display='none';
+  $('app').style.display='block';
+  init();
+}
+$('btnEntra').addEventListener('click', entra);
+$('pwd').addEventListener('keydown', e => { if(e.key==='Enter') entra(); });
+
+/* =========================================================
+   UTILITÀ
+   ========================================================= */
+function toast(msg, ms){
+  const s=$('status');
+  s.textContent=msg;
+  s.classList.add('show');
+  clearTimeout(window._t);
+  window._t=setTimeout(()=>s.classList.remove('show'), ms||3500);
+}
+function apri(url){ window.open(url,'_blank'); }
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function tocca(){ sporco = true; }
+
+/* prezzi: si scrivono con la virgola, si salvano come numero */
+function leggiNumero(v){
+  const s = String(v==null?'':v).replace(/[€\s]/g,'').replace(',','.').trim();
+  if(s==='') return 0;
+  const n = Number(s);
+  return isFinite(n) ? n : 0;
+}
+function scriviNumero(n){
+  if(n===null || n===undefined || n==='') return '';
+  return String(n).replace('.', ',');
+}
+
+/* data in italiano per i suggerimenti sotto i campi */
+function dataItaliana(iso){
+  if(!iso) return '';
+  const p = String(iso).split('-');
+  if(p.length!==3) return '';
+  const d = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+  if(isNaN(d.getTime())) return '';
+  try { return d.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
+  catch(e){ return iso; }
+}
+function legaAnteprimaData(idInput, idHint, testoBase){
+  const inp=$(idInput), hint=$(idHint);
+  const agg=()=>{
+    const t=dataItaliana(inp.value);
+    hint.textContent = t ? (testoBase+' — '+t) : testoBase;
+  };
+  inp.addEventListener('input', agg);
+  agg();
+}
+
+/* identificativo categoria a partire dal nome */
+function slug(s){
+  return String(s||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'');
+}
+
+/* costruzione elementi (mai innerHTML con dati) */
+function crea(tag, cls, testo){
+  const e=document.createElement(tag);
+  if(cls) e.className=cls;
+  if(testo!==undefined && testo!==null) e.textContent=testo;
+  return e;
+}
+function campo(etichetta, classe, valore, opzioni){
+  const o = opzioni||{};
+  const box = crea('div');
+  const lab = crea('label', null, etichetta);
+  const inp = document.createElement(o.multilinea ? 'textarea' : 'input');
+  inp.className = classe;
+  inp.value = (valore===null||valore===undefined) ? '' : String(valore);
+  if(o.placeholder) inp.placeholder = o.placeholder;
+  if(o.inputmode) inp.setAttribute('inputmode', o.inputmode);
+  if(o.multilinea) inp.rows = o.rows || 2;
+  inp.addEventListener('input', tocca);
+  box.appendChild(lab); box.appendChild(inp);
+  if(o.hint) box.appendChild(crea('p','hint', o.hint));
+  return { box:box, input:inp };
+}
+function bottoneMini(testo, titolo, classe, azione){
+  const b = crea('button', 'mini' + (classe? ' '+classe : ''), testo);
+  b.type='button';
+  b.title = titolo;
+  b.setAttribute('aria-label', titolo);
+  b.addEventListener('click', azione);
+  return b;
+}
+/* sposta un elemento fra i suoi fratelli */
+function sposta(el, dir){
+  const p = el.parentNode;
+  if(dir < 0 && el.previousElementSibling) p.insertBefore(el, el.previousElementSibling);
+  if(dir > 0 && el.nextElementSibling) p.insertBefore(el.nextElementSibling, el);
+  tocca();
+}
+
+/* =========================================================
+   AVVIO
+   ========================================================= */
+if(sessionStorage.getItem('rh_ok')==='1'){ apriPannello(); }
+
+/* Vero solo se contenuti.json e' stato letto davvero. Se resta falso il modulo
+   e' pieno di campi vuoti: pubblicare in quel momento cancellerebbe tutto quello
+   che e' online, quindi salvataggio e pubblicazione restano bloccati finche' non
+   si ricarica un file valido dalla sezione "File e backup". */
+var caricatoDavvero = false;
+
+function aggiornaBlocco(){
+  var bloccato = !caricatoDavvero;
+  ['btnPubblica','btnScarica','btnScarica2'].forEach(function(id){
+    var b = document.getElementById(id);
+    if(!b) return;
+    b.disabled = bloccato;
+    b.title = bloccato
+      ? 'Prima devo riuscire a leggere i contenuti attuali: ricarica la pagina oppure carica un backup dalla sezione “File e backup”.'
+      : '';
+  });
+  var av = document.getElementById('avvisoNonCaricato');
+  if(av) av.style.display = bloccato ? '' : 'none';
+}
+
+async function init(){
+  try{
+    const r = await fetch('contenuti.json', {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    DATA = await r.json();
+  }catch(e){
+    DATA = null;
+  }
+  if(!DATA || typeof DATA !== 'object'){
+    DATA = schemaVuoto();
+    caricatoDavvero = false;
+    toast('⚠️ Non riesco a leggere contenuti.json: parto da una scheda vuota. Puoi ricaricare un file salvato dalla sezione “File e backup”.', 9000);
+  } else {
+    caricatoDavvero = true;
+  }
+  aggiornaBlocco();
+  riempi();
+  loadGh();
+  collegaEventi();
+  sporco = false;
+}
+
+/* =========================================================
+   RIEMPIMENTO DEL MODULO
+   ========================================================= */
+function riempi(){
+  const d = DATA;
+  const res = d.residence||{}, tem = d.tema||{}, ev = d.evento||{}, me = d.menu||{},
+        pg = d.pagamento||{}, pr = d.prenotazione||{}, co = d.condivisione||{},
+        ct = d.contatti||{}, lo = d.locandina||{};
+
+  $('r_nome').value  = res.nome||"";
+  $('r_loc').value   = res.localita||"";
+  $('r_emoji').value = res.emoji||"🌴";
+
+  $('t_titolo').value = tem.titoloFesta||"";
+  $('t_tema').value   = tem.nomeTema||"";
+  $('t_sub').value    = tem.sottotitolo||"";
+  $('t_c1').value     = tem.colorePrimario||"#e63946";
+  $('t_c2').value     = tem.coloreSecondario||"#12b6c9";
+  $('t_c3').value     = tem.coloreAccento||"#ffd23f";
+
+  $('e_data').value    = ev.data||"";
+  $('e_ora').value     = ev.orario||"";
+  $('e_oraFine').value = ev.orarioFine||"";
+  $('e_luogo').value   = ev.luogo||"";
+  $('e_dress').value   = ev.dressCode||"";
+  $('e_posti').value   = (ev.postiTotali===null||ev.postiTotali===undefined) ? "" : String(ev.postiTotali);
+  $('e_desc').value    = ev.descrizione||"";
+
+  $('m_desc').value    = me.descrizione||"";
+  $('m_avviso').value  = me.avviso||"";
+  $('m_coperto').value = scriviNumero(me.copertoPersona===undefined ? 0 : me.copertoPersona);
+  $('m_copertoEtichetta').value = me.copertoEtichetta||"";
+  $('m_copertoEmoji').value     = me.copertoEmoji||"";
+  $('m_copertoNota').value      = me.copertoNota||"";
+
+  $('pg_attivo').value = (pg.attivo===false) ? "no" : "si";
+  $('pg_titolo').value = pg.titolo||"";
+  $('pg_ref').value    = pg.referente||"";
+  $('pg_scad').value   = pg.scadenza||"";
+  $('pg_orari').value  = pg.orari||"";
+  $('pg_istr').value   = pg.istruzioni||"";
+  $('pg_nota').value   = pg.nota||"";
+
+  $('pr_num').value      = pr.whatsappNumero||"";
+  $('pr_msg').value      = pr.messaggioBase||"";
+  $('pr_scad').value     = pr.scadenza||"";
+  $('pr_appart').value   = (pr.chiediAppartamento===false) ? "no" : "si";
+  $('pr_prefisso').value = pr.prefissoCodice||"RH";
+
+  $('c_url').value = co.urlSito||"";
+  $('c_tg').value  = co.linkGruppoTelegram||"";
+  $('c_wa').value  = co.linkGruppoWhatsApp||"";
+
+  $('k_org').value   = ct.organizzatore||"";
+  $('k_tel').value   = ct.telefono||"";
+  $('k_email').value = ct.email||"";
+
+  $('l_claim').value = lo.claim||"";
+  $('l_qr').value    = lo.istruzioniQr||"";
+  $('l_nota').value  = lo.nota||"";
+
+  $('categorie').textContent = "";
+  (me.categorie||[]).forEach(c => $('categorie').appendChild(creaCategoria(c)));
+  aggiornaConteggi();
+
+  $('regole').textContent = "";
+  (d.regolamento||[]).forEach(r => addRegola(r));
+
+  $('foto').textContent = "";
+  (d.foto||[]).forEach(u => addFoto(u));
+  aggiornaFoto();
+}
+
+/* =========================================================
+   MENÙ: CATEGORIE E VOCI
+   ========================================================= */
+function creaVoce(v){
+  const dato = v || {};
+  const riga = crea('div','voce');
+  riga._orig = dato;
+
+  const top = crea('div','voce-top');
+  const cNome = campo('Nome della voce', 'v-nome', dato.nome||'', {placeholder:'Margherita'});
+  const cPrez = campo('Prezzo (€)', 'v-prezzo', scriviNumero(dato.prezzo===undefined?0:dato.prezzo),
+                      {inputmode:'decimal', placeholder:'6'});
+  top.appendChild(cNome.box);
+  top.appendChild(cPrez.box);
+  riga.appendChild(top);
+
+  const cDesc = campo('Descrizione', 'v-desc', dato.descrizione||'',
+                      {placeholder:'Pomodoro, mozzarella, basilico', hint:'Gli ingredienti o due parole di spiegazione.'});
+  riga.appendChild(cDesc.box);
+
+  const tb = crea('div','toolbar');
+  tb.appendChild(bottoneMini('↑','Sposta questa voce più in alto', null, ()=>sposta(riga,-1)));
+  tb.appendChild(bottoneMini('↓','Sposta questa voce più in basso', null, ()=>sposta(riga, 1)));
+  tb.appendChild(bottoneMini('✕','Elimina questa voce','del', ()=>{
+    riga.remove(); tocca(); aggiornaConteggi();
+  }));
+  riga.appendChild(tb);
+
+  return riga;
+}
+
+function creaCategoria(c){
+  const dato = c || {};
+  const box = crea('div','cat');
+  box._orig = dato;
+  if(dato.id) box.dataset.catid = dato.id;
+
+  box.appendChild(crea('div','cat-tit','Categoria del menù'));
+
+  const head = crea('div','cat-head');
+  const cEmoji = campo('Emoji', 'c-emoji', dato.emoji||'', {placeholder:'🍕', hint:'Un simbolo, es. 🍕 🧀 🥤'});
+  const cNome  = campo('Nome della categoria', 'c-nome', dato.nome||'', {placeholder:'Pizze rosse', hint:'Il titolo del gruppo sul sito.'});
+
+  const boxTipo = crea('div');
+  boxTipo.appendChild(crea('label', null, 'Tipo'));
+  const sel = document.createElement('select');
+  sel.className='c-tipo';
+  const o1=document.createElement('option'); o1.value='cibo';    o1.textContent='Cibo (pizze, piatti)';
+  const o2=document.createElement('option'); o2.value='bevanda'; o2.textContent='Bevanda';
+  sel.appendChild(o1); sel.appendChild(o2);
+  sel.value = (dato.tipo==='bevanda') ? 'bevanda' : 'cibo';
+  sel.addEventListener('change', tocca);
+  boxTipo.appendChild(sel);
+  boxTipo.appendChild(crea('p','hint','Decide in quale passo della prenotazione appare.'));
+
+  head.appendChild(cEmoji.box);
+  head.appendChild(cNome.box);
+  head.appendChild(boxTipo);
+  box.appendChild(head);
+
+  const tbCat = crea('div','toolbar');
+  tbCat.appendChild(bottoneMini('↑','Sposta questa categoria più in alto', null, ()=>sposta(box,-1)));
+  tbCat.appendChild(bottoneMini('↓','Sposta questa categoria più in basso', null, ()=>sposta(box, 1)));
+  tbCat.appendChild(bottoneMini('✕ Elimina categoria','Elimina questa categoria e tutte le sue voci','del', ()=>{
+    box.remove(); tocca(); aggiornaConteggi();
+  }));
+  box.appendChild(tbCat);
+
+  const lista = crea('div','voci');
+  (dato.voci||[]).forEach(v => lista.appendChild(creaVoce(v)));
+  box.appendChild(lista);
+
+  const btn = crea('button','add small','+ Aggiungi voce a questa categoria');
+  btn.type='button';
+  btn.addEventListener('click', ()=>{
+    lista.appendChild(creaVoce({nome:'', descrizione:'', prezzo:0}));
+    tocca(); aggiornaConteggi();
+  });
+  box.appendChild(btn);
+
+  return box;
+}
+
+function addCategoria(){
+  const box = creaCategoria({id:'', nome:'', emoji:'🍕', tipo:'cibo', voci:[{nome:'', descrizione:'', prezzo:0}]});
+  $('categorie').appendChild(box);
+  tocca(); aggiornaConteggi();
+  box.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function aggiornaConteggi(){
+  const cat = document.querySelectorAll('#categorie .cat').length;
+  const voci = document.querySelectorAll('#categorie .voce').length;
+  $('m_conteggio').textContent = cat + (cat===1?' categoria':' categorie') + ' · ' + voci + (voci===1?' voce':' voci');
+}
+
+/* =========================================================
+   REGOLAMENTO
+   ========================================================= */
+function addRegola(testo){
+  const riga = crea('div','item');
+  const c = campo('Regola', 'reg-val', testo||'', {multilinea:true, rows:2});
+  riga.appendChild(c.box);
+  const tb = crea('div','toolbar');
+  tb.appendChild(bottoneMini('↑','Sposta questa regola più in alto', null, ()=>sposta(riga,-1)));
+  tb.appendChild(bottoneMini('↓','Sposta questa regola più in basso', null, ()=>sposta(riga, 1)));
+  tb.appendChild(bottoneMini('✕','Elimina questa regola','del', ()=>{ riga.remove(); tocca(); }));
+  riga.appendChild(tb);
+  $('regole').appendChild(riga);
+}
+
+/* =========================================================
+   FOTO
+   ========================================================= */
+function addFoto(url){
+  const riga = crea('div','foto-row');
+
+  const img = document.createElement('img');
+  img.alt = '';
+  img.src = url||'';
+  img.addEventListener('error', ()=>{ img.style.opacity=.25; });
+
+  const inp = document.createElement('input');
+  inp.className='foto-val';
+  inp.value = url||'';
+  inp.placeholder = 'images/piscina-vasca.jpg';
+  inp.addEventListener('input', ()=>{ img.style.opacity=1; img.src = inp.value; tocca(); });
+
+  const su  = bottoneMini('↑','Sposta questa foto più in alto', null, ()=>{ sposta(riga,-1); aggiornaFoto(); });
+  const giu = bottoneMini('↓','Sposta questa foto più in basso', null, ()=>{ sposta(riga, 1); aggiornaFoto(); });
+  const del = bottoneMini('✕','Elimina questa foto dall’elenco','del', ()=>{ riga.remove(); tocca(); aggiornaFoto(); });
+
+  const tag = crea('span','badge-prima','in evidenza');
+  tag.style.display='none';
+
+  riga.appendChild(img);
+  riga.appendChild(inp);
+  riga.appendChild(tag);
+  riga.appendChild(su); riga.appendChild(giu); riga.appendChild(del);
+  $('foto').appendChild(riga);
+  aggiornaFoto();
+}
+function aggiornaFoto(){
+  const righe = document.querySelectorAll('#foto .foto-row');
+  righe.forEach((r,i)=>{
+    const tag = r.querySelector('.badge-prima');
+    if(tag) tag.style.display = (i===0) ? 'inline-block' : 'none';
+  });
+}
+
+/* =========================================================
+   RACCOLTA DEI DATI
+   Si parte dal JSON caricato e si sovrascrivono solo i campi
+   gestiti dal pannello: così nessun campo va perso.
+   ========================================================= */
+function raccogliCategorie(){
+  const usati = {};
+  return [...document.querySelectorAll('#categorie .cat')].map(box => {
+    const nome  = box.querySelector('.c-nome').value.trim();
+    const emoji = box.querySelector('.c-emoji').value.trim();
+    const tipo  = box.querySelector('.c-tipo').value === 'bevanda' ? 'bevanda' : 'cibo';
+
+    let id = (box.dataset.catid||'').trim() || slug(nome) || 'categoria';
+    if(usati[id]){ let n=2; while(usati[id+'-'+n]) n++; id = id+'-'+n; }
+    usati[id] = true;
+    box.dataset.catid = id;
+
+    const voci = [...box.querySelectorAll('.voce')].map(riga => {
+      const base = riga._orig || {};
+      return Object.assign({}, base, {
+        nome:        riga.querySelector('.v-nome').value.trim(),
+        descrizione: riga.querySelector('.v-desc').value.trim(),
+        prezzo:      leggiNumero(riga.querySelector('.v-prezzo').value)
+      });
+    }).filter(v => v.nome !== '');
+
+    return Object.assign({}, box._orig||{}, {id:id, nome:nome, emoji:emoji, tipo:tipo, voci:voci});
+  }).filter(c => c.nome !== '' || c.voci.length > 0);
+}
+
+function collect(){
+  const d = clone(DATA || schemaVuoto());
+  d.versione = 2;
+
+  d.residence = Object.assign({}, d.residence, {
+    nome:     $('r_nome').value.trim(),
+    localita: $('r_loc').value.trim(),
+    emoji:    $('r_emoji').value.trim()
+  });
+
+  d.tema = Object.assign({}, d.tema, {
+    titoloFesta:      $('t_titolo').value.trim(),
+    sottotitolo:      $('t_sub').value.trim(),
+    nomeTema:         $('t_tema').value.trim(),
+    colorePrimario:   $('t_c1').value,
+    coloreSecondario: $('t_c2').value,
+    coloreAccento:    $('t_c3').value
+  });
+
+  const posti = $('e_posti').value.trim();
+  d.evento = Object.assign({}, d.evento, {
+    data:        $('e_data').value,
+    orario:      $('e_ora').value.trim(),
+    orarioFine:  $('e_oraFine').value.trim(),
+    luogo:       $('e_luogo').value.trim(),
+    descrizione: $('e_desc').value.trim(),
+    dressCode:   $('e_dress').value.trim(),
+    postiTotali: posti==='' ? null : (Number(posti)||0)
+  });
+
+  d.menu = Object.assign({}, d.menu, {
+    descrizione:    $('m_desc').value.trim(),
+    avviso:         $('m_avviso').value.trim(),
+    copertoPersona:   leggiNumero($('m_coperto').value),
+    copertoEtichetta: $('m_copertoEtichetta').value.trim(),
+    copertoEmoji:     $('m_copertoEmoji').value.trim(),
+    copertoNota:      $('m_copertoNota').value.trim(),
+    categorie:      raccogliCategorie()
+  });
+
+  d.pagamento = Object.assign({}, d.pagamento, {
+    attivo:     $('pg_attivo').value === 'si',
+    titolo:     $('pg_titolo').value.trim(),
+    referente:  $('pg_ref').value.trim(),
+    scadenza:   $('pg_scad').value,
+    orari:      $('pg_orari').value.trim(),
+    istruzioni: $('pg_istr').value.trim(),
+    nota:       $('pg_nota').value.trim()
+  });
+
+  d.prenotazione = Object.assign({}, d.prenotazione, {
+    whatsappNumero:     $('pr_num').value.replace(/[^\d]/g,''),
+    messaggioBase:      $('pr_msg').value.trim(),
+    scadenza:           $('pr_scad').value,
+    chiediAppartamento: $('pr_appart').value === 'si',
+    prefissoCodice:     ($('pr_prefisso').value.trim().toUpperCase() || 'RH')
+  });
+
+  d.regolamento = [...document.querySelectorAll('#regole .reg-val')]
+                    .map(x => x.value.trim()).filter(v => v !== '');
+
+  d.foto = [...document.querySelectorAll('#foto .foto-val')]
+                    .map(x => x.value.trim()).filter(v => v !== '');
+
+  d.condivisione = Object.assign({}, d.condivisione, {
+    urlSito:            $('c_url').value.trim(),
+    linkGruppoTelegram: $('c_tg').value.trim(),
+    linkGruppoWhatsApp: $('c_wa').value.trim()
+  });
+
+  d.contatti = Object.assign({}, d.contatti, {
+    organizzatore: $('k_org').value.trim(),
+    telefono:      $('k_tel').value.trim(),
+    email:         $('k_email').value.trim()
+  });
+
+  d.locandina = Object.assign({}, d.locandina, {
+    claim:        $('l_claim').value.trim(),
+    istruzioniQr: $('l_qr').value.trim(),
+    nota:         $('l_nota').value.trim()
+  });
+
+  DATA = d;
+  return d;
+}
+
+/* controlli gentili prima di salvare: avvisano, non bloccano */
+function avvisi(d){
+  const p=[];
+  if(!d.evento.data)                 p.push('la data della festa');
+  if(!d.tema.titoloFesta)            p.push('il titolo della festa');
+  if(!d.prenotazione.whatsappNumero) p.push('il numero WhatsApp');
+  if(!d.menu.categorie.length)       p.push('almeno una categoria del menù');
+  return p;
+}
+
+/* =========================================================
+   SALVATAGGIO
+   ========================================================= */
+function scarica(){
+  if(!caricatoDavvero){
+    toast('⚠️ Non ho letto i contenuti attuali: non salvo per non cancellarli. Ricarica la pagina o carica un backup.', 9000);
+    return;
+  }
+  const d = collect();
+  const json = JSON.stringify(d, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'contenuti.json';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  sporco = false;
+  const manca = avvisi(d);
+  toast(manca.length
+    ? 'File scaricato, ma manca ancora: ' + manca.join(', ') + '.'
+    : 'File contenuti.json scaricato. Ora caricalo nel sito al posto del vecchio.', 6000);
+}
+
+function caricaJsonLocale(ev){
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const nuovo = JSON.parse(String(reader.result));
+      if(!nuovo || typeof nuovo !== 'object' || Array.isArray(nuovo)) throw new Error('formato non valido');
+      /* Controllo minimo che sia davvero il file di questo sito: senza queste
+         sezioni riempi() si romperebbe a meta' lasciando il pannello incoerente. */
+      const attese = ['residence','tema','evento','menu','prenotazione'];
+      const mancanti = attese.filter(function(k){ return !nuovo[k] || typeof nuovo[k] !== 'object'; });
+      if(mancanti.length) throw new Error('mancano le sezioni: ' + mancanti.join(', '));
+      if(!Array.isArray(nuovo.menu.categorie)) nuovo.menu.categorie = [];
+      if(!Array.isArray(nuovo.regolamento)) nuovo.regolamento = [];
+      if(!Array.isArray(nuovo.foto)) nuovo.foto = [];
+      DATA = nuovo;
+      riempi();
+      caricatoDavvero = true;
+      aggiornaBlocco();
+      sporco = true;
+      toast('✅ File caricato nel pannello. Controlla i dati e poi premi “Pubblica online”.', 7000);
+    }catch(e){
+      toast('⚠️ Questo file non sembra un contenuti.json valido.', 6000);
+    }
+  };
+  reader.readAsText(file);
+  ev.target.value='';
+}
+
+/* =========================================================
+   GITHUB
+   ========================================================= */
+function saveGh(){
+  localStorage.setItem('rh_gh', JSON.stringify({
+    owner:  $('gh_owner').value.trim(),
+    repo:   $('gh_repo').value.trim(),
+    branch: $('gh_branch').value.trim() || 'main',
+    token:  $('gh_token').value.trim()
+  }));
+  toast('Impostazioni GitHub salvate in questo browser.');
+}
+function loadGh(){
+  try{
+    const s = JSON.parse(localStorage.getItem('rh_gh')||'{}');
+    $('gh_owner').value  = s.owner||"";
+    $('gh_repo').value   = s.repo||"";
+    $('gh_branch').value = s.branch||"main";
+    $('gh_token').value  = s.token||"";
+  }catch(e){}
+}
+function gh(){ try{ return JSON.parse(localStorage.getItem('rh_gh')||'{}'); }catch(e){ return {}; } }
+
+function b64(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for(let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+async function ghPut(path, contentB64, message){
+  const s = gh();
+  if(!s.owner || !s.repo || !s.token) throw new Error('Configura prima GitHub (utente, repository, token).');
+  const branch = s.branch || 'main';
+  const api = 'https://api.github.com/repos/'+s.owner+'/'+s.repo+'/contents/'+path;
+  const headers = {'Authorization':'Bearer '+s.token, 'Accept':'application/vnd.github+json'};
+  let sha;
+  const cur = await fetch(api+'?ref='+encodeURIComponent(branch), {headers});
+  if(cur.ok){ sha = (await cur.json()).sha; }
+  const res = await fetch(api, {
+    method:'PUT', headers,
+    body: JSON.stringify({message:message, content:contentB64, branch:branch, sha:sha})
+  });
+  if(!res.ok){ throw new Error('GitHub '+res.status+': '+(await res.text())); }
+  return res.json();
+}
+
+async function pubblica(){
+  if(!caricatoDavvero){
+    toast('⚠️ Non ho letto i contenuti attuali: non pubblico, perché sovrascriverei il sito con una scheda vuota.', 9000);
+    return;
+  }
+  try{
+    const d = collect();
+    toast('Pubblicazione in corso…', 60000);
+    await ghPut('contenuti.json', b64(JSON.stringify(d, null, 2)), 'Aggiorna contenuti festa');
+    sporco = false;
+    const manca = avvisi(d);
+    toast(manca.length
+      ? '✅ Pubblicato, ma manca ancora: ' + manca.join(', ') + '.'
+      : '✅ Pubblicato! Il sito si aggiorna tra poco (di solito 30-60 secondi).', 8000);
+  }catch(e){
+    toast('⚠️ ' + e.message, 9000);
+  }
+}
+
+async function caricaFoto(ev){
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  const s = gh();
+  if(!s.owner || !s.repo || !s.token){
+    toast('Per caricare una foto configura prima GitHub, oppure scrivi a mano il nome del file.', 7000);
+    ev.target.value='';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try{
+      toast('Carico la foto…', 60000);
+      const dati = String(reader.result).split(',')[1];
+      const nome = file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
+      const path = 'images/' + Date.now() + '_' + nome;
+      await ghPut(path, dati, 'Carica foto '+nome);
+      addFoto(path);
+      tocca();
+      toast('✅ Foto caricata e aggiunta in fondo all’elenco. Premi “Pubblica online” per mostrarla nel sito.', 8000);
+    }catch(e){
+      toast('⚠️ ' + e.message, 9000);
+    }
+  };
+  reader.readAsDataURL(file);
+  ev.target.value='';
+}
+
+/* =========================================================
+   COLLEGAMENTO DEI BOTTONI
+   ========================================================= */
+function collegaEventi(){
+  if(window._collegato) return;
+  window._collegato = true;
+
+  $('btnPubblica').addEventListener('click', pubblica);
+  $('btnScarica').addEventListener('click', scarica);
+  $('btnScarica2').addEventListener('click', scarica);
+  $('btnSito').addEventListener('click', ()=>apri('index.html'));
+  $('btnLoc').addEventListener('click', ()=>apri('locandina.html'));
+  $('btnLoc2').addEventListener('click', ()=>apri('locandina.html'));
+  $('btnAddCat').addEventListener('click', addCategoria);
+  $('btnAddRegola').addEventListener('click', ()=>{ addRegola(''); tocca(); });
+  $('btnAddFoto').addEventListener('click', ()=>{ addFoto(''); tocca(); });
+  $('btnSaveGh').addEventListener('click', saveGh);
+  $('fileFoto').addEventListener('change', caricaFoto);
+  $('fileJson').addEventListener('change', caricaJsonLocale);
+
+  legaAnteprimaData('e_data','e_data_hint','Scegli il giorno dal calendario');
+  legaAnteprimaData('pg_scad','pg_scad_hint','Entro questo giorno va consegnata la quota');
+  legaAnteprimaData('pr_scad','pr_scad_hint','Ultimo giorno utile per prenotare');
+
+  document.querySelectorAll('#app input, #app textarea, #app select').forEach(el => {
+    if(el.id && el.id.indexOf('gh_')===0) return;
+    el.addEventListener('input', tocca);
+  });
+
+  window.addEventListener('beforeunload', e => {
+    if(sporco){ e.preventDefault(); e.returnValue = ''; }
+  });
+}
+</script>
+</body>
+</html>

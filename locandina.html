@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Locandina da stampare — Residence Holiday</title>
+<script src="qr.js"></script>
+<style>
+/* =========================================================================
+   LOCANDINA A4 VERTICALE — Residence Holiday
+   -------------------------------------------------------------------------
+   COME E' GARANTITA LA PAGINA SINGOLA
+   Il foglio e' una griglia CSS con SETTE righe di altezza FISSA in millimetri
+   che sommano ESATTAMENTE 297mm:
+
+        20mm  testata (nome residence + localita')
+      + 62mm  claim, titolo della festa, tema
+      + 32mm  banda fotografica della piscina
+      + 52mm  data e orario, in grande
+      + 18mm  accenno al menu (le categorie)
+      + 86mm  "come si prenota" + QR code grande
+      + 27mm  piede (nota + saluto)
+      ------
+       297mm  = altezza esatta di un A4 verticale
+
+   Nessuna riga puo' crescere (altezza fissa + overflow:hidden), il foglio ha
+   height:297mm e overflow:hidden, e in stampa html/body sono a loro volta
+   limitati a 210x297mm: il contenuto non ha materialmente dove sfociare.
+   In piu' lo script adattaTesti() rimpicciolisce i testi troppo lunghi
+   finche' rientrano, cosi' non vengono nemmeno tagliati.
+   ========================================================================= */
+
+*, *::before, *::after{ box-sizing:border-box; margin:0; padding:0; }
+
+:root{
+  /* palette: i primi tre valori vengono sovrascritti a runtime dal JSON */
+  --c1:#e63946;                                   /* primario   */
+  --c2:#12b6c9;                                   /* secondario */
+  --c3:#ffd23f;                                   /* accento    */
+  --ink:#0d2b3e;
+  --paper:#fffdf7;
+  --muted:#5a7583;
+  --radius:22px;
+  --shadow:0 18px 45px -20px rgba(13,43,62,.5);
+  --k:1;                                          /* scala del foglio, solo a schermo */
+}
+
+html, body{
+  background:#e7edf1;
+  color:var(--ink);
+  font-family:"Trebuchet MS", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
+}
+
+/* ============ barra di servizio: visibile solo a schermo ============ */
+.barra{
+  position:sticky; top:0; z-index:50;
+  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+  padding:10px 14px;
+  background:linear-gradient(120deg, var(--ink), #134b63);
+  color:#fff;
+  box-shadow:0 6px 18px -10px rgba(13,43,62,.85);
+}
+.barra button{
+  font:inherit; font-weight:bold; font-size:16px;
+  min-height:44px; padding:10px 18px;
+  border:0; border-radius:14px; cursor:pointer;
+  background:linear-gradient(120deg, var(--c3), #ffb703);
+  color:var(--ink);
+}
+.barra button:active{ transform:translateY(1px); }
+.barra a{
+  color:#fff; font-weight:bold; text-decoration:none;
+  min-height:44px; display:inline-flex; align-items:center;
+  padding:0 14px; border-radius:14px;
+  border:2px solid rgba(255,255,255,.35);
+}
+.barra .sugg{ flex:1 1 230px; font-size:14px; line-height:1.35; opacity:.93; }
+
+/* palco: centra il foglio e ne assorbe la riduzione di scala */
+.palco{ padding:18px 0 26px; }
+
+/* ========================== IL FOGLIO A4 ========================== */
+.foglio{
+  width:210mm; height:297mm;
+  overflow:hidden;
+  background:var(--paper);
+  display:grid;
+  grid-template-rows:20mm 62mm 32mm 52mm 18mm 86mm 27mm;   /* = 297mm */
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+.riga{ position:relative; overflow:hidden; }
+
+/* --- riga 1 (20mm): testata --------------------------------------- */
+.testata{
+  background:linear-gradient(115deg, var(--c2) 0%, #0e8fa4 46%, var(--c1) 100%);
+  color:#fff;
+  display:flex; align-items:center; justify-content:space-between; gap:6mm;
+  padding:0 10mm;
+}
+.testata .casa{ font-size:15pt; font-weight:bold; letter-spacing:.3pt; }
+.testata .dove{ font-size:10.5pt; font-weight:bold; text-align:right; opacity:.95; }
+
+/* --- riga 2 (62mm): claim + titolo enorme + tema ------------------- */
+.hero{
+  padding:5mm 8mm;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center; gap:3mm;
+  background:
+    radial-gradient(circle at 10% 18%, rgba(18,182,201,.16) 0 15mm, transparent 15mm),
+    radial-gradient(circle at 92% 84%, rgba(255,210,63,.30) 0 13mm, transparent 13mm),
+    var(--paper);
+}
+.claim{
+  background:var(--c3); color:var(--ink);
+  font-size:14pt; font-weight:bold; letter-spacing:.7pt; text-transform:uppercase;
+  padding:1.6mm 6mm; border-radius:99px;
+}
+.titolo{
+  font-size:44pt; line-height:.95; font-weight:bold;
+  text-transform:uppercase; letter-spacing:-.7pt;
+  color:var(--c1); max-width:192mm;
+}
+.tema{
+  font-size:15pt; font-weight:bold; letter-spacing:.4pt; color:var(--ink);
+  border-top:1.2mm solid var(--c2); border-bottom:1.2mm solid var(--c2);
+  padding:1.2mm 0;
+}
+
+/* --- riga 3 (32mm): banda fotografica ------------------------------
+   La foto e' un elemento grafico, non un fondale del testo: il velo scuro
+   a sinistra garantisce il contrasto della frase anche in stampa B/N.    */
+.banda{ background:var(--ink); }
+.banda img{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover; object-position:center 62%;
+  display:block;
+}
+.banda .velo{
+  position:absolute; inset:0;
+  background:linear-gradient(90deg,
+    rgba(13,43,62,.88) 0%, rgba(13,43,62,.60) 46%, rgba(13,43,62,.10) 100%);
+}
+.banda .frase{
+  position:absolute; inset:0;
+  display:flex; align-items:center;
+  padding:0 10mm;
+  max-width:152mm;
+  color:#fff; font-size:17pt; font-weight:bold; line-height:1.18;
+  text-shadow:0 2px 6px rgba(0,0,0,.8), 0 0 2px rgba(0,0,0,.9);
+}
+
+/* --- riga 4 (52mm): la data, il pezzo che si legge da lontano ------ */
+.quando{
+  background:linear-gradient(135deg, var(--ink) 0%, #123f57 58%, #0b2331 100%);
+  color:#fff;
+  padding:4mm 8mm;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center; gap:2mm;
+}
+.quando .etichetta{
+  font-size:11pt; font-weight:bold; letter-spacing:2.4pt;
+  text-transform:uppercase; color:var(--c3);
+}
+/* max-width:100% e' necessario: senza, questi elementi in nowrap dentro un
+   flex centrato si allargano quanto vogliono (larghezza fit-content) e
+   l'auto-riduzione non si accorge che stanno sbordando dal foglio. */
+.data-grande{
+  font-size:50pt; line-height:1; font-weight:bold;
+  text-transform:uppercase; letter-spacing:-.8pt; white-space:nowrap;
+  max-width:100%;
+}
+.data-grande .anno{ font-size:.44em; letter-spacing:1pt; opacity:.85; }
+.orario{
+  font-size:23pt; line-height:1.05; font-weight:bold;
+  color:var(--c3); white-space:nowrap; max-width:100%;
+}
+.luogo{ font-size:12pt; font-weight:bold; opacity:.92; }
+
+/* --- riga 5 (18mm): accenno al menu (categorie, non le voci) -------
+   font-size ereditata dal contenitore: cosi' l'auto-riduzione funziona.  */
+.menu{
+  padding:2mm 8mm;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:1.6mm;
+  background:linear-gradient(180deg, #f2fbfd, var(--paper));
+  border-bottom:.6mm dashed rgba(18,182,201,.55);
+}
+.chips{ font-size:13pt; display:flex; flex-wrap:wrap; justify-content:center; gap:3mm; max-width:100%; }
+.chip{
+  font-size:1em; font-weight:bold; color:var(--ink); white-space:nowrap;
+  background:#fff; border:.7mm solid var(--c2); border-radius:99px;
+  padding:1mm 4.5mm;
+}
+.prezzi{ font-size:10.5pt; font-weight:bold; color:var(--muted); text-align:center; }
+
+/* --- riga 6 (86mm): come si prenota + QR ---------------------------
+   Conti in verticale: 86 − 4 − 4 (padding .prenota) = 78mm di scatola;
+   78 − 8 (padding .scatola) = 70mm utili; il QR occupa 58 + 1.5 + ~7 =
+   66.5mm. Restano ~3.5mm di margine di sicurezza.                       */
+.prenota{ padding:4mm 10mm; }
+.scatola{
+  height:100%;
+  display:flex; align-items:center; gap:6mm;
+  padding:4mm;
+  background:linear-gradient(140deg, #ffffff 0%, #eefbfd 100%);
+  border:1.2mm solid var(--c2);
+  border-radius:7mm;
+}
+.colonna-qr{
+  flex:0 0 58mm;
+  display:flex; flex-direction:column; align-items:center; gap:1.5mm;
+}
+/* 58mm di lato meno 2.5mm di cornice = 53mm di grafica QR:
+   ben oltre i 45mm richiesti anche togliendo la zona di rispetto.        */
+.qr-cornice{
+  width:58mm; height:58mm;
+  /* Niente padding: la zona di rispetto (4 moduli, come chiede la norma) e'
+     gia' dentro l'SVG generato da qr.js, quindi il codice puo' occupare tutto
+     il riquadro e restare il piu' grande possibile. */
+  padding:0;
+  background:#fff; border-radius:3mm;
+  border:.5mm solid rgba(13,43,62,.18);
+}
+.qr-cornice svg{ width:100%; height:100%; display:block; }
+.qr-assente{
+  width:100%; height:100%;
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  padding:2mm; font-size:9pt; font-weight:bold; color:var(--c1);
+  word-break:break-all; line-height:1.3;
+}
+.url{
+  max-width:58mm;
+  font-size:10pt; font-weight:bold; line-height:1.2; text-align:center;
+  color:var(--ink); background:var(--c3);
+  border-radius:2mm; padding:1mm 2mm; word-break:break-all;
+}
+.colonna-testo{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2.6mm; }
+.colonna-testo h2{
+  font-size:19pt; line-height:1.05; font-weight:bold;
+  text-transform:uppercase; letter-spacing:.4pt; color:var(--c1);
+}
+.istruzioni{ font-size:12.5pt; line-height:1.3; font-weight:bold; color:var(--ink); }
+.pillola{
+  display:flex; align-items:center; gap:2.5mm;
+  font-size:12.5pt; line-height:1.2; font-weight:bold;
+  background:#fff; border-left:2mm solid var(--c1); border-radius:2mm;
+  padding:2mm 3mm;
+}
+.pillola.verde{ border-left-color:#25d366; }
+.pillola.azzurra{ border-left-color:var(--c2); }
+.pillola .num{ font-size:1.15em; white-space:nowrap; }
+
+/* --- riga 7 (27mm): piede ------------------------------------------ */
+.piede{
+  background:linear-gradient(115deg, var(--c1) 0%, #d2405c 55%, var(--c2) 100%);
+  color:#fff;
+  padding:3.5mm 8mm;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center; gap:2mm;
+}
+.nota{
+  max-width:180mm;
+  background:var(--c3); color:var(--ink);
+  font-size:11.5pt; line-height:1.2; font-weight:bold;
+  border-radius:99px; padding:1.6mm 5mm;
+}
+.saluto{ font-size:13.5pt; font-weight:bold; letter-spacing:.3pt; }
+
+/* ============ adattamento a schermo: mai scroll orizzontale ============ */
+@media screen{
+  .palco{ display:flex; justify-content:center; overflow:hidden; }
+  .foglio{
+    flex:0 0 auto;
+    transform:scale(var(--k));
+    transform-origin:top center;
+    box-shadow:var(--shadow);
+    border-radius:6px;
+  }
+}
+
+/* ================================ STAMPA ================================ */
+@page{ size:A4 portrait; margin:0; }
+
+@media print{
+  html, body{
+    width:210mm; height:297mm;
+    margin:0; padding:0;
+    overflow:hidden;                 /* nessuna riga di troppo puo' generare una 2a pagina */
+    background:#fff;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .barra{ display:none !important; } /* bottone e suggerimenti spariscono in stampa */
+  .palco{
+    display:block; padding:0; margin:0;
+    height:auto !important; overflow:visible;
+  }
+  .foglio{
+    transform:none !important;       /* in stampa si torna alla scala 1:1 reale */
+    width:210mm; height:297mm;
+    box-shadow:none; border-radius:0;
+    break-inside:avoid;      page-break-inside:avoid;
+    break-after:avoid;       page-break-after:avoid;
+  }
+  .riga{ break-inside:avoid; page-break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- Barra di servizio: solo a schermo, sparisce in stampa (@media print) -->
+<div class="barra">
+  <button id="btnStampa" type="button">🖨️ Stampa / Salva PDF</button>
+  <span class="sugg">Stampa su <strong>A4 verticale</strong>, senza margini (&laquo;Dimensioni reali&raquo; / 100%) e con i <strong>colori e le immagini di sfondo</strong> attivi.</span>
+  <a href="index.html">← Torna al sito</a>
+</div>
+
+<div class="palco" id="palco">
+  <div class="foglio" id="foglio">
+
+    <!-- 20mm — testata -->
+    <header class="riga testata">
+      <div class="casa" id="t-residence">Residence Holiday</div>
+      <div class="dove" id="t-localita"></div>
+    </header>
+
+    <!-- 62mm — claim, titolo, tema -->
+    <section class="riga hero">
+      <div class="claim" id="t-claim" data-fit="14">Tutti in piscina!</div>
+      <h1 class="titolo" id="t-titolo" data-fit="44">Festa in piscina</h1>
+      <div class="tema" id="t-tema" data-fit="15"></div>
+    </section>
+
+    <!-- 32mm — banda fotografica -->
+    <section class="riga banda">
+      <img id="t-foto" src="images/piscina-vasca.jpg" alt="La piscina del residence">
+      <div class="velo"></div>
+      <p class="frase" id="t-sottotitolo" data-fit="17"></p>
+    </section>
+
+    <!-- 52mm — data e orario, in grande -->
+    <section class="riga quando">
+      <div class="etichetta">🗓️ Segna la data</div>
+      <div class="data-grande" id="t-data" data-fit="50">DATA DA DEFINIRE</div>
+      <div class="orario" id="t-orario" data-fit="23"></div>
+      <div class="luogo" id="t-luogo" data-fit="12"></div>
+    </section>
+
+    <!-- 18mm — accenno al menu -->
+    <section class="riga menu">
+      <div class="chips" id="m-chips" data-fit="13"></div>
+      <div class="prezzi" id="m-prezzi" data-fit="10.5"></div>
+    </section>
+
+    <!-- 86mm — come si prenota + QR grande -->
+    <section class="riga prenota">
+      <div class="scatola">
+        <div class="colonna-qr">
+          <div class="qr-cornice" id="qr"></div>
+          <div class="url" id="t-url" data-fit="10"></div>
+        </div>
+        <div class="colonna-testo">
+          <h2 data-fit="19">📲 Come si prenota</h2>
+          <p class="istruzioni" id="t-istruzioni" data-fit="12.5"></p>
+          <div class="pillola" id="p-scadenza" data-fit="12.5"><span>⏳</span><span id="t-scadenza"></span></div>
+          <div class="pillola azzurra" id="p-coperto" data-fit="12.5"><span id="t-coperto-emoji">🛟</span><span id="t-coperto"></span></div>
+          <div class="pillola verde" id="p-whatsapp" data-fit="12.5"><span>💬</span><span>WhatsApp <span class="num" id="t-whatsapp"></span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 27mm — piede -->
+    <footer class="riga piede">
+      <div class="nota" id="t-nota" data-fit="11.5"></div>
+      <div class="saluto" id="t-saluto" data-fit="13.5">Ci vediamo in piscina! 🏊‍♀️🍕</div>
+    </footer>
+
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   Tutti i contenuti arrivano da contenuti.json.
+   Il FALLBACK non e' contenuto: e' solo la rete di sicurezza per quando la
+   fetch non riesce (per esempio aprendo la pagina con file://, dove il
+   browser blocca la lettura dei file locali). La locandina resta stampabile.
+   ========================================================================= */
+const FALLBACK = {
+  residence:{ nome:"Residence", localita:"", emoji:"🌴" },
+  tema:{ titoloFesta:"Festa in piscina", sottotitolo:"", nomeTema:"",
+         colorePrimario:"#e63946", coloreSecondario:"#12b6c9", coloreAccento:"#ffd23f" },
+  evento:{ data:"", orario:"", orarioFine:"", luogo:"" },
+  menu:{ categorie:[] },
+  prenotazione:{ whatsappNumero:"", scadenza:"" },
+  condivisione:{ urlSito:"" },
+  locandina:{ claim:"Tutti in piscina!", istruzioniQr:"", nota:"" }
+};
+
+/* ------------------------------- utilita' ------------------------------- */
+
+/* Fuga dei caratteri pericolosi. Serve nell'unico punto in cui costruiamo
+   una stringa HTML (il messaggio di ripiego del QR). Ovunque altro si usa
+   textContent, che non interpreta mai il markup. */
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* Valore del JSON, con ripiego se assente o vuoto */
+function V(valore, predefinito){
+  return (valore === undefined || valore === null || valore === '') ? predefinito : valore;
+}
+
+/* Scrive un testo dentro un elemento: sempre textContent, mai innerHTML */
+function set(id, testo){
+  const el = document.getElementById(id);
+  if(el) el.textContent = (testo == null ? '' : String(testo));
+  return el;
+}
+
+/* Data ISO (AAAA-MM-GG) -> testo italiano, costruita a mezzogiorno locale
+   per non farsi spostare di un giorno dal fuso orario. */
+function dataIt(iso, opzioni){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  if(!m) return '';
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0);
+  try{ return d.toLocaleDateString('it-IT', opzioni); }
+  catch(e){ return m[3] + '/' + m[2] + '/' + m[1]; }
+}
+
+/* Importi: "€ 5" se intero, "€ 5,50" se decimale */
+function eur(n){
+  const v = Number(n) || 0;
+  return '€ ' + (Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ','));
+}
+
+/* Telefono leggibile da lontano: 393277565727 -> +39 327 756 5727 */
+function telIt(numero){
+  const c = String(numero || '').replace(/\D/g, '');
+  if(!c) return '';
+  if(c.indexOf('39') === 0 && c.length >= 11){
+    return '+39 ' + c.slice(2).replace(/^(\d{3})(\d{3})(\d+)$/, '$1 $2 $3');
+  }
+  return '+' + c;
+}
+
+/* --------------------------------- QR ----------------------------------- */
+/* L'SVG lo produce qr.js (codice del progetto): contiene solo quadratini,
+   nessun testo del JSON viene riversato nel markup. Se qr.js mancasse o il
+   testo non fosse codificabile, al suo posto compare l'indirizzo scritto. */
+function creaQr(url){
+  const box = document.getElementById('qr');
+  box.textContent = '';
+  try{
+    if(!window.QR || typeof QR.svg !== 'function') throw new Error('qr.js non disponibile');
+    if(!url) throw new Error('urlSito non configurato');
+    box.innerHTML = QR.svg(url, {
+      ecc:'M',            /* correzione media: regge bene la stampa e lo sporco */
+      margin:4,           /* zona di rispetto richiesta dalla ISO/IEC 18004 */
+      size:1200,          /* l'SVG e' vettoriale, il size serve solo al viewBox */
+      dark:'#0d2b3e',
+      light:'#ffffff'
+    });
+  }catch(e){
+    box.innerHTML = '<div class="qr-assente">Vai su:<br>' + esc(url || 'indirizzo non configurato') + '</div>';
+  }
+}
+
+/* ------------------------ riempimento della locandina -------------------- */
+function disegna(d){
+  const res  = Object.assign({}, FALLBACK.residence,    d.residence    || {});
+  const tema = Object.assign({}, FALLBACK.tema,         d.tema         || {});
+  const ev   = Object.assign({}, FALLBACK.evento,       d.evento       || {});
+  const menu = Object.assign({}, FALLBACK.menu,         d.menu         || {});
+  const pren = Object.assign({}, FALLBACK.prenotazione, d.prenotazione || {});
+  const cond = Object.assign({}, FALLBACK.condivisione, d.condivisione || {});
+  const loc  = Object.assign({}, FALLBACK.locandina,    d.locandina    || {});
+
+  /* palette dal JSON, applicata come custom properties su :root */
+  const root = document.documentElement.style;
+  root.setProperty('--c1', V(tema.colorePrimario,   '#e63946'));
+  root.setProperty('--c2', V(tema.coloreSecondario, '#12b6c9'));
+  root.setProperty('--c3', V(tema.coloreAccento,    '#ffd23f'));
+
+  /* testata */
+  set('t-residence', (V(res.emoji, '🌴') + ' ' + V(res.nome, 'Residence')).trim());
+  const localita = V(res.localita, '');
+  set('t-localita', localita ? '📍 ' + localita : '');
+
+  /* claim + titolo + tema */
+  set('t-claim', V(loc.claim, 'Tutti in piscina!'));
+  set('t-titolo', V(tema.titoloFesta, 'Festa in piscina'));
+  const nomeTema = V(tema.nomeTema, '');
+  const elTema = set('t-tema', nomeTema);
+  if(elTema && !nomeTema) elTema.style.display = 'none';
+
+  /* banda fotografica */
+  set('t-sottotitolo', V(tema.sottotitolo, ''));
+  const foto = (Array.isArray(d.foto) && d.foto.length) ? String(d.foto[0]) : 'images/piscina-vasca.jpg';
+  const img = document.getElementById('t-foto');
+  img.addEventListener('error', function(){ img.style.display = 'none'; }); /* resta la banda scura */
+  img.setAttribute('src', foto);
+  img.setAttribute('alt', 'La piscina di ' + V(res.nome, 'Residence'));
+
+  /* data enorme: "SABATO 8 AGOSTO" grande + anno piccolo accanto */
+  const elData = document.getElementById('t-data');
+  const giorno = dataIt(ev.data, { weekday:'long', day:'numeric', month:'long' });
+  elData.textContent = giorno ? giorno.toUpperCase() : 'DATA DA DEFINIRE';
+  const anno = /^(\d{4})/.exec(String(ev.data || ''));
+  if(anno){
+    const sp = document.createElement('span');
+    sp.className = 'anno';
+    sp.textContent = ' ' + anno[1];
+    elData.appendChild(sp);
+  }
+  const oraInizio = V(ev.orario, ''), oraFine = V(ev.orarioFine, '');
+  set('t-orario', oraInizio ? ('ORE ' + oraInizio + (oraFine ? ' → ' + oraFine : '')) : '');
+  set('t-luogo', V(ev.luogo, ''));
+
+  /* accenno al menu: solo i nomi delle categorie, mai le singole voci */
+  const categorie = Array.isArray(menu.categorie) ? menu.categorie : [];
+  const chips = document.getElementById('m-chips');
+  chips.textContent = '';
+  categorie.forEach(function(c){
+    const s = document.createElement('span');
+    s.className = 'chip';
+    s.textContent = (V(c.emoji, '•') + ' ' + V(c.nome, '')).trim();
+    chips.appendChild(s);
+  });
+
+  /* "da € X": prezzo minimo di cibo e bevande, se ricavabile */
+  function prezzoMinimo(tipo){
+    let min = null;
+    categorie.forEach(function(c){
+      if(c.tipo !== tipo) return;
+      (Array.isArray(c.voci) ? c.voci : []).forEach(function(v){
+        const p = Number(v.prezzo);
+        if(isFinite(p) && p > 0 && (min === null || p < min)) min = p;
+      });
+    });
+    return min;
+  }
+  const pezzi = [];
+  const minCibo = prezzoMinimo('cibo'), minBev = prezzoMinimo('bevanda');
+  if(minCibo !== null) pezzi.push('Pizze da ' + eur(minCibo));
+  if(minBev  !== null) pezzi.push('bevande da ' + eur(minBev));
+  set('m-prezzi', pezzi.length ? (pezzi.join(' · ') + ' — si paga in contanti') : '');
+
+  /* QR verso il sito + indirizzo scritto in chiaro per chi digita a mano */
+  const url = String(V(cond.urlSito, '')).trim();
+  creaQr(url);
+  set('t-url', url.replace(/^https?:\/\//, ''));
+
+  /* istruzioni, scadenza delle prenotazioni, WhatsApp */
+  set('t-istruzioni', V(loc.istruzioniQr,
+      'Inquadra il QR con la fotocamera del telefono per vedere il menù e prenotare'));
+
+  const scad = dataIt(pren.scadenza, { weekday:'long', day:'numeric', month:'long' });
+  set('t-scadenza', scad ? ('Prenota entro ' + scad) : 'Prenota il prima possibile');
+
+  /* quota a persona per l'assistenza della bagnina */
+  const coperto = Number(menu.copertoPersona) || 0;
+  if(coperto > 0){
+    set('t-coperto-emoji', V(menu.copertoEmoji, '🛟'));
+    set('t-coperto', V(menu.copertoEtichetta, 'Quota assistenza in piscina') +
+                     ': ' + eur(coperto) + ' a persona');
+  } else {
+    document.getElementById('p-coperto').style.display = 'none';
+  }
+
+  const tel = telIt(pren.whatsappNumero);
+  set('t-whatsapp', tel);
+  if(!tel) document.getElementById('p-whatsapp').style.display = 'none';
+
+  /* piede */
+  const nota = V(loc.nota, '');
+  const elNota = set('t-nota', nota);
+  if(elNota && !nota) elNota.style.display = 'none';
+  set('t-saluto', 'Ci vediamo in piscina! 🏊‍♀️🍕 · ' + V(res.nome, ''));
+
+  document.title = 'Locandina — ' + V(tema.titoloFesta, 'Festa in piscina');
+}
+
+/* ------------------- seconda garanzia: i testi rientrano -----------------
+   Le righe hanno altezza fissa e overflow:hidden, quindi la pagina singola
+   e' gia' garantita dal CSS. Qui evitiamo l'altro rischio, cioe' che un
+   testo lungo venga TAGLIATO: si riduce il corpo di mezzo punto alla volta
+   finche' l'elemento e la sua riga non sono piu' in eccedenza.
+   ------------------------------------------------------------------------ */
+/* Quanto spazio serve davvero al contenuto di una riga.
+   Non si puo' usare riga.scrollHeight: le righe centrano i figli in verticale
+   e hanno overflow:hidden, quindi cio' che esce dal bordo SUPERIORE non viene
+   conteggiato e la riga sembra a posto anche quando straborda. Sommiamo invece
+   le altezze reali dei figli, i gap e i padding. */
+function altezzaNecessaria(riga){
+  const cs = getComputedStyle(riga);
+  const figli = Array.prototype.filter.call(riga.children, function(e){
+    const s = getComputedStyle(e);
+    return s.position !== 'absolute' && s.display !== 'none';
+  });
+  if(!figli.length) return 0;
+  const gap = parseFloat(cs.rowGap) || 0;
+  const padding = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+  let somma = padding + gap * (figli.length - 1);
+  for(let i = 0; i < figli.length; i++){
+    const m = getComputedStyle(figli[i]);
+    somma += figli[i].offsetHeight +
+             (parseFloat(m.marginTop) || 0) + (parseFloat(m.marginBottom) || 0);
+  }
+  return somma;
+}
+
+/* Rimpicciolisce i testi solo quando serve davvero, ripartendo ogni volta
+   dalla dimensione di progetto (data-fit): cosi' una chiamata successiva puo'
+   anche far tornare grande un testo, se nel frattempo c'e' spazio. */
+function adattaTesti(){
+  const nodi = document.querySelectorAll('[data-fit]');
+
+  /* 1) tutti alla dimensione di progetto */
+  for(let i = 0; i < nodi.length; i++){
+    const pt = parseFloat(nodi[i].getAttribute('data-fit'));
+    if(isFinite(pt)) nodi[i].style.fontSize = pt + 'pt';
+  }
+
+  /* 2) prima passata: nessun testo deve sforare in LARGHEZZA */
+  for(let i = 0; i < nodi.length; i++){
+    const el = nodi[i];
+    let pt = parseFloat(el.getAttribute('data-fit'));
+    if(!isFinite(pt)) continue;
+    let giri = 0;
+    while(giri++ < 200 && pt > 6 && el.scrollWidth > el.clientWidth + 1){
+      pt = Math.round((pt - 0.5) * 10) / 10;
+      el.style.fontSize = pt + 'pt';
+    }
+  }
+
+  /* 3) seconda passata: ogni riga deve stare nella propria altezza fissa.
+        Si rimpicciolisce sempre il testo piu' grande della riga, cosi' il
+        sacrificio e' distribuito e il titolo non collassa da solo. */
+  const righe = document.querySelectorAll('.riga');
+  for(let r = 0; r < righe.length; r++){
+    const riga = righe[r];
+    const adattabili = riga.querySelectorAll('[data-fit]');
+    if(!adattabili.length) continue;
+    let giri = 0;
+    while(giri++ < 400 && altezzaNecessaria(riga) > riga.clientHeight + 0.5){
+      /* trova il testo attualmente piu' grande, purche' sopra il minimo */
+      let scelto = null, max = 0;
+      for(let i = 0; i < adattabili.length; i++){
+        const pt = parseFloat(adattabili[i].style.fontSize) || 0;
+        if(pt > max && pt > 6){ max = pt; scelto = adattabili[i]; }
+      }
+      if(!scelto) break;
+      scelto.style.fontSize = (Math.round((max - 0.5) * 10) / 10) + 'pt';
+    }
+  }
+}
+
+/* -------- scala del foglio a schermo: nessuno scroll orizzontale --------- */
+const PX_MM = 96 / 25.4;                    /* 1mm = 3.7795px alla scala CSS */
+function adattaSchermo(){
+  const largo = document.documentElement.clientWidth;
+  const k = Math.min(1, Math.max(0.18, (largo - 24) / (210 * PX_MM)));
+  document.documentElement.style.setProperty('--k', String(k));
+  /* il transform non occupa spazio: l'altezza del palco va calcolata a mano */
+  document.getElementById('palco').style.height = Math.ceil(297 * PX_MM * k + 44) + 'px';
+}
+
+/* --------------------------------- avvio -------------------------------- */
+async function avvia(){
+  /* Subito, prima di qualunque attesa di rete: altrimenti su telefono il foglio
+     resta a grandezza naturale (e quindi tagliato) finche' la fetch non risponde. */
+  adattaSchermo();
+
+  let dati = FALLBACK;
+  try{
+    const r = await fetch('contenuti.json', { cache:'no-store' });
+    if(r.ok) dati = await r.json();
+  }catch(e){ /* si resta sui valori di sicurezza */ }
+
+  try{ disegna(dati); }catch(e){ /* la struttura resta comunque stampabile */ }
+
+  adattaTesti();
+  adattaSchermo();
+
+  /* Le misure valgono solo a caratteri e immagini pronti: prima di allora
+     il testo occupa uno spazio diverso e l'adattamento sbaglia per difetto. */
+  try{ if(document.fonts && document.fonts.ready) await document.fonts.ready; }catch(e){}
+  adattaTesti();
+  adattaSchermo();
+  window.addEventListener('load', function(){ adattaTesti(); adattaSchermo(); });
+  setTimeout(function(){ adattaTesti(); adattaSchermo(); }, 250);
+}
+
+document.getElementById('btnStampa').addEventListener('click', function(){
+  adattaTesti();
+  window.print();
+});
+window.addEventListener('resize', adattaSchermo);
+window.addEventListener('beforeprint', adattaTesti);   /* anche con Ctrl+P */
+avvia();
+</script>
+</body>
+</html>

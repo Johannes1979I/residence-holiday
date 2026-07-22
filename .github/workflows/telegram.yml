@@ -1,0 +1,124 @@
+name: Avviso Telegram festa
+
+# Manda un messaggio al gruppo Telegram ogni volta che vengono aggiornati i
+# contenuti della festa (contenuti.json), oppure quando lo lanci a mano dalla
+# scheda "Actions" del repository.
+#
+# Serve configurare due "secrets" nel repository
+# (Settings -> Secrets and variables -> Actions -> New repository secret):
+#   TELEGRAM_BOT_TOKEN  il token che ti da' @BotFather
+#   TELEGRAM_CHAT_ID    l'id del gruppo (di solito inizia con -100...)
+# Senza questi due valori il workflow non fallisce: si limita a non inviare nulla.
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ "contenuti.json" ]
+  workflow_dispatch:
+
+jobs:
+  avviso:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scarica i file del sito
+        uses: actions/checkout@v4
+
+      - name: Componi e invia il messaggio
+        env:
+          BOT:  ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${BOT}" ] || [ -z "${CHAT}" ]; then
+            echo "::notice::Mancano i secrets TELEGRAM_BOT_TOKEN e/o TELEGRAM_CHAT_ID: nessun avviso inviato."
+            exit 0
+          fi
+
+          if [ ! -f contenuti.json ]; then
+            echo "::warning::contenuti.json non trovato: nessun avviso inviato."
+            exit 0
+          fi
+
+          leggi() { jq -r "$1 // empty" contenuti.json; }
+
+          TITOLO=$(leggi '.tema.titoloFesta')
+          TEMA=$(leggi '.tema.nomeTema')
+          RES=$(leggi '.residence.nome')
+          DATA=$(leggi '.evento.data')
+          ORA=$(leggi '.evento.orario')
+          ORA_FINE=$(leggi '.evento.orarioFine')
+          LUOGO=$(leggi '.evento.luogo')
+          SCADENZA=$(leggi '.prenotazione.scadenza')
+          PAG_ATTIVO=$(leggi '.pagamento.attivo')
+          PAG_REF=$(leggi '.pagamento.referente')
+          PAG_SCAD=$(leggi '.pagamento.scadenza')
+          COPERTO=$(leggi '.menu.copertoPersona')
+          COPERTO_ET=$(leggi '.menu.copertoEtichetta')
+          SITO=$(leggi '.condivisione.urlSito')
+          CATEGORIE=$(jq -r '[.menu.categorie[]? | .nome] | join(" · ")' contenuti.json)
+
+          # "2026-08-08" -> "sabato 8 agosto 2026" (senza dipendere dalla lingua del runner)
+          data_italiana() {
+            local iso="$1"
+            [ -z "$iso" ] && return 0
+            local anno mese giorno giorno_sett nome_mese nome_giorno
+            anno=${iso:0:4}; mese=${iso:5:2}; giorno=${iso:8:2}
+            local mesi=(gennaio febbraio marzo aprile maggio giugno luglio agosto settembre ottobre novembre dicembre)
+            local giorni=(domenica lunedi martedi mercoledi giovedi venerdi sabato)
+            nome_mese=${mesi[$((10#$mese - 1))]}
+            giorno_sett=$(date -u -d "$iso" +%w 2>/dev/null || echo "")
+            if [ -n "$giorno_sett" ]; then
+              nome_giorno=${giorni[$giorno_sett]}
+              printf '%s %d %s %s' "$nome_giorno" "$((10#$giorno))" "$nome_mese" "$anno"
+            else
+              printf '%d %s %s' "$((10#$giorno))" "$nome_mese" "$anno"
+            fi
+          }
+
+          DATA_IT=$(data_italiana "$DATA")
+          SCAD_IT=$(data_italiana "$SCADENZA")
+          PAG_SCAD_IT=$(data_italiana "$PAG_SCAD")
+
+          # Il messaggio usa parse_mode=HTML: sfuggo i caratteri speciali nei valori.
+          esc() { printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'; }
+
+          MSG="🎉 <b>$(esc "${TITOLO:-Festa in piscina}")</b>"
+          [ -n "$RES" ]       && MSG="${MSG} — $(esc "$RES")"
+          [ -n "$TEMA" ]      && MSG="${MSG}"$'\n'"🌴 Tema: $(esc "$TEMA")"
+          [ -n "$DATA_IT" ]   && MSG="${MSG}"$'\n'"📅 $(esc "$DATA_IT")"
+          if [ -n "$ORA" ]; then
+            if [ -n "$ORA_FINE" ]; then MSG="${MSG}"$'\n'"🕗 ore $(esc "$ORA") – $(esc "$ORA_FINE")"
+            else                        MSG="${MSG}"$'\n'"🕗 ore $(esc "$ORA")"; fi
+          fi
+          [ -n "$LUOGO" ]     && MSG="${MSG}"$'\n'"📍 $(esc "$LUOGO")"
+          [ -n "$CATEGORIE" ] && MSG="${MSG}"$'\n'"🍕 $(esc "$CATEGORIE")"
+
+          if [ -n "$COPERTO" ] && [ "$COPERTO" != "0" ] && [ "$COPERTO" != "null" ]; then
+            MSG="${MSG}"$'\n'"🛟 $(esc "${COPERTO_ET:-Quota a persona}"): € $(esc "$COPERTO") a persona"
+          fi
+
+          [ -n "$SCAD_IT" ]   && MSG="${MSG}"$'\n'"⏳ Prenotazioni entro $(esc "$SCAD_IT")"
+
+          if [ "$PAG_ATTIVO" = "true" ] && [ -n "$PAG_REF" ]; then
+            RIGA="💶 Quota da consegnare a $(esc "$PAG_REF")"
+            [ -n "$PAG_SCAD_IT" ] && RIGA="${RIGA} entro $(esc "$PAG_SCAD_IT")"
+            MSG="${MSG}"$'\n'"${RIGA}"
+          fi
+
+          [ -n "$SITO" ]      && MSG="${MSG}"$'\n\n'"👉 Info e prenotazioni: $(esc "$SITO")"
+
+          echo "Messaggio da inviare:"
+          printf '%s\n' "$MSG"
+
+          RISPOSTA=$(curl -s -X POST "https://api.telegram.org/bot${BOT}/sendMessage" \
+            -d chat_id="${CHAT}" \
+            -d parse_mode="HTML" \
+            -d disable_web_page_preview="false" \
+            --data-urlencode "text=${MSG}")
+
+          if [ "$(printf '%s' "$RISPOSTA" | jq -r '.ok')" = "true" ]; then
+            echo "::notice::Avviso inviato al gruppo Telegram."
+          else
+            echo "::warning::Telegram ha rifiutato il messaggio: $(printf '%s' "$RISPOSTA" | jq -r '.description // "errore sconosciuto"')"
+          fi

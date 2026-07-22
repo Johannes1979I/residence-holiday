@@ -1,0 +1,122 @@
+{
+  "versione": 2,
+  "residence": {
+    "nome": "Residence Holiday",
+    "localita": "Montalto di Castro",
+    "emoji": "🌴"
+  },
+  "tema": {
+    "titoloFesta": "Serata Pizza in Piscina",
+    "sottotitolo": "Pizza sotto le stelle a bordo piscina",
+    "nomeTema": "Serata Pizza 🍕",
+    "colorePrimario": "#e63946",
+    "coloreSecondario": "#12b6c9",
+    "coloreAccento": "#ffd23f"
+  },
+  "evento": {
+    "data": "2026-08-08",
+    "orario": "20:00",
+    "orarioFine": "24:00",
+    "luogo": "Piscina del Residence Holiday",
+    "descrizione": "Si parte con la prima serata dell'estate: PIZZA a bordo piscina! Le pizze sono a cura della Pizzeria Bar Oasi di Montalto di Castro. Prenota qui sotto per te e la tua famiglia: bastano due minuti e ricevi il tuo voucher da mostrare all'ingresso.",
+    "dressCode": "Look estivo",
+    "postiTotali": 80
+  },
+  "menu": {
+    "descrizione": "Pizze della Pizzeria Bar Oasi di Montalto di Castro. Scegli quante ne vuoi: il totale si calcola da solo.",
+    "avviso": "Alcuni prezzi sono ancora in verifica con la pizzeria: il totale del voucher è indicativo e viene confermato dagli organizzatori.",
+    "copertoPersona": 3,
+    "copertoEtichetta": "Quota assistenza in piscina",
+    "copertoEmoji": "🛟",
+    "copertoNota": "Anche di sera la nostra bagnina resta in servizio, per la sicurezza dei grandi e soprattutto dei bambini. I 3 € a persona coprono la sua presenza per tutta la durata della festa: un piccolo contributo che ci permette di goderci la serata in tranquillità.",
+    "categorie": [
+      {
+        "id": "rosse",
+        "nome": "Pizze rosse",
+        "emoji": "🍕",
+        "tipo": "cibo",
+        "voci": [
+          { "nome": "Marinara", "descrizione": "Pomodoro, aglio, origano", "prezzo": 5 },
+          { "nome": "Margherita", "descrizione": "Pomodoro, mozzarella, basilico", "prezzo": 6 },
+          { "nome": "Napoli", "descrizione": "Pomodoro, mozzarella, acciughe, origano", "prezzo": 7 },
+          { "nome": "Prosciutto e funghi", "descrizione": "Pomodoro, mozzarella, prosciutto cotto, funghi", "prezzo": 8 },
+          { "nome": "Diavola", "descrizione": "Pomodoro, mozzarella, salame piccante", "prezzo": 8 },
+          { "nome": "Capricciosa", "descrizione": "Pomodoro, mozzarella, prosciutto, funghi, carciofi, olive", "prezzo": 9 },
+          { "nome": "Quattro stagioni", "descrizione": "Pomodoro, mozzarella, funghi, carciofi, prosciutto, olive", "prezzo": 9 },
+          { "nome": "Vegetariana", "descrizione": "Pomodoro, mozzarella, verdure grigliate", "prezzo": 8 },
+          { "nome": "Bufala", "descrizione": "Pomodoro, mozzarella di bufala, basilico", "prezzo": 9 },
+          { "nome": "Wurstel e patatine", "descrizione": "La preferita dei bambini", "prezzo": 7 },
+          { "nome": "Calzone", "descrizione": "Ripieno di prosciutto cotto e mozzarella", "prezzo": 8 }
+        ]
+      },
+      {
+        "id": "bianche",
+        "nome": "Pizze bianche",
+        "emoji": "🧀",
+        "tipo": "cibo",
+        "voci": [
+          { "nome": "Quattro formaggi", "descrizione": "Mozzarella e mix di formaggi", "prezzo": 8 },
+          { "nome": "Prosciutto crudo", "descrizione": "Mozzarella, prosciutto crudo, rucola", "prezzo": 7 }
+        ]
+      },
+      {
+        "id": "bevande",
+        "nome": "Bevande",
+        "emoji": "🥤",
+        "tipo": "bevanda",
+        "voci": [
+          { "nome": "Acqua (0,5 L)", "descrizione": "Naturale o frizzante", "prezzo": 1 },
+          { "nome": "Bibita in lattina", "descrizione": "Coca cola, aranciata, tè", "prezzo": 3 },
+          { "nome": "Birra media", "descrizione": "Alla spina o in bottiglia", "prezzo": 4 }
+        ]
+      }
+    ]
+  },
+  "pagamento": {
+    "attivo": true,
+    "titolo": "Come si paga",
+    "referente": "la bagnina della piscina",
+    "scadenza": "2026-08-06",
+    "orari": "in piscina, tutti i giorni dalle 10:00 alle 18:00",
+    "istruzioni": "Porta l'importo del tuo voucher in contanti alla bagnina della piscina. Il totale comprende già le pizze, le bevande e la quota di 3 € a persona per l'assistenza in piscina. La prenotazione è confermata solo dopo il pagamento: serve per ordinare le pizze in tempo.",
+    "nota": "Se non riesci entro la scadenza, avvisa gli organizzatori su WhatsApp."
+  },
+  "prenotazione": {
+    "whatsappNumero": "393277565727",
+    "messaggioBase": "Ciao! Ecco la mia prenotazione per la Serata Pizza in Piscina del Residence Holiday.",
+    "scadenza": "2026-08-06",
+    "chiediAppartamento": true,
+    "prefissoCodice": "RH"
+  },
+  "regolamento": [
+    "Prenotazione obbligatoria entro giovedì 6 agosto: le pizze vengono ordinate in base alle prenotazioni.",
+    "Porta con te il voucher (stampato o sul telefono) e mostralo all'ingresso della festa.",
+    "La prenotazione è confermata solo dopo il pagamento della quota alla bagnina.",
+    "Alla spesa di pizze e bevande si aggiungono 3 € a persona per l'assistenza della bagnina durante la serata.",
+    "I bambini restano sotto la responsabilità dei genitori: in orario serale non c'è servizio di salvataggio.",
+    "In caso di maltempo la serata si sposta nell'area coperta comune, stessa data e stesso orario.",
+    "Rispettiamo il silenzio dopo la mezzanotte, come da regolamento condominiale."
+  ],
+  "foto": [
+    "images/piscina-vasca.jpg",
+    "images/dettaglio-acqua.jpg",
+    "images/dettaglio-ombrelloni.jpg",
+    "images/dettaglio-residence.jpg",
+    "images/dettaglio-vasca.jpg"
+  ],
+  "condivisione": {
+    "urlSito": "https://johannes1979i.github.io/residence-holiday/",
+    "linkGruppoTelegram": "",
+    "linkGruppoWhatsApp": ""
+  },
+  "contatti": {
+    "organizzatore": "Organizzazione festa — Residence Holiday",
+    "telefono": "",
+    "email": ""
+  },
+  "locandina": {
+    "claim": "Tutti in piscina!",
+    "istruzioniQr": "Inquadra il QR con la fotocamera del telefono per vedere il menù e prenotare",
+    "nota": "Prenotazioni entro giovedì 6 agosto — quota da consegnare alla bagnina"
+  }
+}

@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Festa in Piscina — Residence Holiday</title>
+<meta name="description" content="Festa e cena in piscina al Residence Holiday di Montalto di Castro. Info, menù e prenotazione online con voucher." />
+<meta name="theme-color" content="#12b6c9" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌴</text></svg>" />
+<script src="qr.js"></script>
+<style>
+/* =========================================================================
+   Sito festa in piscina — Residence Holiday
+   Nessuna dipendenza esterna: niente CDN, niente font remoti, niente build.
+   I colori arrivano da contenuti.json e vengono messi su :root a runtime.
+   ========================================================================= */
+:root{
+  --c1:#e63946; --c2:#12b6c9; --c3:#ffd23f;
+  --ink:#0d2b3e; --paper:#fffdf7; --muted:#5a7583;
+  --radius:22px;
+  --shadow:0 18px 45px -20px rgba(13,43,62,.5);
+  --shadow-s:0 10px 26px -18px rgba(13,43,62,.55);
+}
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; }
+body{
+  font-family:"Trebuchet MS", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color:var(--ink); background:var(--paper); overflow-x:hidden; line-height:1.45;
+}
+h1,h2,h3,h4{ line-height:1.1; }
+img{ max-width:100%; }
+.wrap{ max-width:1060px; margin:0 auto; padding:0 18px; }
+section{ padding:56px 0; }
+.titolo-sez{ text-align:center; font-size:clamp(1.7rem,4.4vw,2.5rem); margin-bottom:8px; }
+.titolo-sez .em{ color:var(--c1); }
+.occhiello{ text-align:center; max-width:680px; margin:0 auto 32px; font-size:1.05rem; color:var(--muted); }
+
+/* ---------------------------- bottoni ---------------------------- */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:.5em;
+  border:none; border-radius:999px; padding:14px 24px;
+  font:inherit; font-size:1rem; font-weight:bold; text-decoration:none;
+  cursor:pointer; min-height:48px; transition:transform .12s ease, box-shadow .12s ease;
+  box-shadow:var(--shadow-s);
+}
+.btn:hover{ transform:translateY(-2px); }
+.btn:active{ transform:translateY(0); }
+.btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+.btn-p{ background:linear-gradient(120deg,var(--c1),#ff8a5c); color:#fff; }
+.btn-wa{ background:#25d366; color:#fff; }
+.btn-tg{ background:#2aabee; color:#fff; }
+.btn-scuro{ background:var(--ink); color:#fff; }
+.btn-chiaro{ background:#fff; color:var(--ink); border:2px solid rgba(13,43,62,.15); }
+.btn-fantasma{ background:rgba(255,255,255,.22); color:#fff; border:2px solid rgba(255,255,255,.55); backdrop-filter:blur(4px); }
+/* anche i bottoni secondari restano sopra i 44px: si usa quasi tutto da telefono */
+.btn-piccolo{ padding:10px 16px; min-height:44px; font-size:.9rem; }
+
+/* ----------------------------- hero ------------------------------ */
+header.hero{
+  position:relative; min-height:88vh; display:flex; align-items:center; justify-content:center;
+  text-align:center; color:#fff; overflow:hidden; padding:70px 0 90px;
+  background:linear-gradient(125deg,var(--c1) 0%, #ff8a5c 32%, var(--c2) 76%, #0d6a8f 100%);
+}
+.hero .sfondo{
+  position:absolute; inset:0; background-size:cover; background-position:center 62%;
+  opacity:.42; filter:saturate(1.1);
+}
+.hero .velo{
+  position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(13,43,62,.55) 0%, rgba(13,43,62,.25) 45%, rgba(13,43,62,.65) 100%);
+}
+.hero .sole{
+  position:absolute; top:6%; right:-8%; width:320px; height:320px; border-radius:50%;
+  background:radial-gradient(circle,var(--c3),#ffb03e 58%,transparent 72%); filter:blur(2px); opacity:.75;
+}
+.hero-dentro{ position:relative; z-index:3; }
+.targhetta{
+  display:inline-block; background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.5);
+  backdrop-filter:blur(4px); padding:8px 18px; border-radius:999px;
+  font-weight:bold; letter-spacing:.6px; text-transform:uppercase; font-size:.8rem; margin-bottom:16px;
+}
+.hero h1{ font-size:clamp(2.3rem,7.2vw,4.4rem); text-shadow:0 6px 30px rgba(0,0,0,.35); margin-bottom:.18em; }
+.hero .sottotitolo{ font-size:clamp(1.02rem,2.6vw,1.45rem); font-weight:bold; text-shadow:0 3px 14px rgba(0,0,0,.4); }
+.hero .posto{ margin-top:8px; font-size:1rem; opacity:.95; }
+.hero .azioni{ margin-top:28px; display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+.onde{ position:absolute; bottom:-2px; left:0; width:100%; height:110px; z-index:2; }
+
+/* conto alla rovescia */
+.conto{ display:flex; gap:10px; justify-content:center; margin-top:26px; flex-wrap:wrap; }
+.conto-box{
+  background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.45);
+  border-radius:16px; padding:10px 14px; min-width:72px; backdrop-filter:blur(4px);
+}
+.conto-box b{ display:block; font-size:1.8rem; line-height:1.1; }
+.conto-box span{ font-size:.7rem; text-transform:uppercase; letter-spacing:1px; opacity:.9; }
+.conto-fatto{ font-size:1.15rem; font-weight:bold; padding:12px 22px; }
+
+/* ---------------------------- schede ----------------------------- */
+.schede{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; }
+.scheda{
+  background:#fff; border-radius:var(--radius); padding:24px; text-align:center;
+  box-shadow:var(--shadow); border:1px solid rgba(13,43,62,.07);
+}
+.scheda .ico{ font-size:2.2rem; }
+.scheda h3{ margin:.45em 0 .2em; font-size:.92rem; text-transform:uppercase; letter-spacing:.6px; color:var(--c1); }
+.scheda p{ font-size:1.12rem; font-weight:bold; }
+.striscia-tema{
+  background:linear-gradient(120deg,var(--c3),#ffb703); color:var(--ink);
+  border-radius:var(--radius); padding:20px 26px; margin-top:22px; text-align:center;
+  font-size:1.08rem; box-shadow:var(--shadow);
+}
+.striscia-tema b{ font-size:1.3rem; }
+
+/* --------------------------- galleria ---------------------------- */
+.galleria{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.galleria .g{
+  position:relative; aspect-ratio:1/1; border-radius:var(--radius); overflow:hidden;
+  box-shadow:var(--shadow); background:linear-gradient(135deg,var(--c2),var(--c1));
+}
+.galleria .g:first-child{ grid-column:span 2; grid-row:span 2; }
+.galleria img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease; }
+.galleria .g:hover img{ transform:scale(1.06); }
+@media(max-width:720px){
+  .galleria{ grid-template-columns:repeat(2,1fr); }
+  .galleria .g:first-child{ grid-column:span 2; grid-row:auto; aspect-ratio:16/10; }
+}
+
+/* ----------------------------- menù ------------------------------ */
+.menu-scatola{
+  background:linear-gradient(160deg,#0d2b3e,#12455f); color:#fff;
+  border-radius:calc(var(--radius) + 6px); padding:40px 28px; box-shadow:var(--shadow);
+}
+.menu-scatola .titolo-sez{ color:#fff; }
+.menu-scatola .occhiello{ color:#cfe9f2; }
+.menu-cat{ max-width:660px; margin:0 auto 26px; }
+.menu-cat h3{
+  font-size:1.15rem; color:var(--c3); text-transform:uppercase; letter-spacing:.8px;
+  margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid rgba(255,255,255,.22);
+}
+.menu-voce{ display:flex; justify-content:space-between; gap:14px; padding:9px 0; border-bottom:1px dashed rgba(255,255,255,.18); }
+.menu-voce:last-child{ border-bottom:none; }
+.menu-voce b{ font-size:1.02rem; }
+.menu-voce small{ display:block; opacity:.8; font-weight:normal; }
+.menu-voce .prezzo{ color:var(--c3); font-weight:bold; white-space:nowrap; }
+.avviso-menu{
+  max-width:660px; margin:0 auto; background:rgba(255,210,63,.14); border:1px solid rgba(255,210,63,.5);
+  border-radius:14px; padding:14px 18px; font-size:.92rem; color:#ffeaa7;
+}
+
+/* riquadro quota bagnina */
+.quota{
+  max-width:660px; margin:0 auto 26px; background:rgba(18,182,201,.14);
+  border:1px solid rgba(18,182,201,.55); border-radius:16px; padding:18px 20px;
+}
+.quota h4{ font-size:1.05rem; color:var(--c3); margin-bottom:6px; }
+.quota p{ font-size:.96rem; opacity:.94; }
+.quota .cifra{ font-weight:bold; color:#fff; }
+
+/* --------------------------- pagamento --------------------------- */
+.pagamento{
+  background:#fff; border-radius:var(--radius); box-shadow:var(--shadow);
+  border-left:8px solid var(--c1); padding:28px; max-width:760px; margin:0 auto;
+}
+.pagamento h3{ color:var(--c1); font-size:1.2rem; margin-bottom:12px; }
+.pagamento .riga-info{ display:flex; gap:12px; align-items:flex-start; margin-bottom:12px; }
+.pagamento .riga-info .ico{ font-size:1.3rem; flex:0 0 auto; }
+.pagamento .scad{
+  display:inline-block; background:var(--c3); color:var(--ink); font-weight:bold;
+  border-radius:999px; padding:6px 16px; margin-top:4px;
+}
+.pagamento .nota{ font-size:.9rem; color:var(--muted); margin-top:10px; }
+
+/* -------------------------- regolamento -------------------------- */
+.regole{ max-width:760px; margin:0 auto; display:grid; gap:10px; }
+.regola{
+  display:flex; gap:14px; align-items:flex-start; background:#fff; border-radius:16px;
+  padding:15px 18px; box-shadow:var(--shadow-s); border:1px solid rgba(13,43,62,.07);
+}
+.regola .n{
+  flex:0 0 32px; height:32px; border-radius:50%; color:#fff; font-weight:bold;
+  background:linear-gradient(120deg,var(--c1),var(--c2));
+  display:flex; align-items:center; justify-content:center; font-size:.92rem;
+}
+
+/* =========================== PRENOTAZIONE =========================== */
+.prenota-fascia{
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  border-radius:calc(var(--radius) + 6px); padding:36px 20px; color:#fff; box-shadow:var(--shadow);
+}
+.prenota-fascia .titolo-sez{ color:#fff; }
+.pannello{
+  background:#fff; color:var(--ink); border-radius:var(--radius); padding:24px;
+  max-width:620px; margin:22px auto 0; box-shadow:var(--shadow);
+}
+@media(max-width:520px){ .pannello{ padding:18px 15px; } }
+
+/* avanzamento */
+.avanzamento{ margin-bottom:20px; }
+.avanzamento .etichetta{ display:flex; justify-content:space-between; font-size:.85rem; font-weight:bold; color:var(--muted); margin-bottom:7px; }
+.barra{ height:9px; background:rgba(13,43,62,.1); border-radius:999px; overflow:hidden; }
+.barra i{ display:block; height:100%; width:0; border-radius:999px; background:linear-gradient(90deg,var(--c2),var(--c1)); transition:width .35s ease; }
+
+.passo{ display:none; }
+.passo.attivo{ display:block; }
+.passo h3{ font-size:1.25rem; margin-bottom:4px; }
+.passo .guida{ font-size:.92rem; color:var(--muted); margin-bottom:16px; }
+
+label{ display:block; font-weight:bold; margin:14px 0 6px; font-size:.9rem; }
+input[type=text], input[type=tel], textarea{
+  width:100%; padding:13px 14px; border:2px solid rgba(13,43,62,.16); border-radius:12px;
+  font:inherit; font-size:1rem; background:#fff; color:var(--ink);
+}
+input:focus, textarea:focus{ outline:none; border-color:var(--c2); box-shadow:0 0 0 3px rgba(18,182,201,.18); }
+input[aria-invalid="true"]{ border-color:var(--c1); }
+.errore{ color:var(--c1); font-size:.86rem; font-weight:bold; margin-top:6px; display:none; }
+.errore.visibile{ display:block; }
+.suggerimento{ font-size:.84rem; color:var(--muted); margin-top:5px; }
+
+/* contatori persone */
+.persone{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px; }
+@media(max-width:420px){ .persone{ grid-template-columns:1fr; } }
+.persona{ border:2px solid rgba(13,43,62,.12); border-radius:14px; padding:12px; text-align:center; }
+.persona .nome{ font-weight:bold; font-size:.92rem; }
+.persona .sotto{ font-size:.78rem; color:var(--muted); margin-bottom:8px; }
+.contatore{ display:flex; align-items:center; justify-content:center; gap:14px; }
+.contatore button{
+  width:44px; height:44px; border-radius:50%; border:none; cursor:pointer;
+  background:var(--c2); color:#fff; font-size:1.4rem; font-weight:bold; line-height:1;
+}
+.contatore button:disabled{ opacity:.3; cursor:default; }
+.contatore .q{ min-width:32px; font-size:1.35rem; font-weight:bold; }
+.totale-persone{ text-align:center; margin-top:12px; font-weight:bold; color:var(--c2); }
+
+/* elenco piatti */
+.cat-titolo{
+  font-weight:bold; color:var(--c1); text-transform:uppercase; font-size:.82rem;
+  letter-spacing:.6px; margin:20px 0 8px;
+}
+.elenco{ border:2px solid rgba(13,43,62,.1); border-radius:14px; overflow:hidden; }
+.voce{ display:flex; align-items:center; gap:10px; padding:11px 12px; border-bottom:1px solid rgba(13,43,62,.08); }
+.voce:last-child{ border-bottom:none; }
+.voce.scelta{ background:rgba(18,182,201,.07); }
+.voce .info{ flex:1 1 auto; min-width:0; }
+.voce .info b{ font-size:.98rem; display:block; }
+.voce .info small{ color:var(--muted); font-size:.8rem; display:block; }
+.voce .pr{ font-weight:bold; color:var(--c1); white-space:nowrap; font-size:.92rem; }
+.voce .contatore button{ width:38px; height:38px; font-size:1.2rem; }
+.voce .contatore{ gap:8px; }
+.voce .contatore .q{ min-width:22px; font-size:1.05rem; }
+
+.subtotale{ margin-top:16px; text-align:center; font-size:1.05rem; font-weight:bold; }
+.subtotale b{ color:var(--c1); font-size:1.3rem; }
+.avvisino{
+  margin-top:12px; background:rgba(255,210,63,.22); border:1px solid rgba(255,183,3,.6);
+  border-radius:12px; padding:11px 14px; font-size:.88rem; display:none;
+}
+.avvisino.visibile{ display:block; }
+
+/* riepilogo */
+.riepilogo{ border:2px solid rgba(13,43,62,.1); border-radius:16px; overflow:hidden; }
+.riep-sez{ padding:14px 16px; border-bottom:1px solid rgba(13,43,62,.08); }
+.riep-sez:last-child{ border-bottom:none; }
+.riep-sez h4{ font-size:.78rem; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin-bottom:7px; display:flex; justify-content:space-between; align-items:center; }
+.riep-riga{ display:flex; justify-content:space-between; gap:12px; padding:3px 0; font-size:.96rem; }
+.riep-riga .q{ color:var(--muted); }
+.riep-totale{ background:linear-gradient(120deg,var(--c1),#ff8a5c); color:#fff; padding:16px; text-align:center; }
+.riep-totale .cifra{ font-size:2rem; font-weight:bold; display:block; }
+.riep-totale small{ opacity:.9; }
+
+.consenso{ display:flex; gap:10px; align-items:flex-start; margin-top:16px; font-size:.92rem; }
+.consenso input{ width:22px; height:22px; margin-top:2px; flex:0 0 auto; accent-color:var(--c2); }
+
+.navigazione{ display:flex; gap:10px; justify-content:space-between; margin-top:22px; flex-wrap:wrap; }
+.navigazione .btn{ flex:1 1 auto; }
+
+/* box "hai già una prenotazione" */
+.gia-prenotato{
+  background:#fff; border-radius:16px; padding:16px 18px; max-width:620px; margin:0 auto 18px;
+  box-shadow:var(--shadow-s); color:var(--ink); display:none;
+}
+.gia-prenotato.visibile{ display:block; }
+.gia-prenotato .codice{ font-weight:bold; color:var(--c1); letter-spacing:1px; }
+.gia-prenotato .azioni{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+
+/* ============================= VOUCHER ============================= */
+#areaVoucher{ display:none; }
+#areaVoucher.visibile{ display:block; }
+.voucher{
+  background:#fff; color:var(--ink); border-radius:var(--radius); max-width:620px; margin:0 auto;
+  box-shadow:var(--shadow); overflow:hidden; border:1px solid rgba(13,43,62,.1);
+}
+.v-testata{
+  background:linear-gradient(120deg,var(--c1),var(--c2)); color:#fff; padding:18px 22px; text-align:center;
+}
+.v-testata .casa{ font-size:1.05rem; font-weight:bold; }
+.v-testata .tit{ font-size:1.35rem; font-weight:bold; margin-top:2px; }
+.v-corpo{ padding:22px; }
+.v-codice-riga{ display:flex; gap:18px; align-items:center; flex-wrap:wrap; justify-content:center; }
+.v-codice{ text-align:center; flex:1 1 200px; }
+.v-codice .et{ font-size:.75rem; text-transform:uppercase; letter-spacing:1.2px; color:var(--muted); }
+.v-codice .cod{
+  font-size:1.9rem; font-weight:bold; letter-spacing:2px; color:var(--c1);
+  font-family:"Courier New",monospace; word-break:break-all;
+}
+.v-qr{ width:130px; height:130px; flex:0 0 auto; border:1px solid rgba(13,43,62,.12); border-radius:10px; padding:6px; background:#fff; }
+.v-qr svg{ width:100%; height:100%; display:block; }
+.v-qr .ko{ font-size:.7rem; text-align:center; color:var(--muted); padding:8px; }
+.v-griglia{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; }
+@media(max-width:480px){ .v-griglia{ grid-template-columns:1fr; } }
+.v-campo{ border:1px solid rgba(13,43,62,.1); border-radius:10px; padding:9px 12px; }
+.v-campo .et{ font-size:.7rem; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); }
+.v-campo .val{ font-weight:bold; font-size:1rem; word-break:break-word; }
+.v-titoletto{
+  font-size:.75rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted);
+  margin:20px 0 8px; padding-bottom:5px; border-bottom:1px solid rgba(13,43,62,.12);
+}
+.v-riga{ display:flex; justify-content:space-between; gap:12px; padding:4px 0; font-size:.96rem; }
+.v-tot{
+  display:flex; justify-content:space-between; align-items:center; margin-top:12px;
+  background:var(--ink); color:#fff; border-radius:12px; padding:13px 16px;
+}
+.v-tot .cifra{ font-size:1.5rem; font-weight:bold; color:var(--c3); }
+.v-paga{
+  margin-top:18px; border:2px dashed var(--c1); border-radius:14px; padding:15px 16px;
+  background:rgba(230,57,70,.05);
+}
+.v-paga h4{ color:var(--c1); font-size:1rem; margin-bottom:7px; }
+.v-paga p{ font-size:.93rem; margin-bottom:5px; }
+.v-paga .forte{ font-weight:bold; }
+.v-esibire{
+  margin-top:16px; text-align:center; font-weight:bold; background:var(--c3); color:var(--ink);
+  border-radius:12px; padding:11px;
+}
+.v-piede{ margin-top:14px; text-align:center; font-size:.8rem; color:var(--muted); }
+.azioni-voucher{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:22px; }
+.azioni-voucher .btn{ flex:1 1 210px; }
+
+/* --------------------------- condividi --------------------------- */
+.condividi{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; align-items:center; margin-top:26px; }
+.condividi .et{ font-weight:bold; color:var(--muted); }
+
+footer{ background:var(--ink); color:#cfe9f2; padding:38px 18px; text-align:center; }
+footer .nome{ font-size:1.25rem; font-weight:bold; }
+footer .contatti{ margin-top:8px; opacity:.85; font-size:.95rem; }
+footer .servizio{ margin-top:18px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+footer .servizio a{ color:#cfe9f2; text-decoration:none; font-size:.82rem; opacity:.6; border:1px solid rgba(255,255,255,.25); border-radius:999px; padding:6px 13px; }
+footer .servizio a:hover{ opacity:1; }
+
+.flottante{
+  position:fixed; left:14px; bottom:14px; z-index:60;
+  background:var(--c1); color:#fff; border-radius:999px; padding:13px 20px;
+  font-weight:bold; text-decoration:none; box-shadow:var(--shadow); display:flex; gap:8px; align-items:center;
+}
+
+/* ============================== STAMPA ==============================
+   In stampa resta solo il voucher, su foglio pulito. La tecnica della
+   visibilita' e' la piu' affidabile: nasconde tutto l'albero e riaccende
+   solo il ramo del voucher, senza dover elencare le sezioni una per una. */
+@media print{
+  @page{ size:A4 portrait; margin:12mm; }
+  html,body{ background:#fff !important; }
+  body *{ visibility:hidden !important; }
+  #areaVoucher, #areaVoucher *{ visibility:visible !important; }
+  #areaVoucher{
+    display:block !important; position:absolute !important; left:0; top:0; width:100%;
+    padding:0 !important; margin:0 !important;
+  }
+  .azioni-voucher, .flottante{ display:none !important; }
+  .voucher{
+    box-shadow:none !important; border:1.5px solid #0d2b3e !important; max-width:100% !important;
+    break-inside:avoid; page-break-inside:avoid;
+  }
+  .v-testata, .v-tot, .v-esibire, .v-paga, .riep-totale{
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ================================ HERO ================================ -->
+<header class="hero">
+  <div class="sfondo" id="heroSfondo"></div>
+  <div class="velo"></div>
+  <div class="sole"></div>
+  <div class="hero-dentro wrap">
+    <span class="targhetta" id="heroTema">Festa</span>
+    <h1 id="heroTitolo">Festa in Piscina</h1>
+    <p class="sottotitolo" id="heroSottotitolo"></p>
+    <p class="posto" id="heroLuogo"></p>
+    <div class="conto" id="conto"></div>
+    <div class="azioni">
+      <a href="#prenota" class="btn btn-p">🎟️ Prenota il tuo posto</a>
+      <a href="#menu" class="btn btn-fantasma">🍕 Vedi il menù</a>
+    </div>
+  </div>
+  <svg class="onde" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+    <path fill="#fffdf7" d="M0,64L60,58.7C120,53,240,43,360,48C480,53,600,75,720,74.7C840,75,960,53,1080,45.3C1200,37,1320,43,1380,45.3L1440,48L1440,120L0,120Z"></path>
+  </svg>
+</header>
+
+<!-- ================================ FESTA =============================== -->
+<section id="festa">
+  <div class="wrap">
+    <h2 class="titolo-sez">La <span class="em">festa</span></h2>
+    <p class="occhiello" id="descrizioneEvento"></p>
+    <div class="schede">
+      <div class="scheda"><div class="ico">📅</div><h3>Data</h3><p id="sData">—</p></div>
+      <div class="scheda"><div class="ico">🕗</div><h3>Orario</h3><p id="sOrario">—</p></div>
+      <div class="scheda"><div class="ico">📍</div><h3>Dove</h3><p id="sLuogo">—</p></div>
+      <div class="scheda"><div class="ico">👗</div><h3>Come vestirsi</h3><p id="sDress">—</p></div>
+    </div>
+    <div class="striscia-tema">🎉 Tema della serata: <b id="sTema">—</b><span id="sPosti"></span></div>
+  </div>
+</section>
+
+<!-- =============================== GALLERIA ============================= -->
+<section id="foto" style="padding-top:0">
+  <div class="wrap">
+    <h2 class="titolo-sez">La nostra <span class="em">piscina</span></h2>
+    <p class="occhiello">Il posto perfetto per una serata d'estate tutti insieme.</p>
+    <div class="galleria" id="galleria"></div>
+  </div>
+</section>
+
+<!-- ================================= MENÙ =============================== -->
+<section id="menu">
+  <div class="wrap">
+    <div class="menu-scatola">
+      <h2 class="titolo-sez">Il <span style="color:var(--c3)">menù</span></h2>
+      <p class="occhiello" id="descrizioneMenu"></p>
+      <div id="quotaBox" class="quota" style="display:none">
+        <h4 id="quotaTitolo"></h4>
+        <p id="quotaTesto"></p>
+      </div>
+      <div id="elencoMenu"></div>
+      <div class="avviso-menu" id="avvisoMenu" style="display:none"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================== PAGAMENTO ============================ -->
+<section id="pagamento" style="display:none">
+  <div class="wrap">
+    <h2 class="titolo-sez">Come si <span class="em">paga</span></h2>
+    <p class="occhiello">Semplice: si paga di persona, in contanti, prima della festa.</p>
+    <div class="pagamento">
+      <h3 id="pagTitolo">Come si paga</h3>
+      <div class="riga-info"><span class="ico">🙋‍♀️</span><div><b>A chi:</b> <span id="pagReferente"></span></div></div>
+      <div class="riga-info"><span class="ico">🕘</span><div><b>Quando:</b> <span id="pagOrari"></span><br><span class="scad" id="pagScadenza"></span></div></div>
+      <div class="riga-info"><span class="ico">💶</span><div id="pagIstruzioni"></div></div>
+      <p class="nota" id="pagNota"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== REGOLAMENTO =========================== -->
+<section id="regolamento">
+  <div class="wrap">
+    <h2 class="titolo-sez">Regolamento <span class="em">&amp; info</span></h2>
+    <p class="occhiello">Poche regole, per stare bene tutti insieme.</p>
+    <div class="regole" id="regole"></div>
+  </div>
+</section>
+
+<!-- ============================== PRENOTAZIONE ========================== -->
+<section id="prenota">
+  <div class="wrap">
+    <div class="prenota-fascia">
+      <h2 class="titolo-sez">Prenota il tuo <span style="color:var(--c3)">posto</span></h2>
+      <p class="occhiello" style="color:#fff">Quattro passaggi veloci: alla fine ricevi il tuo voucher da stampare o mostrare all'ingresso.</p>
+
+      <div class="gia-prenotato" id="giaPrenotato">
+        <div>✅ Hai già una prenotazione: <span class="codice" id="giaCodice"></span></div>
+        <div class="azioni">
+          <button type="button" class="btn btn-scuro btn-piccolo" id="btnRivedi">👁️ Rivedi il voucher</button>
+          <button type="button" class="btn btn-chiaro btn-piccolo" id="btnCancella">🗑️ Cancella e ricomincia</button>
+        </div>
+      </div>
+
+      <!-- ------------------------- il percorso ------------------------- -->
+      <div class="pannello" id="pannelloPassi">
+        <div class="avanzamento">
+          <div class="etichetta"><span id="passoEtichetta">Passo 1 di 4</span><span id="passoNome">I tuoi dati</span></div>
+          <div class="barra"><i id="barraAvanzamento"></i></div>
+        </div>
+
+        <!-- PASSO 1 -->
+        <div class="passo attivo" id="passo1">
+          <h3>👤 I tuoi dati</h3>
+          <p class="guida">Servono per preparare il voucher e per avvisarti se cambia qualcosa.</p>
+
+          <label for="fNome">Nome e cognome</label>
+          <input type="text" id="fNome" placeholder="Es. Mario Rossi" autocomplete="name" />
+          <p class="errore" id="eNome"></p>
+
+          <label for="fTel">Cellulare</label>
+          <input type="tel" id="fTel" placeholder="Es. 327 756 5727" inputmode="tel" autocomplete="tel" />
+          <p class="errore" id="eTel"></p>
+
+          <div id="bloccoAppartamento">
+            <label for="fApp">Appartamento / palazzina <span style="font-weight:normal;color:var(--muted)">(facoltativo)</span></label>
+            <input type="text" id="fApp" placeholder="Es. Palazzina B, interno 12" />
+          </div>
+
+          <label style="margin-top:18px">Quante persone siete?</label>
+          <div class="persone">
+            <div class="persona">
+              <div class="nome">Adulti</div>
+              <div class="sotto">dai 11 anni in su</div>
+              <div class="contatore">
+                <button type="button" id="menoAdulti" aria-label="Togli un adulto">−</button>
+                <span class="q" id="qAdulti">2</span>
+                <button type="button" id="piuAdulti" aria-label="Aggiungi un adulto">+</button>
+              </div>
+            </div>
+            <div class="persona">
+              <div class="nome">Bambini</div>
+              <div class="sotto">fino a 10 anni</div>
+              <div class="contatore">
+                <button type="button" id="menoBambini" aria-label="Togli un bambino">−</button>
+                <span class="q" id="qBambini">0</span>
+                <button type="button" id="piuBambini" aria-label="Aggiungi un bambino">+</button>
+              </div>
+            </div>
+          </div>
+          <p class="totale-persone" id="totalePersone"></p>
+          <p class="errore" id="ePersone"></p>
+        </div>
+
+        <!-- PASSO 2 -->
+        <div class="passo" id="passo2">
+          <h3>🍕 Scegli le pizze</h3>
+          <p class="guida">Usa i pulsanti + e − per indicare quante ne vuoi. Il totale si aggiorna da solo.</p>
+          <div id="elencoCibo"></div>
+          <p class="subtotale">Pizze: <b id="subtotaleCibo">€ 0</b></p>
+          <p class="errore" id="eCibo"></p>
+          <div class="avvisino" id="avvisoPizze"></div>
+        </div>
+
+        <!-- PASSO 3 -->
+        <div class="passo" id="passo3">
+          <h3>🥤 Bevande</h3>
+          <p class="guida">Facoltative: se non ti servono, vai pure avanti.</p>
+          <div id="elencoBevande"></div>
+          <p class="subtotale">Bevande: <b id="subtotaleBevande">€ 0</b></p>
+        </div>
+
+        <!-- PASSO 4 -->
+        <div class="passo" id="passo4">
+          <h3>📋 Controlla e conferma</h3>
+          <p class="guida">Se qualcosa non va, usa «Modifica» per tornare indietro.</p>
+          <div class="riepilogo" id="riepilogo"></div>
+
+          <label for="fNote" style="margin-top:18px">Note per gli organizzatori <span style="font-weight:normal;color:var(--muted)">(allergie, richieste…)</span></label>
+          <textarea id="fNote" rows="2" maxlength="300" placeholder="Facoltativo"></textarea>
+          <p class="suggerimento"><span id="contaNote">0</span>/300 caratteri</p>
+
+          <label class="consenso" for="fConsenso">
+            <input type="checkbox" id="fConsenso" />
+            <span id="testoConsenso"></span>
+          </label>
+          <p class="errore" id="eConsenso"></p>
+        </div>
+
+        <div class="navigazione">
+          <button type="button" class="btn btn-chiaro" id="btnIndietro">← Indietro</button>
+          <button type="button" class="btn btn-p" id="btnAvanti">Avanti →</button>
+        </div>
+      </div>
+
+      <!-- --------------------------- il voucher --------------------------- -->
+      <div id="areaVoucher">
+        <div class="voucher" id="voucher">
+          <div class="v-testata">
+            <div class="casa" id="vCasa"></div>
+            <div class="tit" id="vTitolo"></div>
+          </div>
+          <div class="v-corpo">
+            <div class="v-codice-riga">
+              <div class="v-codice">
+                <div class="et">Codice prenotazione</div>
+                <div class="cod" id="vCodice"></div>
+              </div>
+              <div class="v-qr" id="vQr"></div>
+            </div>
+
+            <div class="v-griglia">
+              <div class="v-campo"><div class="et">Intestato a</div><div class="val" id="vNome"></div></div>
+              <div class="v-campo"><div class="et">Cellulare</div><div class="val" id="vTel"></div></div>
+              <div class="v-campo" id="vCampoApp"><div class="et">Appartamento</div><div class="val" id="vApp"></div></div>
+              <div class="v-campo"><div class="et">Partecipanti</div><div class="val" id="vPersone"></div></div>
+              <div class="v-campo"><div class="et">Quando</div><div class="val" id="vQuando"></div></div>
+              <div class="v-campo"><div class="et">Dove</div><div class="val" id="vDove"></div></div>
+            </div>
+
+            <div class="v-titoletto">Il tuo ordine</div>
+            <div id="vOrdine"></div>
+            <div class="v-tot"><span>Totale da pagare</span><span class="cifra" id="vTotale"></span></div>
+
+            <div class="v-paga" id="vPaga">
+              <h4 id="vPagaTitolo">💶 Come si paga</h4>
+              <p id="vPagaRiga1"></p>
+              <p id="vPagaRiga2"></p>
+              <p id="vPagaRiga3"></p>
+            </div>
+
+            <div id="vBloccoNote" style="display:none">
+              <div class="v-titoletto">Note</div>
+              <p id="vNote" style="font-size:.94rem"></p>
+            </div>
+
+            <div class="v-esibire">🎟️ Da esibire all'ingresso della festa</div>
+            <p class="v-piede" id="vPiede"></p>
+          </div>
+        </div>
+
+        <div class="azioni-voucher">
+          <button type="button" class="btn btn-scuro" id="btnStampaVoucher">🖨️ Stampa il voucher</button>
+          <a href="#" class="btn btn-wa" id="btnWhatsApp" target="_blank" rel="noopener">📲 Invia su WhatsApp</a>
+          <a href="#" class="btn btn-tg" id="btnTelegram" target="_blank" rel="noopener">✈️ Invia su Telegram</a>
+          <button type="button" class="btn btn-chiaro" id="btnNuova">➕ Nuova prenotazione</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="condividi">
+      <span class="et">Passa parola:</span>
+      <a href="#" class="btn btn-wa btn-piccolo" id="condWa" target="_blank" rel="noopener">WhatsApp</a>
+      <a href="#" class="btn btn-tg btn-piccolo" id="condTg" target="_blank" rel="noopener">Telegram</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="nome" id="pieNome">🌴 Residence Holiday</p>
+    <p class="contatti" id="pieContatti"></p>
+    <p style="margin-top:14px;opacity:.55;font-size:.85rem">Sito informativo per i condomini · aggiornato dall'amministrazione</p>
+    <div class="servizio">
+      <a href="locandina.html">🖨️ Locandina da affiggere</a>
+      <a href="admin.html">⚙️ Area amministrazione</a>
+    </div>
+  </div>
+</footer>
+
+<a href="#prenota" class="flottante" id="flottante">🎟️ Prenota</a>
+
+<script>
+/* =========================================================================
+   VALORI DI RISERVA — usati solo se contenuti.json non e' raggiungibile
+   (per esempio aprendo il file con file:// invece che da un server).
+   ========================================================================= */
+var RISERVA = {
+  versione:2,
+  residence:{ nome:"Residence Holiday", localita:"Montalto di Castro", emoji:"🌴" },
+  tema:{ titoloFesta:"Festa in Piscina", sottotitolo:"", nomeTema:"Festa",
+         colorePrimario:"#e63946", coloreSecondario:"#12b6c9", coloreAccento:"#ffd23f" },
+  evento:{ data:"", orario:"20:00", orarioFine:"", luogo:"", descrizione:"", dressCode:"", postiTotali:0 },
+  menu:{ descrizione:"", avviso:"", copertoPersona:0, copertoEtichetta:"", copertoEmoji:"🛟", copertoNota:"", categorie:[] },
+  pagamento:{ attivo:false, titolo:"Come si paga", referente:"", scadenza:"", orari:"", istruzioni:"", nota:"" },
+  prenotazione:{ whatsappNumero:"", messaggioBase:"", scadenza:"", chiediAppartamento:true, prefissoCodice:"RH" },
+  regolamento:[], foto:[],
+  condivisione:{ urlSito:"", linkGruppoTelegram:"", linkGruppoWhatsApp:"" },
+  contatti:{ organizzatore:"", telefono:"", email:"" },
+  locandina:{ claim:"", istruzioniQr:"", nota:"" }
+};
+
+var DATI = RISERVA;
+var $ = function(id){ return document.getElementById(id); };
+
+/* ---------------------------- utilita' ---------------------------- */
+
+/* Fuga dei caratteri: obbligatoria ovunque un valore finisca in HTML. */
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function V(v, def){ return (v === undefined || v === null || v === '') ? def : v; }
+
+/* Scrive testo semplice, senza mai passare per innerHTML. */
+function testo(id, s){ var el = $(id); if(el) el.textContent = (s == null ? '' : String(s)); return el; }
+
+var MESI = ["gennaio","febbraio","marzo","aprile","maggio","giugno",
+            "luglio","agosto","settembre","ottobre","novembre","dicembre"];
+var GIORNI = ["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"];
+
+/* "2026-08-08" -> "sabato 8 agosto 2026". Costruita a mano per non dipendere
+   dalla lingua del browser e per non avere sorprese di fuso orario. */
+function dataIt(iso, conAnno){
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  if(!m) return '';
+  var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  if(isNaN(d.getTime())) return '';
+  return GIORNI[d.getDay()] + ' ' + d.getDate() + ' ' + MESI[d.getMonth()] +
+         (conAnno === false ? '' : ' ' + m[1]);
+}
+
+/* Importi: "€ 24" se intero, "€ 24,50" con la virgola se decimale. */
+function eur(n){
+  var v = Number(n);
+  if(!isFinite(v)) v = 0;
+  return '€ ' + (Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ','));
+}
+
+/* "a" + articolo -> preposizione articolata, cosi' i testi composti a runtime
+   restano in italiano corretto ("alla bagnina", non "a la bagnina"). */
+function aChi(nome){
+  var s = String(nome || '').trim();
+  if(!s) return '';
+  var contrazioni = [
+    [/^gli\s+/i, 'agli '], [/^lo\s+/i, 'allo '], [/^la\s+/i, 'alla '],
+    [/^le\s+/i, 'alle '],  [/^il\s+/i, 'al '],   [/^i\s+/i, 'ai '],
+    [/^l['’]\s*/i, "all'"]
+  ];
+  for(var i = 0; i < contrazioni.length; i++){
+    if(contrazioni[i][0].test(s)) return s.replace(contrazioni[i][0], contrazioni[i][1]);
+  }
+  return 'a ' + s;
+}
+
+/* Colore accettato solo se e' davvero un colore esadecimale: le custom
+   property CSS accettano qualunque testo e non vogliamo sorprese. */
+function colore(v, def){
+  return /^#[0-9a-fA-F]{3,8}$/.test(String(v || '')) ? String(v) : def;
+}
+
+/* localStorage puo' lanciare in navigazione privata: mai fidarsi. */
+function memLeggi(chiave){
+  try{ return window.localStorage.getItem(chiave); }catch(e){ return null; }
+}
+function memScrivi(chiave, valore){
+  try{ window.localStorage.setItem(chiave, valore); return true; }catch(e){ return false; }
+}
+function memCancella(chiave){
+  try{ window.localStorage.removeItem(chiave); }catch(e){}
+}
+
+/* ------------------------- stato della pagina ------------------------- */
+var CHIAVE_MEM = 'rh_prenotazione';
+var passoCorrente = 1;
+var NOMI_PASSI = ['I tuoi dati','Le pizze','Le bevande','Riepilogo'];
+var quantita = {};        /* "indiceCategoria:indiceVoce" -> quantita' */
+var adulti = 2, bambini = 0;
+var prenotazioneFatta = null;
+
+/* =========================== CARICAMENTO =========================== */
+function carica(){
+  fetch('contenuti.json', { cache:'no-store' })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){
+      if(j && typeof j === 'object' && !Array.isArray(j)) DATI = j;
+    })
+    .catch(function(){ /* si resta sui valori di riserva */ })
+    .then(function(){
+      try{ disegna(); }
+      catch(e){ if(window.console) console.error('Errore nel disegno della pagina:', e); }
+    });
+}
+
+function disegna(){
+  var tema = V(DATI.tema, {}), ev = V(DATI.evento, {}), menu = V(DATI.menu, {});
+  var res = V(DATI.residence, {});
+
+  /* palette */
+  var rs = document.documentElement.style;
+  rs.setProperty('--c1', colore(tema.colorePrimario, '#e63946'));
+  rs.setProperty('--c2', colore(tema.coloreSecondario, '#12b6c9'));
+  rs.setProperty('--c3', colore(tema.coloreAccento, '#ffd23f'));
+
+  /* hero */
+  testo('heroTema', V(tema.nomeTema, 'Festa'));
+  testo('heroTitolo', V(tema.titoloFesta, 'Festa in Piscina'));
+  testo('heroSottotitolo', V(tema.sottotitolo, ''));
+  testo('heroLuogo', '📍 ' + V(res.nome, '') + (res.localita ? ' · ' + res.localita : ''));
+  document.title = V(tema.titoloFesta, 'Festa') + ' — ' + V(res.nome, 'Residence');
+
+  var foto = (DATI.foto && DATI.foto.length) ? DATI.foto : [];
+  if(foto[0]) $('heroSfondo').style.backgroundImage = 'url("' + String(foto[0]).replace(/"/g,'%22') + '")';
+
+  /* schede della festa */
+  testo('descrizioneEvento', V(ev.descrizione, ''));
+  testo('sData', dataIt(ev.data) || '—');
+  testo('sOrario', ev.orario ? (ev.orario + (ev.orarioFine ? ' – ' + ev.orarioFine : '')) : '—');
+  testo('sLuogo', V(ev.luogo, '—'));
+  testo('sDress', V(ev.dressCode, '—'));
+  testo('sTema', V(tema.nomeTema, '—'));
+  var posti = Number(ev.postiTotali) || 0;
+  testo('sPosti', posti > 0 ? ' · posti disponibili: ' + posti : '');
+
+  disegnaGalleria(foto, V(res.nome, 'Residence'));
+  disegnaMenu(menu);
+  disegnaPagamento();
+  disegnaRegolamento();
+  preparaPrenotazione();
+  preparaCondivisione();
+  disegnaPiede();
+  avviaConto(ev);
+  controllaPrenotazioneSalvata();
+}
+
+/* ------------------------------ galleria ------------------------------ */
+function disegnaGalleria(foto, nomeRes){
+  var g = $('galleria');
+  g.textContent = '';
+  var sfondi = ['linear-gradient(135deg,var(--c1),var(--c2))','linear-gradient(135deg,var(--c2),var(--c3))',
+                'linear-gradient(135deg,var(--c3),var(--c1))','linear-gradient(135deg,var(--c1),#0d6a8f)'];
+  var elenco = foto.length ? foto.slice(0, 5) : [null, null, null, null];
+  elenco.forEach(function(src, i){
+    var box = document.createElement('div');
+    box.className = 'g';
+    box.style.background = sfondi[i % sfondi.length];
+    if(src){
+      var img = document.createElement('img');
+      img.src = String(src);
+      img.alt = 'La piscina di ' + nomeRes;
+      img.loading = 'lazy';
+      img.addEventListener('error', function(){ img.remove(); });
+      box.appendChild(img);
+    }
+    g.appendChild(box);
+  });
+}
+
+/* -------------------------------- menù -------------------------------- */
+function categorie(){
+  var m = V(DATI.menu, {});
+  return Array.isArray(m.categorie) ? m.categorie : [];
+}
+function categorieDi(tipo){
+  return categorie().filter(function(c){ return c.tipo === tipo; });
+}
+
+function disegnaMenu(menu){
+  testo('descrizioneMenu', V(menu.descrizione, ''));
+
+  var cont = $('elencoMenu');
+  cont.textContent = '';
+  categorie().forEach(function(cat){
+    var blocco = document.createElement('div');
+    blocco.className = 'menu-cat';
+    var h3 = document.createElement('h3');
+    h3.textContent = (V(cat.emoji, '') + ' ' + V(cat.nome, '')).trim();
+    blocco.appendChild(h3);
+    (Array.isArray(cat.voci) ? cat.voci : []).forEach(function(v){
+      var riga = document.createElement('div');
+      riga.className = 'menu-voce';
+      var sx = document.createElement('div');
+      var b = document.createElement('b'); b.textContent = V(v.nome, '');
+      sx.appendChild(b);
+      if(v.descrizione){
+        var s = document.createElement('small'); s.textContent = v.descrizione; sx.appendChild(s);
+      }
+      riga.appendChild(sx);
+      if(v.prezzo !== null && v.prezzo !== undefined && v.prezzo !== ''){
+        var p = document.createElement('span');
+        p.className = 'prezzo'; p.textContent = eur(v.prezzo);
+        riga.appendChild(p);
+      }
+      blocco.appendChild(riga);
+    });
+    cont.appendChild(blocco);
+  });
+
+  /* riquadro della quota a persona (la bagnina) */
+  var coperto = Number(menu.copertoPersona) || 0;
+  if(coperto > 0){
+    $('quotaBox').style.display = '';
+    testo('quotaTitolo', (V(menu.copertoEmoji, '🛟') + ' ' +
+        V(menu.copertoEtichetta, 'Quota assistenza in piscina') + ' — ' + eur(coperto) + ' a persona').trim());
+    testo('quotaTesto', V(menu.copertoNota, ''));
+  } else {
+    $('quotaBox').style.display = 'none';
+  }
+
+  if(menu.avviso){
+    $('avvisoMenu').style.display = '';
+    testo('avvisoMenu', 'ℹ️ ' + menu.avviso);
+  }
+}
+
+/* ------------------------------ pagamento ----------------------------- */
+function disegnaPagamento(){
+  var p = V(DATI.pagamento, {});
+  if(!p.attivo){ $('pagamento').style.display = 'none'; return; }
+  $('pagamento').style.display = '';
+  testo('pagTitolo', V(p.titolo, 'Come si paga'));
+  testo('pagReferente', V(p.referente, '—'));
+  testo('pagOrari', V(p.orari, ''));
+  var scad = dataIt(p.scadenza);
+  testo('pagScadenza', scad ? '⏳ Entro ' + scad : '');
+  if(!scad) $('pagScadenza').style.display = 'none';
+  testo('pagIstruzioni', V(p.istruzioni, ''));
+  testo('pagNota', V(p.nota, ''));
+}
+
+/* ----------------------------- regolamento ---------------------------- */
+function disegnaRegolamento(){
+  var cont = $('regole');
+  cont.textContent = '';
+  (Array.isArray(DATI.regolamento) ? DATI.regolamento : []).forEach(function(r, i){
+    var riga = document.createElement('div');
+    riga.className = 'regola';
+    var n = document.createElement('div'); n.className = 'n'; n.textContent = String(i + 1);
+    var t = document.createElement('div'); t.textContent = String(r);
+    riga.appendChild(n); riga.appendChild(t);
+    cont.appendChild(riga);
+  });
+}
+
+/* ------------------------------- footer ------------------------------- */
+function disegnaPiede(){
+  var res = V(DATI.residence, {}), c = V(DATI.contatti, {});
+  testo('pieNome', V(res.emoji, '🌴') + ' ' + V(res.nome, 'Residence Holiday'));
+  var pezzi = [];
+  if(c.organizzatore) pezzi.push(c.organizzatore);
+  if(c.telefono) pezzi.push('📞 ' + c.telefono);
+  if(c.email) pezzi.push('✉️ ' + c.email);
+  testo('pieContatti', pezzi.join(' · '));
+}
+
+/* -------------------------- conto alla rovescia ------------------------ */
+function avviaConto(ev){
+  var el = $('conto');
+  if(!ev.data){ el.textContent = ''; return; }
+  var ora = /^\d{2}:\d{2}$/.test(String(ev.orario || '')) ? ev.orario : '20:00';
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ev.data));
+  if(!m){ el.textContent = ''; return; }
+  var hm = ora.split(':');
+  var bersaglio = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(hm[0]), Number(hm[1]), 0);
+
+  function battito(){
+    var diff = bersaglio.getTime() - Date.now();
+    el.textContent = '';
+    if(isNaN(bersaglio.getTime()) || diff <= 0){
+      var box = document.createElement('div');
+      box.className = 'conto-box conto-fatto';
+      box.textContent = '🎉 Ci vediamo in piscina!';
+      el.appendChild(box);
+      if(window._conto) clearInterval(window._conto);
+      return;
+    }
+    var g = Math.floor(diff / 864e5),
+        h = Math.floor(diff / 36e5) % 24,
+        mi = Math.floor(diff / 6e4) % 60,
+        s = Math.floor(diff / 1e3) % 60;
+    [[g,'giorni'],[h,'ore'],[mi,'min'],[s,'sec']].forEach(function(x){
+      var box = document.createElement('div');
+      box.className = 'conto-box';
+      var b = document.createElement('b'); b.textContent = String(x[0]);
+      var sp = document.createElement('span'); sp.textContent = x[1];
+      box.appendChild(b); box.appendChild(sp);
+      el.appendChild(box);
+    });
+  }
+  battito();
+  if(window._conto) clearInterval(window._conto);
+  window._conto = setInterval(battito, 1000);
+}
+
+/* ============================ PRENOTAZIONE ============================ */
+function preparaPrenotazione(){
+  var pren = V(DATI.prenotazione, {});
+  $('bloccoAppartamento').style.display = (pren.chiediAppartamento === false) ? 'none' : '';
+
+  costruisciElenco('elencoCibo', 'cibo');
+  costruisciElenco('elencoBevande', 'bevanda');
+
+  aggiornaPersone();
+  aggiornaSubtotali();
+  vaiA(1);
+}
+
+/* Costruisce gli elenchi con i contatori. L'indice di categoria e' quello
+   nell'array completo, cosi' la chiave della quantita' resta stabile. */
+function costruisciElenco(contenitoreId, tipo){
+  var cont = $(contenitoreId);
+  cont.textContent = '';
+  var tutte = categorie();
+  var trovate = 0;
+
+  tutte.forEach(function(cat, ic){
+    if(cat.tipo !== tipo) return;
+    trovate++;
+    var titolo = document.createElement('div');
+    titolo.className = 'cat-titolo';
+    titolo.textContent = (V(cat.emoji, '') + ' ' + V(cat.nome, '')).trim();
+    cont.appendChild(titolo);
+
+    var elenco = document.createElement('div');
+    elenco.className = 'elenco';
+    (Array.isArray(cat.voci) ? cat.voci : []).forEach(function(v, iv){
+      elenco.appendChild(rigaVoce(cat, v, ic, iv));
+    });
+    cont.appendChild(elenco);
+  });
+
+  if(!trovate){
+    var vuoto = document.createElement('p');
+    vuoto.className = 'guida';
+    vuoto.textContent = (tipo === 'bevanda')
+      ? 'Per questa serata non ci sono bevande da prenotare.'
+      : 'Il menù non è ancora stato caricato.';
+    cont.appendChild(vuoto);
+  }
+}
+
+function rigaVoce(cat, v, ic, iv){
+  var chiave = ic + ':' + iv;
+  var riga = document.createElement('div');
+  riga.className = 'voce';
+  riga.setAttribute('data-chiave', chiave);
+
+  var info = document.createElement('div');
+  info.className = 'info';
+  var b = document.createElement('b'); b.textContent = V(v.nome, '');
+  info.appendChild(b);
+  if(v.descrizione){
+    var s = document.createElement('small'); s.textContent = v.descrizione; info.appendChild(s);
+  }
+  riga.appendChild(info);
+
+  var pr = document.createElement('span');
+  pr.className = 'pr';
+  pr.textContent = (v.prezzo === null || v.prezzo === undefined || v.prezzo === '') ? '' : eur(v.prezzo);
+  riga.appendChild(pr);
+
+  var cont = document.createElement('div');
+  cont.className = 'contatore';
+  var meno = document.createElement('button');
+  meno.type = 'button'; meno.textContent = '−';
+  meno.setAttribute('aria-label', 'Togli una porzione di ' + V(v.nome, ''));
+  var q = document.createElement('span');
+  q.className = 'q'; q.textContent = '0';
+  var piu = document.createElement('button');
+  piu.type = 'button'; piu.textContent = '+';
+  piu.setAttribute('aria-label', 'Aggiungi una porzione di ' + V(v.nome, ''));
+  meno.disabled = true;
+
+  meno.addEventListener('click', function(){ cambiaQuantita(chiave, -1); });
+  piu.addEventListener('click', function(){ cambiaQuantita(chiave, 1); });
+
+  cont.appendChild(meno); cont.appendChild(q); cont.appendChild(piu);
+  riga.appendChild(cont);
+  return riga;
+}
+
+function cambiaQuantita(chiave, delta){
+  var attuale = quantita[chiave] || 0;
+  var nuovo = Math.max(0, Math.min(30, attuale + delta));
+  quantita[chiave] = nuovo;
+
+  var riga = document.querySelector('.voce[data-chiave="' + chiave + '"]');
+  if(riga){
+    riga.querySelector('.q').textContent = String(nuovo);
+    riga.className = nuovo > 0 ? 'voce scelta' : 'voce';
+    var bottoni = riga.querySelectorAll('.contatore button');
+    bottoni[0].disabled = (nuovo === 0);
+    bottoni[1].disabled = (nuovo === 30);
+  }
+  aggiornaSubtotali();
+  nascondiErrore('eCibo');
+}
+
+/* ------------------------- contatori delle persone ------------------------- */
+function aggiornaPersone(){
+  testo('qAdulti', String(adulti));
+  testo('qBambini', String(bambini));
+  $('menoAdulti').disabled = (adulti <= 1);
+  $('menoBambini').disabled = (bambini <= 0);
+  var tot = adulti + bambini;
+  testo('totalePersone', 'Siete in ' + tot + (tot === 1 ? ' persona' : ' persone'));
+  nascondiErrore('ePersone');
+}
+
+/* ---------------------------- calcolo del totale --------------------------- */
+function calcola(){
+  var menu = V(DATI.menu, {});
+  var tutte = categorie();
+  var righe = [], subCibo = 0, subBev = 0;
+
+  tutte.forEach(function(cat, ic){
+    (Array.isArray(cat.voci) ? cat.voci : []).forEach(function(v, iv){
+      var q = quantita[ic + ':' + iv] || 0;
+      if(q <= 0) return;
+      var prezzo = Number(v.prezzo) || 0;
+      var importo = prezzo * q;
+      righe.push({ nome: V(v.nome, ''), quantita:q, prezzo:prezzo, importo:importo, tipo:cat.tipo });
+      if(cat.tipo === 'bevanda') subBev += importo; else subCibo += importo;
+    });
+  });
+
+  var persone = adulti + bambini;
+  var perTesta = Number(menu.copertoPersona) || 0;
+  var coperto = perTesta * persone;
+
+  return {
+    righe: righe,
+    subCibo: subCibo,
+    subBev: subBev,
+    persone: persone,
+    copertoPerTesta: perTesta,
+    coperto: coperto,
+    totale: subCibo + subBev + coperto,
+    pezziCibo: righe.reduce(function(s, r){ return s + (r.tipo === 'bevanda' ? 0 : r.quantita); }, 0)
+  };
+}
+
+function aggiornaSubtotali(){
+  var c = calcola();
+  testo('subtotaleCibo', eur(c.subCibo));
+  testo('subtotaleBevande', eur(c.subBev));
+}
+
+/* ------------------------------- validazione ------------------------------- */
+function mostraErrore(id, messaggio, campoId){
+  var e = $(id);
+  if(e){ e.textContent = messaggio; e.className = 'errore visibile'; }
+  if(campoId && $(campoId)){
+    $(campoId).setAttribute('aria-invalid','true');
+    try{ $(campoId).focus({ preventScroll:true }); }catch(err){ $(campoId).focus(); }
+  }
+}
+function nascondiErrore(id, campoId){
+  var e = $(id);
+  if(e){ e.className = 'errore'; e.textContent = ''; }
+  if(campoId && $(campoId)) $(campoId).removeAttribute('aria-invalid');
+}
+
+function validaPasso1(){
+  var ok = true;
+  var nome = $('fNome').value.trim();
+  var tel = $('fTel').value.trim();
+
+  nascondiErrore('eNome','fNome'); nascondiErrore('eTel','fTel'); nascondiErrore('ePersone');
+
+  if(nome.length < 3 || nome.split(/\s+/).filter(Boolean).length < 2){
+    mostraErrore('eNome', 'Scrivi nome e cognome, per favore (es. Mario Rossi).', 'fNome');
+    ok = false;
+  }
+  var cifre = tel.replace(/\D/g, '');
+  if(cifre.length < 8){
+    if(ok) mostraErrore('eTel', 'Serve un numero di cellulare valido per avvisarti.', 'fTel');
+    else { var e = $('eTel'); e.textContent = 'Serve un numero di cellulare valido per avvisarti.'; e.className = 'errore visibile'; $('fTel').setAttribute('aria-invalid','true'); }
+    ok = false;
+  }
+  if(adulti + bambini < 1){
+    mostraErrore('ePersone', 'Indica almeno una persona.');
+    ok = false;
+  }
+  return ok;
+}
+
+function validaPasso2(){
+  var c = calcola();
+  if(c.pezziCibo < 1){
+    mostraErrore('eCibo', 'Scegli almeno una pizza per continuare.');
+    return false;
+  }
+  nascondiErrore('eCibo');
+  return true;
+}
+
+/* Avviso gentile, non bloccante: meno pizze che partecipanti. */
+function controllaAvvisoPizze(){
+  var c = calcola();
+  var box = $('avvisoPizze');
+  if(c.pezziCibo > 0 && c.pezziCibo < c.persone){
+    box.textContent = '🤔 Hai indicato ' + c.persone + (c.persone === 1 ? ' partecipante' : ' partecipanti') +
+                      ' e ' + c.pezziCibo + (c.pezziCibo === 1 ? ' pizza' : ' pizze') + ': va bene così?';
+    box.className = 'avvisino visibile';
+  } else {
+    box.className = 'avvisino';
+  }
+}
+
+/* ------------------------------ navigazione -------------------------------- */
+function vaiA(n){
+  passoCorrente = Math.max(1, Math.min(4, n));
+  for(var i = 1; i <= 4; i++){
+    var p = $('passo' + i);
+    if(p) p.className = (i === passoCorrente) ? 'passo attivo' : 'passo';
+  }
+  testo('passoEtichetta', 'Passo ' + passoCorrente + ' di 4');
+  testo('passoNome', NOMI_PASSI[passoCorrente - 1]);
+  $('barraAvanzamento').style.width = (passoCorrente / 4 * 100) + '%';
+
+  $('btnIndietro').style.visibility = (passoCorrente === 1) ? 'hidden' : 'visible';
+
+  var avanti = $('btnAvanti');
+  if(passoCorrente === 4){
+    avanti.textContent = '✅ Conferma e genera il voucher';
+  } else if(passoCorrente === 3){
+    var c = calcola();
+    avanti.textContent = (c.subBev === 0) ? 'Nessuna bevanda, avanti →' : 'Avanti →';
+  } else {
+    avanti.textContent = 'Avanti →';
+  }
+
+  if(passoCorrente === 2) controllaAvvisoPizze();
+  if(passoCorrente === 4) disegnaRiepilogo();
+
+  var pannello = $('pannelloPassi');
+  if(pannello && pannello.scrollIntoView) pannello.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function avanti(){
+  if(passoCorrente === 1){ if(!validaPasso1()) return; }
+  if(passoCorrente === 2){ if(!validaPasso2()) return; controllaAvvisoPizze(); }
+  if(passoCorrente === 4){ conferma(); return; }
+  vaiA(passoCorrente + 1);
+}
+
+/* ------------------------------- riepilogo --------------------------------- */
+function disegnaRiepilogo(){
+  var c = calcola();
+  var menu = V(DATI.menu, {}), pren = V(DATI.prenotazione, {}), pag = V(DATI.pagamento, {});
+  var cont = $('riepilogo');
+  cont.textContent = '';
+
+  function sezione(titolo, passo){
+    var s = document.createElement('div');
+    s.className = 'riep-sez';
+    var h = document.createElement('h4');
+    h.appendChild(document.createTextNode(titolo));
+    if(passo){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'btn btn-chiaro btn-piccolo';
+      b.textContent = '✏️ Modifica';
+      b.addEventListener('click', function(){ vaiA(passo); });
+      h.appendChild(b);
+    }
+    s.appendChild(h);
+    cont.appendChild(s);
+    return s;
+  }
+  function riga(sez, sinistra, destra){
+    var r = document.createElement('div');
+    r.className = 'riep-riga';
+    var a = document.createElement('span'); a.textContent = sinistra;
+    var b = document.createElement('span'); b.textContent = destra;
+    r.appendChild(a); r.appendChild(b);
+    sez.appendChild(r);
+    return r;
+  }
+
+  var s1 = sezione('I tuoi dati', 1);
+  riga(s1, $('fNome').value.trim(), '');
+  riga(s1, '📱 ' + $('fTel').value.trim(), '');
+  if(pren.chiediAppartamento !== false && $('fApp').value.trim()){
+    riga(s1, '🏠 ' + $('fApp').value.trim(), '');
+  }
+  riga(s1, '👥 ' + adulti + (adulti === 1 ? ' adulto' : ' adulti') +
+           (bambini > 0 ? ', ' + bambini + (bambini === 1 ? ' bambino' : ' bambini') : ''), '');
+
+  var s2 = sezione('Il tuo ordine', 2);
+  if(!c.righe.length){
+    riga(s2, 'Nessun articolo selezionato', '');
+  } else {
+    c.righe.forEach(function(r){
+      var rr = riga(s2, r.quantita + ' × ' + r.nome, eur(r.importo));
+      rr.firstChild.className = 'q';
+    });
+  }
+
+  if(c.copertoPerTesta > 0){
+    var s3 = sezione(V(menu.copertoEtichetta, 'Quota a persona'), null);
+    riga(s3, (V(menu.copertoEmoji, '🛟') + ' ' + c.persone + ' × ' + eur(c.copertoPerTesta)).trim(), eur(c.coperto));
+  }
+
+  var tot = document.createElement('div');
+  tot.className = 'riep-totale';
+  var cifra = document.createElement('span');
+  cifra.className = 'cifra'; cifra.textContent = eur(c.totale);
+  var sotto = document.createElement('small');
+  sotto.textContent = 'Totale da consegnare' + (pag.referente ? ' ' + aChi(pag.referente) : '');
+  tot.appendChild(cifra); tot.appendChild(sotto);
+  cont.appendChild(tot);
+
+  /* testo della casella di presa visione */
+  var scad = dataIt(V(pag.scadenza, pren.scadenza));
+  testo('testoConsenso',
+    'Ho letto il regolamento e so che devo consegnare ' + eur(c.totale) +
+    (pag.referente ? ' ' + aChi(pag.referente) : '') +
+    (scad ? ' entro ' + scad : '') + '.');
+}
+
+/* ---------------------------- codice prenotazione -------------------------- */
+/* Alfabeto senza caratteri che si confondono a voce o sulla carta (0/O, 1/I). */
+var ALFABETO = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+
+function codicePrenotazione(nome, tel){
+  var pren = V(DATI.prenotazione, {}), ev = V(DATI.evento, {});
+  var prefisso = String(V(pren.prefissoCodice, 'RH')).toUpperCase().replace(/[^A-Z0-9]/g, '') || 'RH';
+
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ev.data || ''));
+  var ggmm = m ? (m[3] + m[2]) : '0000';
+
+  /* hash FNV-1a su dati + istante: stessa persona, prenotazioni diverse */
+  var seme = String(nome) + '|' + String(tel) + '|' + Date.now() + '|' + Math.floor(Math.random() * 1e6);
+  var h = 0x811c9dc5;
+  for(var i = 0; i < seme.length; i++){
+    h ^= seme.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  var coda = '';
+  for(var k = 0; k < 4; k++){
+    coda += ALFABETO.charAt(h % ALFABETO.length);
+    h = Math.floor(h / ALFABETO.length) + (k + 1) * 7919;
+  }
+  return prefisso + '-' + ggmm + '-' + coda;
+}
+
+/* -------------------------------- conferma --------------------------------- */
+function conferma(){
+  if(!$('fConsenso').checked){
+    mostraErrore('eConsenso', 'Spunta la casella per confermare la prenotazione.');
+    return;
+  }
+  nascondiErrore('eConsenso');
+
+  var c = calcola();
+  var pren = V(DATI.prenotazione, {});
+  prenotazioneFatta = {
+    codice: codicePrenotazione($('fNome').value.trim(), $('fTel').value.trim()),
+    nome: $('fNome').value.trim(),
+    telefono: $('fTel').value.trim(),
+    appartamento: (pren.chiediAppartamento === false) ? '' : $('fApp').value.trim(),
+    adulti: adulti,
+    bambini: bambini,
+    note: $('fNote').value.trim(),
+    conto: c,
+    dataEvento: V((DATI.evento || {}).data, ''),
+    creatoIl: new Date().toISOString()
+  };
+
+  memScrivi(CHIAVE_MEM, JSON.stringify(prenotazioneFatta));
+  mostraVoucher();
+}
+
+/* --------------------------------- voucher --------------------------------- */
+function mostraVoucher(){
+  var p = prenotazioneFatta;
+  if(!p) return;
+  var res = V(DATI.residence, {}), tema = V(DATI.tema, {}), ev = V(DATI.evento, {});
+  var pag = V(DATI.pagamento, {}), menu = V(DATI.menu, {}), pren = V(DATI.prenotazione, {});
+  var c = p.conto;
+
+  $('pannelloPassi').style.display = 'none';
+  $('areaVoucher').className = 'visibile';
+  $('giaPrenotato').className = 'gia-prenotato';
+
+  testo('vCasa', (V(res.emoji, '🌴') + ' ' + V(res.nome, '')).trim());
+  testo('vTitolo', V(tema.titoloFesta, 'Festa in piscina'));
+  testo('vCodice', p.codice);
+
+  testo('vNome', p.nome);
+  testo('vTel', p.telefono);
+  if(p.appartamento){ testo('vApp', p.appartamento); $('vCampoApp').style.display = ''; }
+  else { $('vCampoApp').style.display = 'none'; }
+  testo('vPersone', p.adulti + (p.adulti === 1 ? ' adulto' : ' adulti') +
+        (p.bambini > 0 ? ' · ' + p.bambini + (p.bambini === 1 ? ' bambino' : ' bambini') : ''));
+  testo('vQuando', (dataIt(ev.data) || '—') + (ev.orario ? ' · ore ' + ev.orario : ''));
+  testo('vDove', V(ev.luogo, '—'));
+
+  /* elenco dell'ordine */
+  var ord = $('vOrdine');
+  ord.textContent = '';
+  c.righe.forEach(function(r){
+    var riga = document.createElement('div');
+    riga.className = 'v-riga';
+    var a = document.createElement('span'); a.textContent = r.quantita + ' × ' + r.nome;
+    var b = document.createElement('span'); b.textContent = eur(r.importo);
+    riga.appendChild(a); riga.appendChild(b);
+    ord.appendChild(riga);
+  });
+  if(c.copertoPerTesta > 0){
+    var rq = document.createElement('div');
+    rq.className = 'v-riga';
+    var qa = document.createElement('span');
+    qa.textContent = (V(menu.copertoEmoji, '🛟') + ' ' + V(menu.copertoEtichetta, 'Quota a persona') +
+                      ' (' + c.persone + ' × ' + eur(c.copertoPerTesta) + ')').trim();
+    var qb = document.createElement('span'); qb.textContent = eur(c.coperto);
+    rq.appendChild(qa); rq.appendChild(qb);
+    ord.appendChild(rq);
+  }
+  testo('vTotale', eur(c.totale));
+
+  /* riquadro del pagamento */
+  if(pag.attivo){
+    $('vPaga').style.display = '';
+    testo('vPagaTitolo', '💶 ' + V(pag.titolo, 'Come si paga'));
+    var scad = dataIt(V(pag.scadenza, pren.scadenza));
+    testo('vPagaRiga1', 'Consegna ' + eur(c.totale) + ' in contanti ' +
+                        (pag.referente ? aChi(pag.referente) : 'agli organizzatori') +
+                        (scad ? ' entro ' + scad + '.' : '.'));
+    testo('vPagaRiga2', pag.orari ? 'Quando: ' + pag.orari : '');
+    testo('vPagaRiga3', V(pag.nota, ''));
+  } else {
+    $('vPaga').style.display = 'none';
+  }
+
+  if(p.note){ $('vBloccoNote').style.display = ''; testo('vNote', p.note); }
+  else { $('vBloccoNote').style.display = 'none'; }
+
+  testo('vPiede', 'Prenotazione registrata il ' +
+        new Date(p.creatoIl).toLocaleDateString('it-IT') + ' · ' + V(res.nome, ''));
+
+  disegnaQrVoucher(p);
+  preparaBottoniInvio(p);
+
+  $('areaVoucher').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function testoQr(p){
+  var ev = V(DATI.evento, {}), tema = V(DATI.tema, {});
+  return [
+    'PRENOTAZIONE ' + p.codice,
+    V(tema.titoloFesta, 'Festa in piscina'),
+    dataIt(ev.data) + (ev.orario ? ' ore ' + ev.orario : ''),
+    p.nome,
+    (p.adulti + p.bambini) + ' partecipanti',
+    'Totale ' + eur(p.conto.totale)
+  ].filter(Boolean).join('\n');
+}
+
+function disegnaQrVoucher(p){
+  var box = $('vQr');
+  box.textContent = '';
+  try{
+    if(!window.QR || typeof QR.svg !== 'function') throw new Error('qr.js non disponibile');
+    /* Livello Q: il voucher puo' essere stampato male o sgualcito. */
+    box.innerHTML = QR.svg(testoQr(p), { ecc:'Q', margin:4, size:520, dark:'#0d2b3e', light:'#ffffff' });
+  }catch(e){
+    var ko = document.createElement('div');
+    ko.className = 'ko';
+    ko.textContent = p.codice;
+    box.appendChild(ko);
+  }
+}
+
+/* --------------------- messaggio per gli organizzatori --------------------- */
+function componiMessaggio(p){
+  var pren = V(DATI.prenotazione, {}), tema = V(DATI.tema, {}), ev = V(DATI.evento, {});
+  var pag = V(DATI.pagamento, {}), menu = V(DATI.menu, {});
+  var c = p.conto;
+  var r = [];
+
+  r.push(V(pren.messaggioBase, 'Ecco la mia prenotazione per la festa.'));
+  r.push('');
+  r.push('🎟️ Codice: ' + p.codice);
+  r.push('🎉 ' + V(tema.titoloFesta, 'Festa') + ' — ' + dataIt(ev.data) + (ev.orario ? ' ore ' + ev.orario : ''));
+  r.push('👤 ' + p.nome);
+  r.push('📱 ' + p.telefono);
+  if(p.appartamento) r.push('🏠 ' + p.appartamento);
+  r.push('👥 ' + p.adulti + (p.adulti === 1 ? ' adulto' : ' adulti') +
+         (p.bambini > 0 ? ' + ' + p.bambini + (p.bambini === 1 ? ' bambino' : ' bambini') : ''));
+  r.push('');
+  r.push('🍕 Ordine:');
+  if(c.righe.length){
+    c.righe.forEach(function(x){ r.push('• ' + x.quantita + ' × ' + x.nome + ' — ' + eur(x.importo)); });
+  } else {
+    r.push('• (nessun articolo)');
+  }
+  if(c.copertoPerTesta > 0){
+    r.push('• ' + V(menu.copertoEtichetta, 'Quota a persona') + ': ' +
+           c.persone + ' × ' + eur(c.copertoPerTesta) + ' — ' + eur(c.coperto));
+  }
+  r.push('');
+  r.push('💶 TOTALE: ' + eur(c.totale));
+  if(pag.attivo && pag.referente){
+    var scad = dataIt(V(pag.scadenza, pren.scadenza));
+    r.push('Da consegnare ' + aChi(pag.referente) + (scad ? ' entro ' + scad : ''));
+  }
+  if(p.note) r.push('📝 Note: ' + p.note);
+  return r.join('\n');
+}
+
+function preparaBottoniInvio(p){
+  var pren = V(DATI.prenotazione, {}), cond = V(DATI.condivisione, {});
+  var messaggio = componiMessaggio(p);
+  var numero = String(V(pren.whatsappNumero, '')).replace(/\D/g, '');
+
+  $('btnWhatsApp').href = 'https://wa.me/' + numero + '?text=' + encodeURIComponent(messaggio);
+
+  /* Telegram: se c'e' il gruppo si apre quello, altrimenti la finestra di
+     condivisione dove si sceglie il destinatario. */
+  var sito = V(cond.urlSito, location.href.split('#')[0]);
+  $('btnTelegram').href = cond.linkGruppoTelegram
+    ? String(cond.linkGruppoTelegram)
+    : 'https://t.me/share/url?url=' + encodeURIComponent(sito) + '&text=' + encodeURIComponent(messaggio);
+}
+
+/* ------------------------ prenotazione gia' salvata ------------------------ */
+function controllaPrenotazioneSalvata(){
+  var grezzo = memLeggi(CHIAVE_MEM);
+  if(!grezzo) return;
+  var p = null;
+  try{ p = JSON.parse(grezzo); }catch(e){ memCancella(CHIAVE_MEM); return; }
+  if(!p || !p.codice || !p.conto){ memCancella(CHIAVE_MEM); return; }
+
+  /* se e' di un'altra edizione della festa, non vale piu' */
+  var dataOra = V((DATI.evento || {}).data, '');
+  if(dataOra && p.dataEvento && p.dataEvento !== dataOra){ memCancella(CHIAVE_MEM); return; }
+
+  prenotazioneFatta = p;
+  testo('giaCodice', p.codice);
+  $('giaPrenotato').className = 'gia-prenotato visibile';
+}
+
+function nuovaPrenotazione(){
+  memCancella(CHIAVE_MEM);
+  prenotazioneFatta = null;
+  quantita = {};
+  adulti = 2; bambini = 0;
+  $('fNome').value = ''; $('fTel').value = ''; $('fApp').value = '';
+  $('fNote').value = ''; $('fConsenso').checked = false;
+  testo('contaNote', '0');
+  nascondiErrore('eNome','fNome'); nascondiErrore('eTel','fTel');
+  nascondiErrore('eCibo'); nascondiErrore('eConsenso'); nascondiErrore('ePersone');
+  $('avvisoPizze').className = 'avvisino';
+  $('giaPrenotato').className = 'gia-prenotato';
+  $('areaVoucher').className = '';
+  $('pannelloPassi').style.display = '';
+  costruisciElenco('elencoCibo', 'cibo');
+  costruisciElenco('elencoBevande', 'bevanda');
+  aggiornaPersone();
+  aggiornaSubtotali();
+  vaiA(1);
+}
+
+/* ------------------------------- condivisione ------------------------------ */
+function preparaCondivisione(){
+  var cond = V(DATI.condivisione, {}), tema = V(DATI.tema, {}), ev = V(DATI.evento, {});
+  var res = V(DATI.residence, {});
+  var sito = V(cond.urlSito, location.href.split('#')[0]);
+  var testoMsg = '🎉 ' + V(tema.titoloFesta, 'Festa in piscina') + ' al ' + V(res.nome, 'Residence') +
+                 ' — ' + dataIt(ev.data) + (ev.orario ? ' ore ' + ev.orario : '') +
+                 '! Info, menù e prenotazioni qui:';
+
+  $('condWa').href = cond.linkGruppoWhatsApp
+    ? String(cond.linkGruppoWhatsApp)
+    : 'https://wa.me/?text=' + encodeURIComponent(testoMsg + ' ' + sito);
+  $('condTg').href = cond.linkGruppoTelegram
+    ? String(cond.linkGruppoTelegram)
+    : 'https://t.me/share/url?url=' + encodeURIComponent(sito) + '&text=' + encodeURIComponent(testoMsg);
+}
+
+/* ================================ EVENTI ================================ */
+$('btnAvanti').addEventListener('click', avanti);
+$('btnIndietro').addEventListener('click', function(){ vaiA(passoCorrente - 1); });
+
+$('piuAdulti').addEventListener('click', function(){ if(adulti < 30){ adulti++; aggiornaPersone(); } });
+$('menoAdulti').addEventListener('click', function(){ if(adulti > 1){ adulti--; aggiornaPersone(); } });
+$('piuBambini').addEventListener('click', function(){ if(bambini < 30){ bambini++; aggiornaPersone(); } });
+$('menoBambini').addEventListener('click', function(){ if(bambini > 0){ bambini--; aggiornaPersone(); } });
+
+$('fNome').addEventListener('input', function(){ nascondiErrore('eNome','fNome'); });
+$('fTel').addEventListener('input', function(){ nascondiErrore('eTel','fTel'); });
+$('fConsenso').addEventListener('change', function(){ nascondiErrore('eConsenso'); });
+$('fNote').addEventListener('input', function(){ testo('contaNote', String($('fNote').value.length)); });
+
+$('btnStampaVoucher').addEventListener('click', function(){ window.print(); });
+$('btnNuova').addEventListener('click', nuovaPrenotazione);
+$('btnCancella').addEventListener('click', nuovaPrenotazione);
+$('btnRivedi').addEventListener('click', function(){ mostraVoucher(); });
+
+/* Invio da tastiera nei campi del passo 1: passa al passo successivo. */
+['fNome','fTel','fApp'].forEach(function(id){
+  var el = $(id);
+  if(el) el.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); avanti(); }
+  });
+});
+
+carica();
+</script>
+</body>
+</html>
