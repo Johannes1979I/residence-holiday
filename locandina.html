@@ -531,23 +531,9 @@ function disegna(d){
     chips.appendChild(s);
   });
 
-  /* "da € X": prezzo minimo di cibo e bevande, se ricavabile */
-  function prezzoMinimo(tipo){
-    let min = null;
-    categorie.forEach(function(c){
-      if(c.tipo !== tipo) return;
-      (Array.isArray(c.voci) ? c.voci : []).forEach(function(v){
-        const p = Number(v.prezzo);
-        if(isFinite(p) && p > 0 && (min === null || p < min)) min = p;
-      });
-    });
-    return min;
-  }
-  const pezzi = [];
-  const minCibo = prezzoMinimo('cibo'), minBev = prezzoMinimo('bevanda');
-  if(minCibo !== null) pezzi.push('Pizze da ' + eur(minCibo));
-  if(minBev  !== null) pezzi.push('bevande da ' + eur(minBev));
-  set('m-prezzi', pezzi.length ? (pezzi.join(' · ') + ' — si paga in contanti') : '');
+  /* Sulla locandina non si scrivono i prezzi: cambiano, e la carta appesa
+     resta. Si rimanda al menu' completo sul sito, sempre aggiornato. */
+  set('m-prezzi', 'Consulta il menù sul sito di prenotazione — si paga in contanti');
 
   /* QR verso il sito + indirizzo scritto in chiaro per chi digita a mano */
   const url = String(V(cond.urlSito, '')).trim();
