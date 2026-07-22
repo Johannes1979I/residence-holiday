@@ -263,8 +263,61 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
 .voce .contatore{ gap:8px; }
 .voce .contatore .q{ min-width:22px; font-size:1.05rem; }
 
-.subtotale{ margin-top:16px; text-align:center; font-size:1.05rem; font-weight:bold; }
-.subtotale b{ color:var(--c1); font-size:1.3rem; }
+/* --- esigenze alimentari: compaiono solo quando la pizza e' stata scelta --- */
+.voce-box{ border-bottom:1px solid rgba(13,43,62,.08); }
+.voce-box:last-child{ border-bottom:none; }
+.voce-box .voce{ border-bottom:none; }
+.speciali{
+  display:none; padding:0 12px 12px; background:rgba(230,57,70,.05);
+  border-top:1px dashed rgba(230,57,70,.35);
+}
+.speciali.visibile{ display:block; }
+.speciali .intestazione{
+  font-size:.78rem; font-weight:bold; text-transform:uppercase; letter-spacing:.5px;
+  color:var(--c1); padding:9px 0 7px;
+}
+.speciali .scelta{
+  display:flex; align-items:center; gap:10px; padding:7px 0;
+}
+.speciali .scelta .et{ flex:1 1 auto; font-size:.92rem; font-weight:bold; }
+.speciali .scelta .et small{ display:block; font-weight:normal; color:var(--muted); font-size:.78rem; }
+.speciali .contatore button{ width:36px; height:36px; font-size:1.1rem; background:var(--c1); }
+.speciali .contatore .q{ min-width:20px; font-size:1rem; }
+.speciali .avvertenza{ font-size:.8rem; color:var(--muted); margin-top:4px; }
+.speciali .troppe{ font-size:.82rem; color:var(--c1); font-weight:bold; margin-top:6px; display:none; }
+.speciali .troppe.visibile{ display:block; }
+
+/* nota sulle intolleranze, in cima al passo delle pizze */
+.nota-salute{
+  background:rgba(230,57,70,.07); border:1px solid rgba(230,57,70,.35);
+  border-radius:14px; padding:12px 15px; font-size:.9rem; margin-bottom:6px;
+}
+.nota-salute b{ color:var(--c1); }
+
+/* riquadro delle pizze speciali nel riepilogo e nel voucher */
+.allerta{
+  border:2px solid var(--c1); background:rgba(230,57,70,.07);
+  border-radius:12px; padding:12px 14px; margin-top:12px;
+}
+.allerta h4{ color:var(--c1); font-size:.95rem; margin-bottom:6px; }
+.allerta .r{ font-size:.94rem; font-weight:bold; padding:2px 0; }
+
+/* distinta sempre visibile mentre si sceglie: pizze, quota a persona e totale */
+.distinta{
+  margin-top:16px; border:2px solid rgba(13,43,62,.12); border-radius:14px; overflow:hidden;
+}
+.distinta .r{
+  display:flex; justify-content:space-between; gap:12px; padding:10px 14px;
+  font-size:.98rem; border-bottom:1px solid rgba(13,43,62,.08);
+}
+.distinta .r:last-child{ border-bottom:none; }
+.distinta .r .et small{ display:block; color:var(--muted); font-size:.8rem; font-weight:normal; }
+.distinta .r b{ white-space:nowrap; }
+.distinta .r.quota{ background:rgba(18,182,201,.08); }
+.distinta .r.totale{
+  background:var(--ink); color:#fff; font-size:1.1rem; font-weight:bold; padding:13px 14px;
+}
+.distinta .r.totale b{ color:var(--c3); font-size:1.45rem; }
 .avvisino{
   margin-top:12px; background:rgba(255,210,63,.22); border:1px solid rgba(255,183,3,.6);
   border-radius:12px; padding:11px 14px; font-size:.88rem; display:none;
@@ -551,8 +604,13 @@ footer .servizio a:hover{ opacity:1; }
         <div class="passo" id="passo2">
           <h3>🍕 Scegli le pizze</h3>
           <p class="guida">Usa i pulsanti + e − per indicare quante ne vuoi. Il totale si aggiorna da solo.</p>
+          <div class="nota-salute">
+            <b>⚠️ Allergie e intolleranze.</b> Quando scegli una pizza compare la riga per indicare
+            quante devono essere <b>senza glutine (celiaci)</b> o <b>senza lattosio</b>.
+            Segnalalo qui: la richiesta arriva alla pizzeria insieme all'ordine.
+          </div>
           <div id="elencoCibo"></div>
-          <p class="subtotale">Pizze: <b id="subtotaleCibo">€ 0</b></p>
+          <div class="distinta" id="distintaCibo"></div>
           <p class="errore" id="eCibo"></p>
           <div class="avvisino" id="avvisoPizze"></div>
         </div>
@@ -562,7 +620,7 @@ footer .servizio a:hover{ opacity:1; }
           <h3>🥤 Bevande</h3>
           <p class="guida">Facoltative: se non ti servono, vai pure avanti.</p>
           <div id="elencoBevande"></div>
-          <p class="subtotale">Bevande: <b id="subtotaleBevande">€ 0</b></p>
+          <div class="distinta" id="distintaBevande"></div>
         </div>
 
         <!-- PASSO 4 -->
@@ -763,7 +821,11 @@ var NOMI_PASSO = { 1:'I tuoi dati', 2:'Le pizze', 3:'Le bevande', 4:'Riepilogo' 
 /* Passi effettivamente in uso: se non ci sono bevande da ordinare il passo 3
    sparisce del tutto e il percorso diventa "Passo N di 3". */
 var PASSI = [1,2,3,4];
-var quantita = {};        /* "indiceCategoria:indiceVoce" -> quantita' */
+var quantita = {};        /* "indiceCategoria:indiceVoce" -> quantita' totale */
+/* Esigenze alimentari, per la stessa chiave: quante di quelle pizze devono
+   essere senza glutine e quante senza lattosio. Sono un sottoinsieme della
+   quantita' totale ("di cui"), non pizze in piu'. */
+var speciali = {};
 var adulti = 2, bambini = 0;
 var prenotazioneFatta = null;
 
@@ -1037,6 +1099,9 @@ function costruisciElenco(contenitoreId, tipo){
 
 function rigaVoce(cat, v, ic, iv){
   var chiave = ic + ':' + iv;
+  var scatola = document.createElement('div');
+  scatola.className = 'voce-box';
+
   var riga = document.createElement('div');
   riga.className = 'voce';
   riga.setAttribute('data-chiave', chiave);
@@ -1072,13 +1137,83 @@ function rigaVoce(cat, v, ic, iv){
 
   cont.appendChild(meno); cont.appendChild(q); cont.appendChild(piu);
   riga.appendChild(cont);
-  return riga;
+  scatola.appendChild(riga);
+  scatola.appendChild(rigaSpeciali(chiave, V(v.nome, '')));
+  return scatola;
+}
+
+/* Sottoriga delle esigenze alimentari. Resta nascosta finche' la pizza non
+   viene scelta: cosi' l'elenco non si appesantisce, ma la scelta compare
+   esattamente nel momento in cui serve. */
+function rigaSpeciali(chiave, nomeVoce){
+  var box = document.createElement('div');
+  box.className = 'speciali';
+  box.setAttribute('data-speciali', chiave);
+
+  var tit = document.createElement('div');
+  tit.className = 'intestazione';
+  tit.textContent = '⚠️ Esigenze alimentari — di queste ' + nomeVoce.toLowerCase() + ':';
+  box.appendChild(tit);
+
+  [['celiaci', '🌾 Senza glutine', 'per celiaci'],
+   ['lattosio', '🥛 Senza lattosio', 'per intolleranti al lattosio']].forEach(function(t){
+    var tipo = t[0];
+    var riga = document.createElement('div');
+    riga.className = 'scelta';
+
+    var et = document.createElement('div');
+    et.className = 'et';
+    et.appendChild(document.createTextNode(t[1]));
+    var sm = document.createElement('small'); sm.textContent = t[2];
+    et.appendChild(sm);
+    riga.appendChild(et);
+
+    var cont = document.createElement('div');
+    cont.className = 'contatore';
+    var meno = document.createElement('button');
+    meno.type = 'button'; meno.textContent = '−'; meno.disabled = true;
+    meno.setAttribute('aria-label', 'Togli una ' + nomeVoce + ' ' + t[2]);
+    var q = document.createElement('span');
+    q.className = 'q'; q.textContent = '0';
+    q.setAttribute('data-q', tipo);
+    var piu = document.createElement('button');
+    piu.type = 'button'; piu.textContent = '+';
+    piu.setAttribute('aria-label', 'Aggiungi una ' + nomeVoce + ' ' + t[2]);
+
+    meno.addEventListener('click', function(){ cambiaSpeciale(chiave, tipo, -1); });
+    piu.addEventListener('click', function(){ cambiaSpeciale(chiave, tipo, 1); });
+
+    cont.appendChild(meno); cont.appendChild(q); cont.appendChild(piu);
+    riga.appendChild(cont);
+    box.appendChild(riga);
+  });
+
+  var troppe = document.createElement('p');
+  troppe.className = 'troppe';
+  box.appendChild(troppe);
+
+  var avv = document.createElement('p');
+  avv.className = 'avvertenza';
+  avv.textContent = 'Se una pizza deve essere senza glutine e senza lattosio insieme, scrivilo anche nelle note del passo successivo.';
+  box.appendChild(avv);
+
+  return box;
 }
 
 function cambiaQuantita(chiave, delta){
   var attuale = quantita[chiave] || 0;
   var nuovo = Math.max(0, Math.min(30, attuale + delta));
   quantita[chiave] = nuovo;
+
+  /* le speciali non possono superare il totale: se si scende, si limano */
+  var s = speciali[chiave];
+  if(s){
+    if(s.celiaci + s.lattosio > nuovo){
+      s.lattosio = Math.max(0, Math.min(s.lattosio, nuovo));
+      s.celiaci  = Math.max(0, Math.min(s.celiaci, nuovo - s.lattosio));
+    }
+    if(nuovo === 0){ s.celiaci = 0; s.lattosio = 0; }
+  }
 
   var riga = document.querySelector('.voce[data-chiave="' + chiave + '"]');
   if(riga){
@@ -1088,8 +1223,50 @@ function cambiaQuantita(chiave, delta){
     bottoni[0].disabled = (nuovo === 0);
     bottoni[1].disabled = (nuovo === 30);
   }
+  aggiornaSpeciali(chiave);
   aggiornaSubtotali();
   nascondiErrore('eCibo');
+}
+
+function cambiaSpeciale(chiave, tipo, delta){
+  var totale = quantita[chiave] || 0;
+  if(!speciali[chiave]) speciali[chiave] = { celiaci:0, lattosio:0 };
+  var s = speciali[chiave];
+  var altro = (tipo === 'celiaci') ? s.lattosio : s.celiaci;
+  var massimo = Math.max(0, totale - altro);
+  var nuovo = Math.max(0, Math.min(massimo, (s[tipo] || 0) + delta));
+
+  var box = document.querySelector('.speciali[data-speciali="' + chiave + '"]');
+  if(delta > 0 && nuovo === s[tipo] && box){
+    var avviso = box.querySelector('.troppe');
+    avviso.textContent = 'Hai già indicato tutte le ' + totale +
+      (totale === 1 ? ' pizza' : ' pizze') + ' di questo tipo. Aumenta prima la quantità qui sopra.';
+    avviso.className = 'troppe visibile';
+  }
+  s[tipo] = nuovo;
+  aggiornaSpeciali(chiave);
+}
+
+/* aggiorna la sottoriga: visibilita', numeri e stato dei pulsanti */
+function aggiornaSpeciali(chiave){
+  var box = document.querySelector('.speciali[data-speciali="' + chiave + '"]');
+  if(!box) return;
+  var totale = quantita[chiave] || 0;
+  var s = speciali[chiave] || { celiaci:0, lattosio:0 };
+
+  box.className = totale > 0 ? 'speciali visibile' : 'speciali';
+  if(totale === 0){
+    box.querySelector('.troppe').className = 'troppe';
+  }
+
+  ['celiaci','lattosio'].forEach(function(tipo){
+    var q = box.querySelector('[data-q="' + tipo + '"]');
+    if(!q) return;
+    q.textContent = String(s[tipo] || 0);
+    var bottoni = q.parentNode.querySelectorAll('button');
+    bottoni[0].disabled = ((s[tipo] || 0) === 0);
+    bottoni[1].disabled = ((s.celiaci + s.lattosio) >= totale);
+  });
 }
 
 /* ------------------------- contatori delle persone ------------------------- */
@@ -1136,7 +1313,12 @@ function calcola(){
       var importo = prezzo * q;
       var nome = V(v.nome, '');
       if(ambigui[nome] && cat.nome) nome = nome + ' (' + cat.nome + ')';
-      righe.push({ nome: nome, quantita:q, prezzo:prezzo, importo:importo, tipo:cat.tipo });
+      var sp = speciali[ic + ':' + iv] || { celiaci:0, lattosio:0 };
+      righe.push({
+        nome: nome, quantita:q, prezzo:prezzo, importo:importo, tipo:cat.tipo,
+        celiaci: Math.min(sp.celiaci || 0, q),
+        lattosio: Math.min(sp.lattosio || 0, q)
+      });
       if(cat.tipo === 'bevanda') subBev += importo; else subCibo += importo;
     });
   });
@@ -1153,14 +1335,58 @@ function calcola(){
     copertoPerTesta: perTesta,
     coperto: coperto,
     totale: subCibo + subBev + coperto,
-    pezziCibo: righe.reduce(function(s, r){ return s + (r.tipo === 'bevanda' ? 0 : r.quantita); }, 0)
+    pezziCibo: righe.reduce(function(s, r){ return s + (r.tipo === 'bevanda' ? 0 : r.quantita); }, 0),
+    speciali: righe.filter(function(r){ return r.celiaci > 0 || r.lattosio > 0; })
   };
 }
 
+/* Righe di testo delle pizze speciali: usate nel riepilogo, nel voucher e nel
+   messaggio agli organizzatori. Devono restare identiche ovunque. */
+function righeSpeciali(conto){
+  var out = [];
+  (conto.speciali || []).forEach(function(r){
+    if(r.celiaci > 0) out.push(r.celiaci + ' × ' + r.nome + ' SENZA GLUTINE (celiaci)');
+    if(r.lattosio > 0) out.push(r.lattosio + ' × ' + r.nome + ' SENZA LATTOSIO');
+  });
+  return out;
+}
+
+/* La distinta resta sotto gli occhi mentre si sceglie: cosi' la quota a persona
+   non e' una sorpresa che compare solo alla fine. */
 function aggiornaSubtotali(){
   var c = calcola();
-  testo('subtotaleCibo', eur(c.subCibo));
-  testo('subtotaleBevande', eur(c.subBev));
+  ['distintaCibo','distintaBevande'].forEach(function(id){
+    var box = $(id);
+    if(!box) return;
+    box.textContent = '';
+
+    function riga(cls, etichetta, sotto, importo){
+      var r = document.createElement('div');
+      r.className = 'r' + (cls ? ' ' + cls : '');
+      var et = document.createElement('span');
+      et.className = 'et';
+      et.appendChild(document.createTextNode(etichetta));
+      if(sotto){ var s = document.createElement('small'); s.textContent = sotto; et.appendChild(s); }
+      var b = document.createElement('b'); b.textContent = eur(importo);
+      r.appendChild(et); r.appendChild(b);
+      box.appendChild(r);
+    }
+
+    var nPizze = c.righe.reduce(function(s,r){ return s + (r.tipo === 'bevanda' ? 0 : r.quantita); }, 0);
+    riga('', '🍕 Pizze', nPizze ? (nPizze === 1 ? '1 pizza' : nPizze + ' pizze') : 'nessuna ancora', c.subCibo);
+
+    if(c.subBev > 0 || id === 'distintaBevande'){
+      riga('', '🥤 Bevande', '', c.subBev);
+    }
+    if(c.copertoPerTesta > 0){
+      var menu = V(DATI.menu, {});
+      riga('quota',
+        (V(menu.copertoEmoji, '🛟') + ' ' + V(menu.copertoEtichetta, 'Quota a persona')).trim(),
+        c.persone + (c.persone === 1 ? ' persona' : ' persone') + ' × ' + eur(c.copertoPerTesta),
+        c.coperto);
+    }
+    riga('totale', 'Totale', '', c.totale);
+  });
 }
 
 /* ------------------------------- validazione ------------------------------- */
@@ -1335,6 +1561,24 @@ function disegnaRiepilogo(){
     });
   }
 
+  var avvisi = righeSpeciali(c);
+  if(avvisi.length){
+    var sa = document.createElement('div');
+    sa.className = 'riep-sez';
+    var box = document.createElement('div');
+    box.className = 'allerta';
+    var h = document.createElement('h4');
+    h.textContent = '⚠️ Esigenze alimentari segnalate';
+    box.appendChild(h);
+    avvisi.forEach(function(t){
+      var r = document.createElement('div');
+      r.className = 'r'; r.textContent = '• ' + t;
+      box.appendChild(r);
+    });
+    sa.appendChild(box);
+    cont.appendChild(sa);
+  }
+
   if(c.copertoPerTesta > 0){
     var s3 = sezione(V(menu.copertoEtichetta, 'Quota a persona'), null);
     riga(s3, (V(menu.copertoEmoji, '🛟') + ' ' + c.persone + ' × ' + eur(c.copertoPerTesta)).trim(), eur(c.coperto));
@@ -1446,6 +1690,21 @@ function mostraVoucher(){
     riga.appendChild(a); riga.appendChild(b);
     ord.appendChild(riga);
   });
+  /* le esigenze alimentari vanno viste subito, anche sul voucher stampato */
+  var avvisiV = righeSpeciali(c);
+  if(avvisiV.length){
+    var box = document.createElement('div');
+    box.className = 'allerta';
+    var h = document.createElement('h4');
+    h.textContent = '⚠️ Esigenze alimentari';
+    box.appendChild(h);
+    avvisiV.forEach(function(t){
+      var r = document.createElement('div');
+      r.className = 'r'; r.textContent = '• ' + t;
+      box.appendChild(r);
+    });
+    ord.appendChild(box);
+  }
   if(c.copertoPerTesta > 0){
     var rq = document.createElement('div');
     rq.className = 'v-riga';
@@ -1538,6 +1797,12 @@ function componiMessaggio(p){
     r.push('• ' + V(menu.copertoEtichetta, 'Quota a persona') + ': ' +
            c.persone + ' × ' + eur(c.copertoPerTesta) + ' — ' + eur(c.coperto));
   }
+  var avvisi = righeSpeciali(c);
+  if(avvisi.length){
+    r.push('');
+    r.push('⚠️ ESIGENZE ALIMENTARI:');
+    avvisi.forEach(function(t){ r.push('‼️ ' + t); });
+  }
   r.push('');
   r.push('💶 TOTALE: ' + eur(c.totale));
   if(pag.attivo && pag.referente){
@@ -1584,6 +1849,7 @@ function nuovaPrenotazione(){
   memCancella(CHIAVE_MEM);
   prenotazioneFatta = null;
   quantita = {};
+  speciali = {};
   adulti = 2; bambini = 0;
   $('fNome').value = ''; $('fTel').value = ''; $('fApp').value = '';
   $('fNote').value = ''; $('fConsenso').checked = false;

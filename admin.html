@@ -122,9 +122,75 @@
   .reg-pizze .r{display:flex;justify-content:space-between;gap:12px;padding:3px 0;border-bottom:1px dashed rgba(255,255,255,.18)}
   .reg-pizze .r:last-child{border-bottom:none}
   .reg-pizze .r b{color:var(--c3)}
+  .reg-pizze .r .pr{color:#cfe9f2;font-size:.9em}
+  .reg-pizze .r.grande{margin-top:8px;padding-top:9px;border-top:2px solid var(--c3);font-size:1.1rem}
+  .reg-pizze .r.grande b{font-size:1.35rem}
   .reg-pizze .vuoto{opacity:.7}
+  .reg-allerta{margin-top:8px;border:2px solid var(--c1);background:rgba(230,57,70,.07);
+               border-radius:10px;padding:9px 11px;font-size:.88rem}
+  .reg-allerta b{color:var(--c1);display:block;margin-bottom:3px}
+  .reg-allerta-forte{background:#c1121f;color:#fff;border-radius:10px;padding:11px 13px;
+                     margin-bottom:12px;font-size:.9rem;line-height:1.5}
+  .reg-allerta-forte b{display:block;margin-bottom:5px;letter-spacing:.5px}
   .reg-privacy{background:#fff8e6;border:1px solid var(--c3);border-radius:12px;padding:13px 15px;font-size:.85rem;line-height:1.5}
   .reg-vuoto{color:var(--muted);font-size:.9rem;padding:14px;text-align:center;border:1px dashed #cddde3;border-radius:12px}
+
+  /* ---------- foglio stampabile (ordine pizzeria / lista ingresso) ----------
+     E' dentro la pagina invece che in una finestra nuova: i browser bloccano
+     spesso i popup, e cosi' il documento si apre sempre. */
+  .foglio-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(13,43,62,.55);
+                  overflow:auto;padding:0 0 40px}
+  .foglio-overlay.aperto{display:block}
+  .foglio-barra{position:sticky;top:0;background:var(--ink);color:#fff;padding:12px 16px;
+                display:flex;gap:10px;align-items:center;flex-wrap:wrap;z-index:2}
+  .foglio-barra .tit{font-weight:bold;flex:1 1 auto}
+  .foglio-corpo{background:#fff;max-width:210mm;margin:18px auto;padding:14mm 12mm;
+                border-radius:6px;box-shadow:0 20px 60px -20px rgba(0,0,0,.6);color:#0d2b3e}
+  .foglio-corpo h1{font-size:19pt;margin-bottom:2px}
+  .foglio-corpo p.sub{color:#5a7583;font-size:10.5pt;margin-bottom:16px}
+  .foglio-corpo h2{font-size:12pt;margin:0 0 6px}
+  .foglio-corpo table{width:100%;border-collapse:collapse;font-size:11pt;margin-bottom:6px}
+  .foglio-corpo th{background:var(--ink);color:#fff;text-align:left;padding:7px 8px;font-size:8.5pt;
+                   text-transform:uppercase;letter-spacing:.5px}
+  .foglio-corpo td{padding:7px 8px;border-bottom:1px solid #dce7ec;vertical-align:top}
+  .foglio-corpo td.c{text-align:center}
+  .foglio-corpo td.r{text-align:right;white-space:nowrap}
+  .foglio-corpo td.m{font-family:"Courier New",monospace;font-size:10pt}
+  .foglio-corpo small{color:#5a7583}
+  .foglio-corpo tfoot td{font-weight:bold;background:#f3f9fb;border-top:2px solid var(--ink)}
+  .foglio-corpo .allerta{border:2.5px solid #c1121f;border-radius:8px;padding:11px 13px;
+                         margin-bottom:16px;background:#fdf0f1}
+  .foglio-corpo .allerta h2{color:#c1121f}
+  .foglio-corpo .allerta p.sotto{font-size:9.5pt;color:#7a2028;margin-bottom:8px}
+  .foglio-corpo .allerta th{background:#c1121f}
+  .foglio-corpo .allerta .forte{font-weight:bold;color:#c1121f}
+  .foglio-corpo .totale{background:var(--ink);color:#fff;border-radius:8px;padding:13px 16px;
+                        display:flex;justify-content:space-between;align-items:center;margin:10px 0 20px}
+  .foglio-corpo .totale span{font-size:12pt;text-transform:uppercase;letter-spacing:.6px}
+  .foglio-corpo .totale b{font-size:21pt;color:var(--c3)}
+  .foglio-corpo .quota{display:flex;justify-content:space-between;padding:9px 10px;background:#eaf6f9;
+                       border:1px solid #b9dde6;border-radius:6px;margin-bottom:8px;font-size:11pt}
+  .foglio-corpo .sezione{margin-top:22px}
+  .foglio-corpo .riepilogo{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+  .foglio-corpo .riepilogo div{flex:1 1 130px;border:1px solid #dce7ec;border-radius:6px;padding:9px;text-align:center}
+  .foglio-corpo .riepilogo b{display:block;font-size:14pt}
+  .foglio-corpo .ok{color:#136c3b} .foglio-corpo .ko{color:#c1121f}
+  .foglio-corpo tr.pagata td{background:#f3fbf6}
+  .foglio-corpo .firma{margin-top:26px;font-size:10pt;color:#5a7583}
+
+  @media print{
+    @page{size:A4 portrait;margin:11mm}
+    body.stampa-foglio > *{display:none !important}
+    body.stampa-foglio .foglio-overlay{display:block !important;position:static;background:none;padding:0;overflow:visible}
+    body.stampa-foglio .foglio-barra{display:none !important}
+    body.stampa-foglio .foglio-corpo{box-shadow:none;margin:0;padding:0;max-width:100%;border-radius:0}
+    body.stampa-foglio .foglio-corpo th,
+    body.stampa-foglio .foglio-corpo .allerta,
+    body.stampa-foglio .foglio-corpo .totale,
+    body.stampa-foglio .foglio-corpo .quota,
+    body.stampa-foglio .foglio-corpo tr.pagata td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body.stampa-foglio .foglio-corpo .sezione{page-break-inside:avoid}
+  }
 
   /* ---------- liste modificabili ---------- */
   .item{border:1px solid #e0ebf0;border-radius:14px;padding:14px;margin-bottom:12px;background:#fafdff}
@@ -259,9 +325,15 @@
       <p class="hint" style="margin-bottom:8px">Somma di tutte le prenotazioni: è la lista da dare alla Pizzeria Oasi.</p>
       <div id="reg_totalePizze" class="reg-pizze"></div>
       <div class="reg-azioni">
-        <button class="btn btn-s" id="reg_btnCopiaOrdine">📋 Copia l’ordine</button>
+        <button class="btn btn-p" id="reg_btnDocumento">🧾 Genera l’ordine per la pizzeria</button>
+        <button class="btn btn-s" id="reg_btnCopiaOrdine">📋 Copia l’ordine come testo</button>
         <button class="btn btn-w" id="reg_btnStampa">🖨️ Stampa la lista per l’ingresso</button>
       </div>
+      <p class="hint">
+        «Genera l’ordine» apre un foglio completo da stampare o salvare in PDF: pizze per
+        tipologia con quantità e prezzi, pizze speciali in evidenza, totale finale e
+        l’elenco di chi ha già versato la quota.
+      </p>
 
       <h3 class="sub-h">Salvataggio e backup</h3>
       <div class="reg-privacy">
@@ -650,6 +722,15 @@
     </div>
 
   </div>
+</div>
+
+<div class="foglio-overlay" id="reg_foglio">
+  <div class="foglio-barra">
+    <span class="tit" id="reg_foglioTitolo">Documento</span>
+    <button class="btn btn-s" id="reg_foglioStampa">🖨️ Stampa / Salva PDF</button>
+    <button class="btn btn-w" id="reg_foglioChiudi">✕ Chiudi</button>
+  </div>
+  <div class="foglio-corpo" id="reg_foglioCorpo"></div>
 </div>
 
 <div class="status" id="status" role="status" aria-live="polite"></div>
@@ -1480,6 +1561,20 @@ function regInterpreta(testo){
     }
   }
 
+  /* esigenze alimentari: righe "‼️ 1 × Margherita SENZA GLUTINE (celiaci)".
+     Sono la parte piu' delicata del messaggio, quindi si leggono anche se
+     l'emoji iniziale si perde per strada. */
+  p.speciali = [];
+  const reSpec = /^(?:‼️|!!|⚠️)?\s*(\d+)\s*[×x]\s*(.+?)\s+SENZA\s+(GLUTINE|LATTOSIO)\b.*$/gim;
+  let sm;
+  while((sm = reSpec.exec(t)) !== null){
+    p.speciali.push({
+      quantita: Number(sm[1]) || 0,
+      nome: sm[2].trim(),
+      tipo: sm[3].toUpperCase() === 'GLUTINE' ? 'glutine' : 'lattosio'
+    });
+  }
+
   p.totale = leggiNumero(cerca(/TOTALE:\s*€\s*([\d.,]+)/));
   const note = t.match(/📝\s*Note:\s*([\s\S]+)/);
   p.note = note ? note[1].split('\n')[0].trim() : '';
@@ -1521,7 +1616,8 @@ function regAggiungi(p){
     codice, nome:(p.nome||'(senza nome)'), telefono:(p.telefono||''),
     appartamento:(p.appartamento||''),
     adulti:Number(p.adulti)||0, bambini:Number(p.bambini)||0,
-    righe, coperto:Number(p.coperto)||0, totale,
+    righe, speciali:(Array.isArray(p.speciali) ? p.speciali : []),
+    coperto:Number(p.coperto)||0, totale,
     note:(p.note||''), pagato:false, pagatoIl:null,
     ricevutoIl:new Date().toISOString()
   });
@@ -1604,6 +1700,15 @@ function regDisegna(){
       v.appendChild(crea('span', null, regEuro(p.coperto)));
       dett.appendChild(v);
     }
+    if((p.speciali||[]).length){
+      const all = crea('div','reg-allerta');
+      all.appendChild(crea('b', null, '⚠️ Esigenze alimentari'));
+      p.speciali.forEach(s => {
+        all.appendChild(crea('div', null, '• ' + s.quantita + ' × ' + s.nome + ' — ' +
+          (s.tipo === 'glutine' ? 'SENZA GLUTINE (celiaci)' : 'SENZA LATTOSIO')));
+      });
+      dett.appendChild(all);
+    }
     if(p.note){
       const n = crea('div','meta', '📝 ' + p.note);
       n.style.marginTop = '6px';
@@ -1652,16 +1757,47 @@ function regDisegna(){
   regDisegnaOrdine();
 }
 
-/* somma di tutte le pizze prenotate: e' la lista da dare alla pizzeria */
+/* somma di tutte le pizze prenotate, con prezzo unitario e importo:
+   e' la lista da dare alla pizzeria */
 function regTotalePizze(){
   const somma = {};
   REGISTRO.forEach(p => (p.righe||[]).forEach(r => {
     const nome = String(r.nome||'').trim();
     if(!nome) return;
-    somma[nome] = (somma[nome]||0) + (Number(r.quantita)||0);
+    const q = Number(r.quantita)||0;
+    if(!somma[nome]) somma[nome] = { quantita:0, importo:0, prezzo:0 };
+    somma[nome].quantita += q;
+    somma[nome].importo  += Number(r.importo)||0;
   }));
-  return Object.keys(somma).sort((a,b) => somma[b]-somma[a] || a.localeCompare(b,'it'))
-    .map(nome => ({ nome, quantita: somma[nome] }));
+  return Object.keys(somma).map(nome => {
+    const v = somma[nome];
+    /* prezzo unitario: dedotto dagli importi, con il menù come riserva */
+    v.prezzo = v.quantita ? (v.importo / v.quantita) : regPrezzoDi(nome);
+    if(!v.importo) { v.prezzo = regPrezzoDi(nome); v.importo = v.prezzo * v.quantita; }
+    return { nome, quantita:v.quantita, prezzo:v.prezzo, importo:v.importo };
+  }).sort((a,b) => b.quantita-a.quantita || a.nome.localeCompare(b.nome,'it'));
+}
+
+/* tutte le esigenze alimentari, raggruppate e con il nome di chi le ha chieste */
+function regSpecialiTotali(){
+  const mappa = {};
+  REGISTRO.forEach(p => (p.speciali||[]).forEach(s => {
+    const chiave = s.tipo + '|' + s.nome;
+    if(!mappa[chiave]) mappa[chiave] = { tipo:s.tipo, nome:s.nome, quantita:0, chi:[] };
+    mappa[chiave].quantita += Number(s.quantita)||0;
+    if(mappa[chiave].chi.indexOf(p.nome) === -1) mappa[chiave].chi.push(p.nome);
+  }));
+  return Object.keys(mappa).map(k => mappa[k])
+    .sort((a,b) => (a.tipo===b.tipo ? a.nome.localeCompare(b.nome,'it') : (a.tipo==='glutine'?-1:1)));
+}
+
+/* totale delle quote a persona (la bagnina) su tutte le prenotazioni */
+function regTotaleQuote(){
+  const persone = REGISTRO.reduce((s,p)=> s + regPartecipanti(p), 0);
+  const importo = REGISTRO.reduce((s,p)=> s + (Number(p.coperto)||0), 0);
+  const perTesta = Number((DATA && DATA.menu && DATA.menu.copertoPersona) || 0);
+  return { persone, importo, perTesta,
+           etichetta: (DATA && DATA.menu && DATA.menu.copertoEtichetta) || 'Quota a persona' };
 }
 
 function regDisegnaOrdine(){
@@ -1672,26 +1808,73 @@ function regDisegnaOrdine(){
     box.appendChild(crea('div','vuoto','Nessuna pizza prenotata per ora.'));
     return;
   }
+
+  /* le esigenze alimentari vanno in cima, non in mezzo all'elenco */
+  const speciali = regSpecialiTotali();
+  if(speciali.length){
+    const all = crea('div','reg-allerta-forte');
+    all.appendChild(crea('b', null, '⚠️ ATTENZIONE — PIZZE SPECIALI'));
+    speciali.forEach(s => {
+      all.appendChild(crea('div', null, '• ' + s.quantita + ' × ' + s.nome + ' — ' +
+        (s.tipo === 'glutine' ? 'SENZA GLUTINE (celiaci)' : 'SENZA LATTOSIO') +
+        '  [' + s.chi.join(', ') + ']'));
+    });
+    box.appendChild(all);
+  }
+
   voci.forEach(v => {
     const r = crea('div','r');
     r.appendChild(crea('span', null, v.nome));
-    r.appendChild(crea('b', null, '× ' + v.quantita));
+    const d = crea('span');
+    d.appendChild(crea('b', null, '× ' + v.quantita));
+    d.appendChild(crea('span','pr', '  ' + regEuro(v.importo)));
+    r.appendChild(d);
     box.appendChild(r);
   });
+
+  const sommaPizze = voci.reduce((s,v)=>s+v.importo,0);
   const tot = crea('div','r');
-  tot.appendChild(crea('span', null, 'Totale pizze'));
-  tot.appendChild(crea('b', null, '× ' + voci.reduce((s,v)=>s+v.quantita,0)));
+  tot.appendChild(crea('span', null, 'Totale pizze (' + voci.reduce((s,v)=>s+v.quantita,0) + ')'));
+  tot.appendChild(crea('b', null, regEuro(sommaPizze)));
   box.appendChild(tot);
+
+  const q = regTotaleQuote();
+  if(q.importo){
+    const rq = crea('div','r');
+    rq.appendChild(crea('span', null, '🛟 ' + q.etichetta + ' (' + q.persone + ' × ' + regEuro(q.perTesta) + ')'));
+    rq.appendChild(crea('b', null, regEuro(q.importo)));
+    box.appendChild(rq);
+  }
+
+  const grande = crea('div','r grande');
+  grande.appendChild(crea('span', null, 'TOTALE DA RACCOGLIERE'));
+  grande.appendChild(crea('b', null, regEuro(sommaPizze + q.importo)));
+  box.appendChild(grande);
 }
 
 function regTestoOrdine(){
   const voci = regTotalePizze();
   if(!voci.length) return '';
   const ev = (DATA.evento && DATA.evento.data) || '';
-  return 'Ordine pizze — ' + ((DATA.tema && DATA.tema.titoloFesta) || 'festa') +
-    (ev ? ' del ' + dataItaliana(ev) : '') + '\n\n' +
-    voci.map(v => '• ' + v.quantita + ' × ' + v.nome).join('\n') +
-    '\n\nTotale: ' + voci.reduce((s,v)=>s+v.quantita,0) + ' pizze';
+  const speciali = regSpecialiTotali();
+  const sommaPizze = voci.reduce((s,v)=>s+v.importo,0);
+  const q = regTotaleQuote();
+
+  const r = [];
+  r.push('Ordine pizze — ' + ((DATA.tema && DATA.tema.titoloFesta) || 'festa') +
+         (ev ? ' del ' + dataItaliana(ev) : ''));
+  r.push('');
+  if(speciali.length){
+    r.push('⚠️ ATTENZIONE — PIZZE SPECIALI (allergie e intolleranze):');
+    speciali.forEach(s => r.push('‼️ ' + s.quantita + ' × ' + s.nome + ' — ' +
+      (s.tipo === 'glutine' ? 'SENZA GLUTINE (celiaci)' : 'SENZA LATTOSIO')));
+    r.push('');
+  }
+  voci.forEach(v => r.push('• ' + v.quantita + ' × ' + v.nome +
+    ' — ' + regEuro(v.prezzo) + ' cad. — ' + regEuro(v.importo)));
+  r.push('');
+  r.push('TOTALE PIZZE: ' + voci.reduce((s,v)=>s+v.quantita,0) + ' pizze — ' + regEuro(sommaPizze));
+  return r.join('\n');
 }
 
 /* ---------- esportazioni ---------- */
@@ -1729,19 +1912,7 @@ function regStampaLista(){
       <td class="c">${escHtml(regEuro(p.totale))}</td>
       <td class="c">${p.pagato ? '✔' : ''}</td>
     </tr>`).join('');
-  const html = `<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
-    <title>Lista ingresso — ${escHtml(titolo)}</title><style>
-    body{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;color:#0d2b3e;padding:14mm 10mm}
-    h1{font-size:17pt;margin-bottom:2px} p.sub{color:#5a7583;font-size:10pt;margin-bottom:14px}
-    table{width:100%;border-collapse:collapse;font-size:10.5pt}
-    th{background:#0d2b3e;color:#fff;text-align:left;padding:7px 6px;font-size:9pt;text-transform:uppercase;letter-spacing:.4px}
-    td{padding:7px 6px;border-bottom:1px solid #dce7ec;vertical-align:top}
-    td.c{text-align:center} td.m{font-family:"Courier New",monospace}
-    small{color:#5a7583}
-    tfoot td{font-weight:bold;border-top:2px solid #0d2b3e;background:#f3f9fb}
-    @media print{@page{size:A4 portrait;margin:12mm} body{padding:0}
-      th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-    </style></head><body>
+  const html = `
     <h1>${escHtml(titolo)} — lista ingresso</h1>
     <p class="sub">${escHtml(dataItaliana(ev))} · ${ordinate.length} prenotazioni · ${ordinate.reduce((s,p)=>s+regPartecipanti(p),0)} partecipanti</p>
     <table><thead><tr><th></th><th>Nome</th><th>Codice</th><th>Pers.</th><th>Pizze</th><th>Totale</th><th>Pag.</th></tr></thead>
@@ -1750,17 +1921,132 @@ function regStampaLista(){
       <td class="c">${ordinate.reduce((s,p)=>s+regPartecipanti(p),0)}</td>
       <td class="c">${ordinate.reduce((s,p)=>s+(p.righe||[]).reduce((q,r)=>q+(Number(r.quantita)||0),0),0)}</td>
       <td class="c">${escHtml(regEuro(ordinate.reduce((s,p)=>s+(Number(p.totale)||0),0)))}</td>
-      <td></td></tr></tfoot></table>
-    </body></html>`;
-  const f = window.open('', '_blank');
-  if(!f){ toast('⚠️ Il browser ha bloccato la finestra di stampa: consenti i popup per questo sito.', 8000); return; }
-  f.document.write(html);
-  f.document.close();
-  setTimeout(()=>{ try{ f.print(); }catch(e){} }, 400);
+      <td></td></tr></tfoot></table>`;
+  regMostraFoglio('Lista per l’ingresso', html);
+}
+
+/* ---------- documento d'ordine completo per gli organizzatori ---------- */
+function regDocumentoOrdine(){
+  if(!REGISTRO.length){ toast('Non c’è ancora nessuna prenotazione.', 5000); return; }
+
+  const voci = regTotalePizze();
+  const speciali = regSpecialiTotali();
+  const q = regTotaleQuote();
+  const sommaPizze = voci.reduce((s,v)=>s+v.importo,0);
+  const totaleGenerale = sommaPizze + q.importo;
+
+  const titolo = (DATA.tema && DATA.tema.titoloFesta) || 'Festa';
+  const ev = (DATA.evento && DATA.evento.data) || '';
+  const referente = (DATA.pagamento && DATA.pagamento.referente) || '';
+
+  const incassato = REGISTRO.filter(p=>p.pagato).reduce((s,p)=>s+(Number(p.totale)||0),0);
+  const previsto  = REGISTRO.reduce((s,p)=>s+(Number(p.totale)||0),0);
+
+  const bloccoSpeciali = speciali.length ? `
+    <div class="allerta">
+      <h2>⚠️ PIZZE SPECIALI — ALLERGIE E INTOLLERANZE</h2>
+      <p class="sotto">Da preparare separatamente, evitando la contaminazione. Verificare con la pizzeria.</p>
+      <table class="sp">
+        <thead><tr><th>Q.tà</th><th>Pizza</th><th>Richiesta</th><th>Per chi</th></tr></thead>
+        <tbody>${speciali.map(s => `<tr>
+          <td class="c"><b>${s.quantita}</b></td>
+          <td>${escHtml(s.nome)}</td>
+          <td class="forte">${s.tipo === 'glutine' ? 'SENZA GLUTINE (celiaci)' : 'SENZA LATTOSIO'}</td>
+          <td>${escHtml(s.chi.join(', '))}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>` : '';
+
+  const righePizze = voci.map(v => `<tr>
+      <td class="c"><b>${v.quantita}</b></td>
+      <td>${escHtml(v.nome)}</td>
+      <td class="r">${escHtml(regEuro(v.prezzo))}</td>
+      <td class="r">${escHtml(regEuro(v.importo))}</td>
+    </tr>`).join('');
+
+  const righePagamenti = REGISTRO.slice()
+    .sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'it'))
+    .map(p => `<tr class="${p.pagato ? 'pagata' : ''}">
+      <td class="c">${p.pagato ? '☑' : '☐'}</td>
+      <td>${escHtml(p.nome)}${p.appartamento ? '<br><small>'+escHtml(p.appartamento)+'</small>' : ''}</td>
+      <td class="m">${escHtml(p.codice)}</td>
+      <td class="c">${regPartecipanti(p)}</td>
+      <td class="r">${escHtml(regEuro(p.totale))}</td>
+      <td class="c">${p.pagato ? '<b class="ok">versato</b>' : '<b class="ko">da versare</b>'}</td>
+    </tr>`).join('');
+
+  const html = `
+  <h1>🍕 Ordine per la pizzeria</h1>
+  <p class="sub">${escHtml(titolo)}${ev ? ' · ' + escHtml(dataItaliana(ev)) : ''} · ${REGISTRO.length} prenotazioni · ${REGISTRO.reduce((s,p)=>s+regPartecipanti(p),0)} partecipanti</p>
+
+  ${bloccoSpeciali}
+
+  <h2>Pizze per tipologia</h2>
+  <table>
+    <thead><tr><th style="width:12%">Q.tà</th><th>Pizza</th><th style="width:20%" class="r">Prezzo</th><th style="width:20%" class="r">Totale</th></tr></thead>
+    <tbody>${righePizze}</tbody>
+    <tfoot><tr>
+      <td class="c">${voci.reduce((s,v)=>s+v.quantita,0)}</td>
+      <td>Totale pizze</td><td></td>
+      <td class="r">${escHtml(regEuro(sommaPizze))}</td>
+    </tr></tfoot>
+  </table>
+
+  ${q.importo ? `<div class="quota">
+     <span>🛟 ${escHtml(q.etichetta)} — ${q.persone} persone × ${escHtml(regEuro(q.perTesta))}</span>
+     <b>${escHtml(regEuro(q.importo))}</b>
+   </div>` : ''}
+
+  <div class="totale"><span>Totale da raccogliere</span><b>${escHtml(regEuro(totaleGenerale))}</b></div>
+
+  <div class="sezione">
+    <h2>💶 Chi ha già versato la quota</h2>
+    <table>
+      <thead><tr><th style="width:8%"></th><th>Nome</th><th style="width:20%">Codice</th>
+        <th style="width:9%" class="c">Pers.</th><th style="width:14%" class="r">Importo</th>
+        <th style="width:16%" class="c">Stato</th></tr></thead>
+      <tbody>${righePagamenti}</tbody>
+    </table>
+    <div class="riepilogo">
+      <div><b>${REGISTRO.length}</b>prenotazioni</div>
+      <div><b class="ok">${escHtml(regEuro(incassato))}</b>già versato</div>
+      <div><b class="ko">${escHtml(regEuro(previsto - incassato))}</b>ancora da versare</div>
+      <div><b>${escHtml(regEuro(previsto))}</b>totale atteso</div>
+    </div>
+  </div>
+
+  <p class="firma">Documento generato dall'area amministrazione${referente ? ' · quota da consegnare a ' + escHtml(referente) : ''}.</p>`;
+
+  regMostraFoglio('Ordine per la pizzeria', html);
+}
+
+/* Mostra un documento stampabile dentro la pagina. Niente finestre nuove:
+   i browser le bloccano spesso e l'organizzatore resterebbe senza il foglio. */
+function regMostraFoglio(titolo, htmlCorpo){
+  $('reg_foglioTitolo').textContent = titolo;
+  $('reg_foglioCorpo').innerHTML = htmlCorpo;
+  $('reg_foglio').classList.add('aperto');
+  document.body.style.overflow = 'hidden';
+  $('reg_foglio').scrollTop = 0;
+}
+function regChiudiFoglio(){
+  $('reg_foglio').classList.remove('aperto');
+  document.body.style.overflow = '';
+}
+function regStampaFoglio(){
+  document.body.classList.add('stampa-foglio');
+  window.print();
+  setTimeout(()=>document.body.classList.remove('stampa-foglio'), 800);
 }
 
 /* ---------- collegamento dei comandi ---------- */
 function registroCollega(){
+  $('reg_btnDocumento').addEventListener('click', regDocumentoOrdine);
+  $('reg_foglioStampa').addEventListener('click', regStampaFoglio);
+  $('reg_foglioChiudi').addEventListener('click', regChiudiFoglio);
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && $('reg_foglio').classList.contains('aperto')) regChiudiFoglio();
+  });
   $('reg_btnLeggi').addEventListener('click', () => {
     const p = regInterpreta($('reg_incolla').value);
     if(!p){ toast('⚠️ Non riesco a leggere questo messaggio: controlla di averlo copiato tutto.', 7000); return; }
