@@ -759,7 +759,10 @@ function memCancella(chiave){
 /* ------------------------- stato della pagina ------------------------- */
 var CHIAVE_MEM = 'rh_prenotazione';
 var passoCorrente = 1;
-var NOMI_PASSI = ['I tuoi dati','Le pizze','Le bevande','Riepilogo'];
+var NOMI_PASSO = { 1:'I tuoi dati', 2:'Le pizze', 3:'Le bevande', 4:'Riepilogo' };
+/* Passi effettivamente in uso: se non ci sono bevande da ordinare il passo 3
+   sparisce del tutto e il percorso diventa "Passo N di 3". */
+var PASSI = [1,2,3,4];
 var quantita = {};        /* "indiceCategoria:indiceVoce" -> quantita' */
 var adulti = 2, bambini = 0;
 var prenotazioneFatta = null;
@@ -992,9 +995,10 @@ function preparaPrenotazione(){
   costruisciElenco('elencoCibo', 'cibo');
   costruisciElenco('elencoBevande', 'bevanda');
 
+  calcolaPassi();
   aggiornaPersone();
   aggiornaSubtotali();
-  vaiA(1);
+  vaiA(1, true);   /* al caricamento la pagina deve restare in cima */
 }
 
 /* Costruisce gli elenchi con i contatori. L'indice di categoria e' quello
@@ -1222,17 +1226,30 @@ function controllaAvvisoPizze(){
 }
 
 /* ------------------------------ navigazione -------------------------------- */
-function vaiA(n){
-  passoCorrente = Math.max(1, Math.min(4, n));
+
+/* Il passo delle bevande esiste solo se c'e' davvero qualcosa da ordinare. */
+function calcolaPassi(){
+  var conBevande = categorieDi('bevanda').some(function(c){
+    return Array.isArray(c.voci) && c.voci.length > 0;
+  });
+  PASSI = conBevande ? [1,2,3,4] : [1,2,4];
+}
+
+/* senzaScorrimento: serve al primo disegno della pagina, altrimenti il sito si
+   aprirebbe gia' scorso sulla sezione prenotazione invece che in cima. */
+function vaiA(n, senzaScorrimento){
+  if(PASSI.indexOf(n) === -1) n = PASSI[0];
+  passoCorrente = n;
   for(var i = 1; i <= 4; i++){
     var p = $('passo' + i);
     if(p) p.className = (i === passoCorrente) ? 'passo attivo' : 'passo';
   }
-  testo('passoEtichetta', 'Passo ' + passoCorrente + ' di 4');
-  testo('passoNome', NOMI_PASSI[passoCorrente - 1]);
-  $('barraAvanzamento').style.width = (passoCorrente / 4 * 100) + '%';
+  var posizione = PASSI.indexOf(passoCorrente) + 1, totale = PASSI.length;
+  testo('passoEtichetta', 'Passo ' + posizione + ' di ' + totale);
+  testo('passoNome', NOMI_PASSO[passoCorrente]);
+  $('barraAvanzamento').style.width = (posizione / totale * 100) + '%';
 
-  $('btnIndietro').style.visibility = (passoCorrente === 1) ? 'hidden' : 'visible';
+  $('btnIndietro').style.visibility = (posizione === 1) ? 'hidden' : 'visible';
 
   var avanti = $('btnAvanti');
   if(passoCorrente === 4){
@@ -1247,15 +1264,22 @@ function vaiA(n){
   if(passoCorrente === 2) controllaAvvisoPizze();
   if(passoCorrente === 4) disegnaRiepilogo();
 
-  var pannello = $('pannelloPassi');
-  if(pannello && pannello.scrollIntoView) pannello.scrollIntoView({ behavior:'smooth', block:'start' });
+  if(!senzaScorrimento){
+    var pannello = $('pannelloPassi');
+    if(pannello && pannello.scrollIntoView) pannello.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
 }
 
 function avanti(){
   if(passoCorrente === 1){ if(!validaPasso1()) return; }
   if(passoCorrente === 2){ if(!validaPasso2()) return; controllaAvvisoPizze(); }
   if(passoCorrente === 4){ conferma(); return; }
-  vaiA(passoCorrente + 1);
+  var i = PASSI.indexOf(passoCorrente);
+  vaiA(PASSI[Math.min(i + 1, PASSI.length - 1)]);
+}
+function indietro(){
+  var i = PASSI.indexOf(passoCorrente);
+  vaiA(PASSI[Math.max(i - 1, 0)]);
 }
 
 /* ------------------------------- riepilogo --------------------------------- */
@@ -1596,7 +1620,7 @@ function preparaCondivisione(){
 
 /* ================================ EVENTI ================================ */
 $('btnAvanti').addEventListener('click', avanti);
-$('btnIndietro').addEventListener('click', function(){ vaiA(passoCorrente - 1); });
+$('btnIndietro').addEventListener('click', indietro);
 
 $('piuAdulti').addEventListener('click', function(){ if(adulti < 30){ adulti++; aggiornaPersone(); } });
 $('menoAdulti').addEventListener('click', function(){ if(adulti > 1){ adulti--; aggiornaPersone(); } });

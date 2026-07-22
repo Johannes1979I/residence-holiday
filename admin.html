@@ -89,6 +89,43 @@
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
   @media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
 
+  /* ---------- registro prenotazioni ---------- */
+  .btn-x{background:var(--c1);color:#fff}
+  .reg-cruscotto{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0 4px}
+  .reg-kpi{background:#f3f9fb;border:1px solid #d7e8ee;border-radius:12px;padding:12px;text-align:center}
+  .reg-kpi b{display:block;font-size:1.5rem;line-height:1.15;color:var(--ink)}
+  .reg-kpi span{font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .reg-kpi.ok b{color:#1a8a4a}
+  .reg-kpi.attesa b{color:var(--c1)}
+  .reg-azioni{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .reg-filtri{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .reg-filtri input[type=text],.reg-filtri input:not([type]){flex:1 1 220px}
+  .reg-check{display:flex;align-items:center;gap:7px;font-size:.85rem;font-weight:bold;color:var(--muted);white-space:nowrap}
+  .reg-check input{width:20px;height:20px;accent-color:var(--c2)}
+  .reg-riga{border:1px solid #dbe8ed;border-radius:12px;padding:12px 14px;margin-bottom:9px;background:#fff}
+  .reg-riga.pagata{background:#f2fbf5;border-color:#bfe4cd}
+  .reg-testa{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .reg-codice{font-family:"Courier New",monospace;font-weight:bold;color:var(--c1);letter-spacing:.5px}
+  .reg-nome{font-weight:bold;flex:1 1 140px}
+  .reg-tot{font-weight:bold;white-space:nowrap}
+  .reg-bollo{font-size:.72rem;font-weight:bold;border-radius:999px;padding:3px 10px;white-space:nowrap}
+  .reg-bollo.si{background:#d8f3e3;color:#136c3b}
+  .reg-bollo.no{background:#ffe3e5;color:#a3121e}
+  .reg-dett{margin-top:9px;padding-top:9px;border-top:1px dashed #d3e3e9;font-size:.88rem;color:var(--ink)}
+  .reg-dett .voce{display:flex;justify-content:space-between;gap:12px;padding:2px 0}
+  .reg-dett .meta{color:var(--muted);margin-bottom:6px}
+  .reg-mini{border:none;background:#eef4f7;color:var(--ink);border-radius:8px;padding:7px 11px;
+            font-size:.8rem;font-weight:bold;cursor:pointer}
+  .reg-mini:hover{background:#dfeaef}
+  .reg-mini.rossa{background:#ffe3e5;color:#a3121e}
+  .reg-pizze{background:#0d2b3e;color:#fff;border-radius:12px;padding:14px 16px;font-size:.95rem}
+  .reg-pizze .r{display:flex;justify-content:space-between;gap:12px;padding:3px 0;border-bottom:1px dashed rgba(255,255,255,.18)}
+  .reg-pizze .r:last-child{border-bottom:none}
+  .reg-pizze .r b{color:var(--c3)}
+  .reg-pizze .vuoto{opacity:.7}
+  .reg-privacy{background:#fff8e6;border:1px solid var(--c3);border-radius:12px;padding:13px 15px;font-size:.85rem;line-height:1.5}
+  .reg-vuoto{color:var(--muted);font-size:.9rem;padding:14px;text-align:center;border:1px dashed #cddde3;border-radius:12px}
+
   /* ---------- liste modificabili ---------- */
   .item{border:1px solid #e0ebf0;border-radius:14px;padding:14px;margin-bottom:12px;background:#fafdff}
   .cat{border:2px solid #cfe6ec;border-radius:16px;padding:14px;margin-bottom:16px;background:#f6fcfe}
@@ -150,6 +187,7 @@
     </div>
 
     <nav class="sommario" aria-label="Sezioni del pannello">
+      <a href="#sec-registro">📒 Prenotazioni</a>
       <a href="#sec-residence">🏠 Residence</a>
       <a href="#sec-tema">🎨 Tema</a>
       <a href="#sec-evento">📅 Evento</a>
@@ -166,6 +204,81 @@
     </nav>
 
     <!-- ---------- RESIDENCE ---------- -->
+    <!-- ---------- REGISTRO PRENOTAZIONI ---------- -->
+    <div class="card" id="sec-registro">
+      <h2>📒 Prenotazioni ricevute <span class="conta" id="reg_conta"></span></h2>
+      <p class="intro">
+        Il quadro completo della serata: chi ha prenotato, cosa ha ordinato, chi ha pagato
+        e quante pizze ordinare alla pizzeria.
+      </p>
+
+      <div class="reg-cruscotto" id="reg_cruscotto"></div>
+
+      <h3 class="sub-h">Aggiungi una prenotazione</h3>
+      <p class="hint" style="margin-bottom:8px">
+        Quando ti arriva una prenotazione su WhatsApp o Telegram, copia il messaggio e
+        incollalo qui sotto: i dati vengono letti da soli. In alternativa compila a mano.
+      </p>
+      <textarea id="reg_incolla" rows="4" placeholder="Incolla qui il messaggio ricevuto…"></textarea>
+      <div class="reg-azioni">
+        <button class="btn btn-p" id="reg_btnLeggi">📥 Leggi il messaggio e aggiungi</button>
+        <button class="btn btn-w" id="reg_btnManuale">✍️ Aggiungi a mano</button>
+      </div>
+
+      <div id="reg_manuale" style="display:none">
+        <div class="grid2">
+          <div><label for="reg_m_nome">Nome e cognome</label><input id="reg_m_nome" /></div>
+          <div><label for="reg_m_tel">Cellulare</label><input id="reg_m_tel" inputmode="tel" /></div>
+        </div>
+        <div class="grid3">
+          <div><label for="reg_m_app">Appartamento</label><input id="reg_m_app" /></div>
+          <div><label for="reg_m_adulti">Adulti</label><input id="reg_m_adulti" inputmode="numeric" value="2" /></div>
+          <div><label for="reg_m_bambini">Bambini</label><input id="reg_m_bambini" inputmode="numeric" value="0" /></div>
+        </div>
+        <label for="reg_m_ordine">Ordine</label>
+        <textarea id="reg_m_ordine" rows="3" placeholder="Una riga per pizza, es.&#10;2 x Margherita&#10;1 x Diavola"></textarea>
+        <p class="hint">Scrivi una riga per tipo di pizza. I prezzi vengono presi dal menù qui sopra.</p>
+        <div class="grid2">
+          <div><label for="reg_m_note">Note</label><input id="reg_m_note" placeholder="Allergie, richieste…" /></div>
+          <div><label for="reg_m_totale">Totale € <span class="hint" style="font-weight:normal">(vuoto = calcolalo tu)</span></label><input id="reg_m_totale" inputmode="decimal" /></div>
+        </div>
+        <div class="reg-azioni">
+          <button class="btn btn-p" id="reg_btnSalvaManuale">➕ Aggiungi al registro</button>
+          <button class="btn btn-w" id="reg_btnAnnullaManuale">Annulla</button>
+        </div>
+      </div>
+
+      <h3 class="sub-h">Elenco</h3>
+      <div class="reg-filtri">
+        <input id="reg_cerca" placeholder="🔎 Cerca per nome, codice o appartamento" />
+        <label class="reg-check"><input type="checkbox" id="reg_soloNonPagati" /> Solo chi non ha ancora pagato</label>
+      </div>
+      <div id="reg_elenco"></div>
+
+      <h3 class="sub-h">🍕 Ordine complessivo per la pizzeria</h3>
+      <p class="hint" style="margin-bottom:8px">Somma di tutte le prenotazioni: è la lista da dare alla Pizzeria Oasi.</p>
+      <div id="reg_totalePizze" class="reg-pizze"></div>
+      <div class="reg-azioni">
+        <button class="btn btn-s" id="reg_btnCopiaOrdine">📋 Copia l’ordine</button>
+        <button class="btn btn-w" id="reg_btnStampa">🖨️ Stampa la lista per l’ingresso</button>
+      </div>
+
+      <h3 class="sub-h">Salvataggio e backup</h3>
+      <div class="reg-privacy">
+        <b>🔒 Le prenotazioni restano su questo dispositivo.</b>
+        Nomi e numeri di telefono dei condomini <b>non</b> vengono pubblicati online: il sito è
+        pubblico e chiunque potrebbe leggerli. Per questo il registro vive nel browser che stai
+        usando. Fai ogni tanto un backup, e usalo per passare l’elenco a un altro organizzatore.
+      </div>
+      <div class="reg-azioni">
+        <button class="btn btn-s" id="reg_btnEsportaJson">💾 Backup (file JSON)</button>
+        <button class="btn btn-s" id="reg_btnEsportaCsv">📊 Esporta per Excel (CSV)</button>
+        <label class="btn btn-w" for="reg_fileImporta" style="display:inline-flex;align-items:center">📂 Ripristina un backup</label>
+        <input type="file" id="reg_fileImporta" accept=".json,application/json" style="display:none" />
+        <button class="btn btn-x" id="reg_btnSvuota">🗑️ Svuota il registro</button>
+      </div>
+    </div>
+
     <div class="card" id="sec-residence">
       <h2>🏠 Residence</h2>
       <p class="intro">Il nome che compare in alto nel sito, sulla locandina e sul voucher.</p>
@@ -734,6 +847,7 @@ async function init(){
   riempi();
   loadGh();
   collegaEventi();
+  registroAvvia();
   sporco = false;
 }
 
@@ -1258,13 +1372,496 @@ function collegaEventi(){
   legaAnteprimaData('pr_scad','pr_scad_hint','Ultimo giorno utile per prenotare');
 
   document.querySelectorAll('#app input, #app textarea, #app select').forEach(el => {
-    if(el.id && el.id.indexOf('gh_')===0) return;
+    /* i campi di GitHub e quelli del registro non fanno parte di contenuti.json:
+       toccarli non deve far comparire l'avviso "modifiche non salvate" */
+    if(el.id && (el.id.indexOf('gh_')===0 || el.id.indexOf('reg_')===0)) return;
     el.addEventListener('input', tocca);
   });
+
+  registroCollega();
 
   window.addEventListener('beforeunload', e => {
     if(sporco){ e.preventDefault(); e.returnValue = ''; }
   });
+}
+
+/* =========================================================
+   REGISTRO DELLE PRENOTAZIONI
+
+   Vive solo in questo browser (localStorage). Non finisce mai in
+   contenuti.json ne' su GitHub: il sito e' pubblico e nomi, telefoni e
+   appartamenti dei condomini non devono essere leggibili da chiunque.
+   Per passarlo a un altro organizzatore si usa il backup in JSON.
+   ========================================================= */
+const REG_CHIAVE = 'rh_registro';
+let REGISTRO = [];
+
+function regLeggi(){
+  try{
+    const grezzo = localStorage.getItem(REG_CHIAVE);
+    const d = grezzo ? JSON.parse(grezzo) : null;
+    REGISTRO = (d && Array.isArray(d.elenco)) ? d.elenco : [];
+  }catch(e){ REGISTRO = []; }
+}
+function regSalva(){
+  try{
+    localStorage.setItem(REG_CHIAVE, JSON.stringify({
+      aggiornato: new Date().toISOString(), elenco: REGISTRO
+    }));
+  }catch(e){
+    toast('⚠️ Non riesco a salvare il registro in questo browser (memoria piena o navigazione privata).', 8000);
+  }
+}
+
+function regEuro(n){
+  const v = Number(n)||0;
+  return '€ ' + (Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ','));
+}
+function escHtml(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function regPartecipanti(p){ return (Number(p.adulti)||0) + (Number(p.bambini)||0); }
+function regTestoPersone(p){
+  const a = Number(p.adulti)||0, b = Number(p.bambini)||0;
+  const pezzi = [];
+  if(a) pezzi.push(a + (a===1 ? ' adulto' : ' adulti'));
+  if(b) pezzi.push(b + (b===1 ? ' bambino' : ' bambini'));
+  return pezzi.join(' + ') || '—';
+}
+
+/* prezzo di una voce del menu', cercata per nome (serve all'inserimento a mano) */
+function regPrezzoDi(nome){
+  const cercato = String(nome||'').toLowerCase().trim();
+  let prezzo = 0;
+  ((DATA && DATA.menu && DATA.menu.categorie) || []).forEach(c => {
+    (Array.isArray(c.voci) ? c.voci : []).forEach(v => {
+      if(String(v.nome||'').toLowerCase().trim() === cercato) prezzo = Number(v.prezzo)||0;
+    });
+  });
+  return prezzo;
+}
+
+/* ---------- lettura del messaggio WhatsApp/Telegram ---------- */
+function regInterpreta(testo){
+  const t = String(testo||'').replace(/\r/g, '');
+  if(!t.trim()) return null;
+  const cerca = re => { const m = t.match(re); return m ? m[1].trim() : ''; };
+  const p = {};
+
+  p.codice       = cerca(/Codice:\s*([A-Za-z0-9\-]+)/);
+  p.nome         = cerca(/👤\s*(.+)/);
+  p.telefono     = cerca(/📱\s*(.+)/);
+  p.appartamento = cerca(/🏠\s*(.+)/);
+
+  const persone = cerca(/👥\s*(.+)/);
+  const ad = persone.match(/(\d+)\s*adult/i), ba = persone.match(/(\d+)\s*bambin/i);
+  p.adulti  = ad ? Number(ad[1]) : 0;
+  p.bambini = ba ? Number(ba[1]) : 0;
+
+  p.righe = [];
+  p.coperto = 0;
+  const righeElenco = /^[•\-*]\s*(.+)$/gm;
+  let m;
+  while((m = righeElenco.exec(t)) !== null){
+    const riga = m[1].trim();
+    /* "2 × Margherita — € 12" */
+    let r = riga.match(/^(\d+)\s*[×x]\s*(.+?)\s*[—–-]\s*€\s*([\d.,]+)$/);
+    if(r){ p.righe.push({ quantita:Number(r[1]), nome:r[2].trim(), importo:leggiNumero(r[3]) }); continue; }
+    /* "Quota assistenza in piscina: 4 × € 3 — € 12" */
+    let q = riga.match(/^(.+?):\s*(\d+)\s*[×x]\s*€\s*([\d.,]+)\s*[—–-]\s*€\s*([\d.,]+)$/);
+    if(q){ p.coperto = leggiNumero(q[4]); continue; }
+    /* "2 × Margherita" senza importo */
+    let s = riga.match(/^(\d+)\s*[×x]\s*(.+)$/);
+    if(s){
+      const nome = s[2].trim();
+      p.righe.push({ quantita:Number(s[1]), nome, importo:regPrezzoDi(nome)*Number(s[1]) });
+    }
+  }
+
+  p.totale = leggiNumero(cerca(/TOTALE:\s*€\s*([\d.,]+)/));
+  const note = t.match(/📝\s*Note:\s*([\s\S]+)/);
+  p.note = note ? note[1].split('\n')[0].trim() : '';
+
+  if(!p.nome && !p.codice) return null;
+  return p;
+}
+
+function regCodiceLibero(){
+  const alfabeto = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const ev = (DATA && DATA.evento && DATA.evento.data) || '';
+  const mm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ev);
+  const ggmm = mm ? (mm[3]+mm[2]) : '0000';
+  const pre = String((DATA && DATA.prenotazione && DATA.prenotazione.prefissoCodice) || 'RH').toUpperCase();
+  let codice;
+  do{
+    let coda = '';
+    for(let i=0;i<4;i++) coda += alfabeto[Math.floor(Math.random()*alfabeto.length)];
+    codice = pre + '-' + ggmm + '-' + coda;
+  } while(REGISTRO.some(x => x.codice === codice));
+  return codice;
+}
+
+function regAggiungi(p){
+  const codice = p.codice || regCodiceLibero();
+  if(REGISTRO.some(x => x.codice === codice)){
+    toast('⚠️ La prenotazione ' + codice + ' è già nel registro.', 6000);
+    return false;
+  }
+  const righe = Array.isArray(p.righe) ? p.righe : [];
+  let totale = Number(p.totale)||0;
+  if(!totale){
+    const perTesta = Number((DATA && DATA.menu && DATA.menu.copertoPersona) || 0);
+    const coperto = Number(p.coperto) || perTesta * ((Number(p.adulti)||0)+(Number(p.bambini)||0));
+    totale = righe.reduce((s,r)=> s + (Number(r.importo)||0), 0) + coperto;
+    p.coperto = coperto;
+  }
+  REGISTRO.push({
+    codice, nome:(p.nome||'(senza nome)'), telefono:(p.telefono||''),
+    appartamento:(p.appartamento||''),
+    adulti:Number(p.adulti)||0, bambini:Number(p.bambini)||0,
+    righe, coperto:Number(p.coperto)||0, totale,
+    note:(p.note||''), pagato:false, pagatoIl:null,
+    ricevutoIl:new Date().toISOString()
+  });
+  regSalva();
+  regDisegna();
+  return true;
+}
+
+/* ---------- disegno ---------- */
+function regDisegna(){
+  const conta = $('reg_conta');
+  if(conta) conta.textContent = REGISTRO.length
+    ? (REGISTRO.length + (REGISTRO.length===1 ? ' prenotazione' : ' prenotazioni'))
+    : 'nessuna';
+
+  /* cruscotto */
+  const persone = REGISTRO.reduce((s,p)=> s + regPartecipanti(p), 0);
+  const previsto = REGISTRO.reduce((s,p)=> s + (Number(p.totale)||0), 0);
+  const incassato = REGISTRO.filter(p=>p.pagato).reduce((s,p)=> s + (Number(p.totale)||0), 0);
+  const pizze = REGISTRO.reduce((s,p)=> s + (p.righe||[]).reduce((q,r)=> q + (Number(r.quantita)||0), 0), 0);
+  const cru = $('reg_cruscotto');
+  cru.textContent = '';
+  [
+    ['', REGISTRO.length, 'prenotazioni'],
+    ['', persone, 'partecipanti'],
+    ['', pizze, 'pizze'],
+    ['ok', regEuro(incassato), 'incassato'],
+    ['attesa', regEuro(previsto - incassato), 'da incassare']
+  ].forEach(([cls, val, et]) => {
+    const box = crea('div', 'reg-kpi' + (cls ? ' '+cls : ''));
+    box.appendChild(crea('b', null, String(val)));
+    box.appendChild(crea('span', null, et));
+    cru.appendChild(box);
+  });
+
+  /* elenco */
+  const filtro = ($('reg_cerca').value||'').toLowerCase().trim();
+  const soloNo = $('reg_soloNonPagati').checked;
+  const cont = $('reg_elenco');
+  cont.textContent = '';
+
+  const visibili = REGISTRO.filter(p => {
+    if(soloNo && p.pagato) return false;
+    if(!filtro) return true;
+    return (p.nome+' '+p.codice+' '+p.appartamento+' '+p.telefono).toLowerCase().indexOf(filtro) !== -1;
+  }).slice().sort((a,b) => String(a.nome).localeCompare(String(b.nome), 'it'));
+
+  if(!visibili.length){
+    cont.appendChild(crea('div','reg-vuoto', REGISTRO.length
+      ? 'Nessuna prenotazione corrisponde alla ricerca.'
+      : 'Ancora nessuna prenotazione. Incolla qui sopra il primo messaggio che ricevi.'));
+  }
+
+  visibili.forEach(p => {
+    const riga = crea('div', 'reg-riga' + (p.pagato ? ' pagata' : ''));
+
+    const testa = crea('div','reg-testa');
+    testa.appendChild(crea('span','reg-codice', p.codice));
+    testa.appendChild(crea('span','reg-nome', p.nome));
+    testa.appendChild(crea('span','reg-bollo ' + (p.pagato?'si':'no'), p.pagato ? '✅ pagato' : '⏳ da pagare'));
+    testa.appendChild(crea('span','reg-tot', regEuro(p.totale)));
+    riga.appendChild(testa);
+
+    const dett = crea('div','reg-dett');
+    const meta = [];
+    meta.push('👥 ' + regTestoPersone(p));
+    if(p.telefono) meta.push('📱 ' + p.telefono);
+    if(p.appartamento) meta.push('🏠 ' + p.appartamento);
+    dett.appendChild(crea('div','meta', meta.join('  ·  ')));
+
+    (p.righe||[]).forEach(r => {
+      const v = crea('div','voce');
+      v.appendChild(crea('span', null, (r.quantita||0) + ' × ' + (r.nome||'')));
+      v.appendChild(crea('span', null, regEuro(r.importo)));
+      dett.appendChild(v);
+    });
+    if(Number(p.coperto)){
+      const v = crea('div','voce');
+      v.appendChild(crea('span', null, '🛟 quota assistenza'));
+      v.appendChild(crea('span', null, regEuro(p.coperto)));
+      dett.appendChild(v);
+    }
+    if(p.note){
+      const n = crea('div','meta', '📝 ' + p.note);
+      n.style.marginTop = '6px';
+      dett.appendChild(n);
+    }
+
+    const azioni = crea('div','reg-azioni');
+    const bPag = crea('button','reg-mini', p.pagato ? '↩️ Segna non pagato' : '✅ Segna pagato');
+    bPag.type = 'button';
+    bPag.addEventListener('click', () => {
+      p.pagato = !p.pagato;
+      p.pagatoIl = p.pagato ? new Date().toISOString() : null;
+      regSalva(); regDisegna();
+    });
+    azioni.appendChild(bPag);
+
+    if(p.telefono){
+      const bWa = crea('button','reg-mini','💬 Scrivi su WhatsApp');
+      bWa.type = 'button';
+      bWa.addEventListener('click', () => {
+        const num = String(p.telefono).replace(/\D/g,'');
+        const completo = num.length <= 10 ? ('39'+num) : num;
+        const testo = 'Ciao ' + String(p.nome).split(' ')[0] + '! Ti scrivo per la ' +
+          ((DATA.tema && DATA.tema.titoloFesta) || 'festa') + ': la tua prenotazione ' + p.codice +
+          ' è di ' + regEuro(p.totale) + (p.pagato ? ' ed è già saldata.' : ', da consegnare alla bagnina.');
+        apri('https://wa.me/' + completo + '?text=' + encodeURIComponent(testo));
+      });
+      azioni.appendChild(bWa);
+    }
+
+    const bDel = crea('button','reg-mini rossa','🗑️ Elimina');
+    bDel.type = 'button';
+    bDel.addEventListener('click', () => {
+      if(!confirm('Elimino la prenotazione ' + p.codice + ' di ' + p.nome + '?')) return;
+      REGISTRO = REGISTRO.filter(x => x !== p);
+      regSalva(); regDisegna();
+      toast('Prenotazione eliminata.');
+    });
+    azioni.appendChild(bDel);
+
+    dett.appendChild(azioni);
+    riga.appendChild(dett);
+    cont.appendChild(riga);
+  });
+
+  regDisegnaOrdine();
+}
+
+/* somma di tutte le pizze prenotate: e' la lista da dare alla pizzeria */
+function regTotalePizze(){
+  const somma = {};
+  REGISTRO.forEach(p => (p.righe||[]).forEach(r => {
+    const nome = String(r.nome||'').trim();
+    if(!nome) return;
+    somma[nome] = (somma[nome]||0) + (Number(r.quantita)||0);
+  }));
+  return Object.keys(somma).sort((a,b) => somma[b]-somma[a] || a.localeCompare(b,'it'))
+    .map(nome => ({ nome, quantita: somma[nome] }));
+}
+
+function regDisegnaOrdine(){
+  const box = $('reg_totalePizze');
+  box.textContent = '';
+  const voci = regTotalePizze();
+  if(!voci.length){
+    box.appendChild(crea('div','vuoto','Nessuna pizza prenotata per ora.'));
+    return;
+  }
+  voci.forEach(v => {
+    const r = crea('div','r');
+    r.appendChild(crea('span', null, v.nome));
+    r.appendChild(crea('b', null, '× ' + v.quantita));
+    box.appendChild(r);
+  });
+  const tot = crea('div','r');
+  tot.appendChild(crea('span', null, 'Totale pizze'));
+  tot.appendChild(crea('b', null, '× ' + voci.reduce((s,v)=>s+v.quantita,0)));
+  box.appendChild(tot);
+}
+
+function regTestoOrdine(){
+  const voci = regTotalePizze();
+  if(!voci.length) return '';
+  const ev = (DATA.evento && DATA.evento.data) || '';
+  return 'Ordine pizze — ' + ((DATA.tema && DATA.tema.titoloFesta) || 'festa') +
+    (ev ? ' del ' + dataItaliana(ev) : '') + '\n\n' +
+    voci.map(v => '• ' + v.quantita + ' × ' + v.nome).join('\n') +
+    '\n\nTotale: ' + voci.reduce((s,v)=>s+v.quantita,0) + ' pizze';
+}
+
+/* ---------- esportazioni ---------- */
+function regScaricaFile(nome, contenuto, tipo){
+  const blob = new Blob([contenuto], {type: tipo});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nome;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+}
+
+function regEsportaCsv(){
+  const q = s => '"' + String(s==null?'':s).replace(/"/g,'""') + '"';
+  const righe = [['Codice','Nome','Telefono','Appartamento','Adulti','Bambini','Ordine','Quota','Totale','Pagato','Note'].map(q).join(';')];
+  REGISTRO.forEach(p => {
+    const ordine = (p.righe||[]).map(r => r.quantita + ' x ' + r.nome).join(' | ');
+    righe.push([p.codice,p.nome,p.telefono,p.appartamento,p.adulti,p.bambini,
+                ordine,p.coperto,p.totale,(p.pagato?'sì':'no'),p.note].map(q).join(';'));
+  });
+  regScaricaFile('prenotazioni.csv', '﻿' + righe.join('\r\n'), 'text/csv;charset=utf-8');
+  toast('Elenco esportato: aprilo con Excel o Numbers.', 5000);
+}
+
+function regStampaLista(){
+  const ev = (DATA.evento && DATA.evento.data) || '';
+  const titolo = (DATA.tema && DATA.tema.titoloFesta) || 'Festa';
+  const ordinate = REGISTRO.slice().sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'it'));
+  const corpo = ordinate.map(p => `<tr>
+      <td class="c">☐</td>
+      <td><b>${escHtml(p.nome)}</b>${p.appartamento ? '<br><small>'+escHtml(p.appartamento)+'</small>' : ''}</td>
+      <td class="m">${escHtml(p.codice)}</td>
+      <td class="c">${regPartecipanti(p)}</td>
+      <td class="c">${(p.righe||[]).reduce((s,r)=>s+(Number(r.quantita)||0),0)}</td>
+      <td class="c">${escHtml(regEuro(p.totale))}</td>
+      <td class="c">${p.pagato ? '✔' : ''}</td>
+    </tr>`).join('');
+  const html = `<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
+    <title>Lista ingresso — ${escHtml(titolo)}</title><style>
+    body{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;color:#0d2b3e;padding:14mm 10mm}
+    h1{font-size:17pt;margin-bottom:2px} p.sub{color:#5a7583;font-size:10pt;margin-bottom:14px}
+    table{width:100%;border-collapse:collapse;font-size:10.5pt}
+    th{background:#0d2b3e;color:#fff;text-align:left;padding:7px 6px;font-size:9pt;text-transform:uppercase;letter-spacing:.4px}
+    td{padding:7px 6px;border-bottom:1px solid #dce7ec;vertical-align:top}
+    td.c{text-align:center} td.m{font-family:"Courier New",monospace}
+    small{color:#5a7583}
+    tfoot td{font-weight:bold;border-top:2px solid #0d2b3e;background:#f3f9fb}
+    @media print{@page{size:A4 portrait;margin:12mm} body{padding:0}
+      th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+    </style></head><body>
+    <h1>${escHtml(titolo)} — lista ingresso</h1>
+    <p class="sub">${escHtml(dataItaliana(ev))} · ${ordinate.length} prenotazioni · ${ordinate.reduce((s,p)=>s+regPartecipanti(p),0)} partecipanti</p>
+    <table><thead><tr><th></th><th>Nome</th><th>Codice</th><th>Pers.</th><th>Pizze</th><th>Totale</th><th>Pag.</th></tr></thead>
+    <tbody>${corpo || '<tr><td colspan="7">Nessuna prenotazione.</td></tr>'}</tbody>
+    <tfoot><tr><td></td><td>Totale</td><td></td>
+      <td class="c">${ordinate.reduce((s,p)=>s+regPartecipanti(p),0)}</td>
+      <td class="c">${ordinate.reduce((s,p)=>s+(p.righe||[]).reduce((q,r)=>q+(Number(r.quantita)||0),0),0)}</td>
+      <td class="c">${escHtml(regEuro(ordinate.reduce((s,p)=>s+(Number(p.totale)||0),0)))}</td>
+      <td></td></tr></tfoot></table>
+    </body></html>`;
+  const f = window.open('', '_blank');
+  if(!f){ toast('⚠️ Il browser ha bloccato la finestra di stampa: consenti i popup per questo sito.', 8000); return; }
+  f.document.write(html);
+  f.document.close();
+  setTimeout(()=>{ try{ f.print(); }catch(e){} }, 400);
+}
+
+/* ---------- collegamento dei comandi ---------- */
+function registroCollega(){
+  $('reg_btnLeggi').addEventListener('click', () => {
+    const p = regInterpreta($('reg_incolla').value);
+    if(!p){ toast('⚠️ Non riesco a leggere questo messaggio: controlla di averlo copiato tutto.', 7000); return; }
+    if(regAggiungi(p)){
+      $('reg_incolla').value = '';
+      toast('✅ Aggiunta la prenotazione di ' + p.nome + '.', 5000);
+    }
+  });
+
+  $('reg_btnManuale').addEventListener('click', () => {
+    const m = $('reg_manuale');
+    m.style.display = (m.style.display === 'none') ? '' : 'none';
+  });
+  $('reg_btnAnnullaManuale').addEventListener('click', () => { $('reg_manuale').style.display = 'none'; });
+
+  $('reg_btnSalvaManuale').addEventListener('click', () => {
+    const nome = $('reg_m_nome').value.trim();
+    if(!nome){ toast('⚠️ Serve almeno il nome.', 5000); return; }
+    const righe = $('reg_m_ordine').value.split('\n').map(r => r.trim()).filter(Boolean).map(r => {
+      const m = r.match(/^(\d+)\s*[×x]?\s*(.+)$/);
+      const q = m ? Number(m[1]) : 1;
+      const n = m ? m[2].trim() : r;
+      return { quantita:q, nome:n, importo: regPrezzoDi(n) * q };
+    });
+    const ok = regAggiungi({
+      nome, telefono:$('reg_m_tel').value.trim(), appartamento:$('reg_m_app').value.trim(),
+      adulti:Number($('reg_m_adulti').value)||0, bambini:Number($('reg_m_bambini').value)||0,
+      righe, note:$('reg_m_note').value.trim(),
+      totale: leggiNumero($('reg_m_totale').value)
+    });
+    if(ok){
+      ['reg_m_nome','reg_m_tel','reg_m_app','reg_m_ordine','reg_m_note','reg_m_totale']
+        .forEach(id => { $(id).value = ''; });
+      $('reg_m_adulti').value = '2'; $('reg_m_bambini').value = '0';
+      $('reg_manuale').style.display = 'none';
+      toast('✅ Prenotazione aggiunta.', 4000);
+    }
+  });
+
+  $('reg_cerca').addEventListener('input', regDisegna);
+  $('reg_soloNonPagati').addEventListener('change', regDisegna);
+
+  $('reg_btnCopiaOrdine').addEventListener('click', () => {
+    const t = regTestoOrdine();
+    if(!t){ toast('Non c’è ancora niente da ordinare.', 4000); return; }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t)
+        .then(()=> toast('📋 Ordine copiato: incollalo nel messaggio alla pizzeria.', 5000))
+        .catch(()=> toast('⚠️ Non riesco a copiare: seleziona il testo a mano.', 5000));
+    } else {
+      toast('⚠️ Questo browser non permette la copia automatica.', 5000);
+    }
+  });
+
+  $('reg_btnStampa').addEventListener('click', regStampaLista);
+  $('reg_btnEsportaCsv').addEventListener('click', regEsportaCsv);
+
+  $('reg_btnEsportaJson').addEventListener('click', () => {
+    regScaricaFile('prenotazioni-backup.json',
+      JSON.stringify({ aggiornato:new Date().toISOString(), elenco:REGISTRO }, null, 2),
+      'application/json');
+    toast('Backup salvato. Conservalo o passalo a un altro organizzatore.', 6000);
+  });
+
+  $('reg_fileImporta').addEventListener('change', ev => {
+    const file = ev.target.files && ev.target.files[0];
+    if(!file) return;
+    const lettore = new FileReader();
+    lettore.onload = () => {
+      try{
+        const d = JSON.parse(String(lettore.result));
+        const elenco = Array.isArray(d) ? d : (d && d.elenco);
+        if(!Array.isArray(elenco)) throw new Error('formato non valido');
+        let nuove = 0;
+        elenco.forEach(p => {
+          if(!p || !p.codice) return;
+          if(REGISTRO.some(x => x.codice === p.codice)) return;
+          REGISTRO.push(p); nuove++;
+        });
+        regSalva(); regDisegna();
+        toast('✅ Ripristinate ' + nuove + ' prenotazioni (i doppioni sono stati saltati).', 7000);
+      }catch(e){
+        toast('⚠️ Questo file non è un backup valido delle prenotazioni.', 6000);
+      }
+    };
+    lettore.readAsText(file);
+    ev.target.value = '';
+  });
+
+  $('reg_btnSvuota').addEventListener('click', () => {
+    if(!REGISTRO.length){ toast('Il registro è già vuoto.', 4000); return; }
+    if(!confirm('Cancello TUTTE le ' + REGISTRO.length + ' prenotazioni?\n\nFai prima un backup se non l’hai ancora fatto: l’operazione non si può annullare.')) return;
+    REGISTRO = [];
+    regSalva(); regDisegna();
+    toast('Registro svuotato.', 4000);
+  });
+}
+
+function registroAvvia(){
+  regLeggi();
+  regDisegna();
 }
 </script>
 </body>

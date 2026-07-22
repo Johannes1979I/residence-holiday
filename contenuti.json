@@ -24,7 +24,7 @@
   },
   "menu": {
     "descrizione": "Il listino della Pizzeria Bar Oasi di Montalto di Castro. Scegli quante pizze vuoi: il totale si calcola da solo.",
-    "avviso": "Listino ripreso dal tabellone della Pizzeria Oasi: i prezzi vanno riconfermati con la pizzeria prima della serata. Ogni ingrediente aggiunto costa € 0,50 e su richiesta si può avere la pizza senza lattosio. I prezzi delle bevande sono indicativi.",
+    "avviso": "Si prenotano solo le pizze: bevande e dolce li porta ognuno da casa. Listino ripreso dal tabellone della Pizzeria Oasi, i prezzi vanno riconfermati prima della serata. Ogni ingrediente aggiunto costa € 0,50. Su richiesta la pizzeria prepara la pizza senza lattosio e quella per celiaci: segnalalo nelle note della prenotazione.",
     "copertoPersona": 3,
     "copertoEtichetta": "Quota assistenza in piscina",
     "copertoEmoji": "🛟",
@@ -69,17 +69,6 @@
           { "nome": "Ortolana", "descrizione": "Mozzarella, zucchine, melanzane, peperoni", "prezzo": 6 },
           { "nome": "Pizza Oasi", "descrizione": "Mozzarella, bacon, salsiccia, funghi, cicoria, uovo alla bismarck — si può fare bianca o rossa", "prezzo": 8 }
         ]
-      },
-      {
-        "id": "bevande",
-        "nome": "Bevande",
-        "emoji": "🥤",
-        "tipo": "bevanda",
-        "voci": [
-          { "nome": "Acqua (0,5 L)", "descrizione": "Naturale o frizzante", "prezzo": 1 },
-          { "nome": "Bibita in lattina", "descrizione": "Coca cola, aranciata, tè", "prezzo": 3 },
-          { "nome": "Birra media", "descrizione": "Alla spina o in bottiglia", "prezzo": 4 }
-        ]
       }
     ]
   },
@@ -103,8 +92,11 @@
     "Prenotazione obbligatoria entro giovedì 6 agosto: le pizze vengono ordinate in base alle prenotazioni.",
     "Porta con te il voucher (stampato o sul telefono) e mostralo all'ingresso della festa.",
     "La prenotazione è confermata solo dopo il pagamento della quota alla bagnina.",
-    "Alla spesa di pizze e bevande si aggiungono 3 € a persona per l'assistenza della bagnina durante la serata.",
+    "Al costo delle pizze si aggiungono 3 € a persona per l'assistenza della bagnina durante la serata.",
     "I bambini restano sotto la responsabilità dei genitori: in orario serale non c'è servizio di salvataggio.",
+    "Le bevande non sono comprese nella prenotazione: ognuno porta le proprie e beve quello che ha portato.",
+    "Lo stesso vale per il dolce: chi lo desidera se lo porta da casa.",
+    "I tavoli e le sedie del condominio sono davvero pochi: chi ha la possibilità di portare i propri è invitato a farlo, così ceniamo tutti comodamente seduti.",
     "Rispettiamo il silenzio dopo le ore 23, come da regolamento condominiale."
   ],
   "foto": [

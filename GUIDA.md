@@ -31,15 +31,17 @@ Non c'è nessun database e nessun costo: è un sito statico ospitato gratis da G
 
 ## 2. Come prenota un condomino
 
-Dal sito, sezione **«Prenota il tuo posto»**, in quattro passaggi:
+Dal sito, sezione **«Prenota il tuo posto»**, in tre passaggi:
 
 1. **I tuoi dati** — nome e cognome, cellulare, appartamento e quante persone siete
    (adulti e bambini, con i pulsanti + e −).
 2. **Le pizze** — sceglie quante pizze vuole di ogni tipo. Il totale si aggiorna da solo.
    Se sceglie meno pizze che partecipanti, compare un avviso gentile, ma può proseguire.
-3. **Le bevande** — facoltative: può andare avanti senza sceglierne.
-4. **Riepilogo** — vede tutto quello che ha ordinato, il totale, può aggiungere una nota
-   (allergie, richieste) e deve spuntare una casella per confermare.
+3. **Riepilogo** — vede tutto quello che ha ordinato, il totale, può aggiungere una nota
+   (allergie, intolleranze, richieste) e deve spuntare una casella per confermare.
+
+> Bevande e dolce non si prenotano: se li rimetti nel menù dall'admin (una categoria di
+> tipo *Bevanda*), il percorso torna automaticamente a quattro passaggi.
 
 Poi il sito genera il **voucher**, che contiene:
 
@@ -63,7 +65,56 @@ il codice corrispondente.
 
 ---
 
-## 3. Come cambiare i contenuti del sito
+## 3. Tenere sotto controllo le prenotazioni
+
+Nell'admin, in cima, c'è la scheda **📒 Prenotazioni ricevute**: è il quadro completo
+della serata.
+
+In alto cinque numeri, sempre aggiornati: quante prenotazioni sono arrivate, quanti
+partecipanti, quante pizze in tutto, quanto hai **incassato** e quanto ti resta **da
+incassare**.
+
+### Registrare una prenotazione
+Quando ti arriva il messaggio su WhatsApp o Telegram:
+
+1. Tienilo premuto e scegli **Copia**.
+2. Nell'admin incollalo nel riquadro grande e premi **📥 Leggi il messaggio e aggiungi**.
+
+Nome, telefono, appartamento, partecipanti, ordine, quota e totale vengono letti da soli.
+Se qualcuno ti prenota a voce, usa **✍️ Aggiungi a mano**: scrivi il nome e l'ordine
+(una riga per pizza, es. `2 x Margherita`) e i prezzi li mette lui dal menù.
+
+Se incolli due volte lo stesso messaggio non si duplica: il codice viene riconosciuto.
+
+### Segnare chi ha pagato
+Sotto ogni prenotazione c'è **✅ Segna pagato**. La riga diventa verde e i totali
+«incassato» e «da incassare» si aggiornano. Con la spunta **Solo chi non ha ancora
+pagato** vedi al volo chi devi ancora sollecitare, e con **💬 Scrivi su WhatsApp** gli
+mandi un messaggio già pronto con il suo codice e l'importo.
+
+### Ordinare alla pizzeria
+In fondo alla scheda c'è **🍕 Ordine complessivo per la pizzeria**: la somma di tutte le
+pizze prenotate, tipo per tipo. Premi **📋 Copia l'ordine** e incollalo nel messaggio a
+Oasi. Niente conti a mano.
+
+### La sera della festa
+Premi **🖨️ Stampa la lista per l'ingresso**: esce un foglio A4 con tutti i nomi in ordine
+alfabetico, il codice, quante persone, quante pizze, il totale e una casella da spuntare.
+Chi arriva ti mostra il voucher, tu spunti la casella.
+
+### Backup — importante
+Le prenotazioni restano **solo nel browser che stai usando**: nomi e numeri di telefono
+dei condomini non vengono pubblicati online, perché il sito è pubblico e li leggerebbe
+chiunque. Questo però vuol dire che se cancelli i dati del browser le perdi.
+
+Ogni tanto premi **💾 Backup (file JSON)** e conserva il file. Serve anche per passare
+l'elenco a un altro organizzatore: lui apre l'admin, preme **📂 Ripristina un backup** e
+si ritrova tutto. Con **📊 Esporta per Excel (CSV)** invece apri l'elenco in un foglio di
+calcolo.
+
+---
+
+## 4. Come cambiare i contenuti del sito
 
 1. Apri **`.../admin.html`** e inserisci la password.
 2. In alto ci sono i collegamenti alle varie sezioni: Residence, Tema, Evento, Menù,
@@ -71,7 +122,7 @@ il codice corrispondente.
 3. Modifica quello che ti serve. Sotto ogni campo c'è una spiegazione.
 4. Quando hai finito premi **🚀 Pubblica online**: dopo circa un minuto il sito è aggiornato.
 
-Se non hai ancora collegato GitHub (punto 4), usa **💾 Scarica file**: scarica il file
+Se non hai ancora collegato GitHub (punto 5), usa **💾 Scarica file**: scarica il file
 `contenuti.json` aggiornato, che poi carichi a mano su GitHub al posto del vecchio.
 
 ### Cose che vorrai cambiare più spesso
@@ -85,7 +136,7 @@ Se non hai ancora collegato GitHub (punto 4), usa **💾 Scarica file**: scarica
 
 ---
 
-## 4. Collegare GitHub per il pulsante «Pubblica online»
+## 5. Collegare GitHub per il pulsante «Pubblica online»
 
 Serve una volta sola e ti fa risparmiare un sacco di passaggi.
 
@@ -104,7 +155,7 @@ nessun altro può vederlo.
 
 ---
 
-## 5. La locandina da affiggere
+## 6. La locandina da affiggere
 
 1. Apri **`.../locandina.html`**.
 2. Premi **🖨️ Stampa / Salva PDF**.
@@ -119,7 +170,7 @@ lo inquadra con la fotocamera del telefono e prenota in un minuto.
 
 ---
 
-## 6. Avviso automatico sul gruppo Telegram
+## 7. Avviso automatico sul gruppo Telegram
 
 Ogni volta che aggiorni i contenuti, un messaggio può partire da solo nel gruppo.
 
@@ -149,7 +200,7 @@ sito: apre il messaggio già pronto, lo mandi al gruppo con un tocco.
 
 ---
 
-## 7. Cambiare la password dell'admin
+## 8. Cambiare la password dell'admin
 
 Apri `admin.html`, cerca all'inizio della parte `<script>` la riga:
 
@@ -167,7 +218,7 @@ computer invece che online: dimmelo e lo sistemiamo.
 
 ---
 
-## 8. Domande pratiche
+## 9. Domande pratiche
 
 **Un condomino non paga entro la scadenza.**
 La prenotazione non è confermata: le pizze si ordinano in base a chi ha pagato. Il voucher
