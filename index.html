@@ -1099,11 +1099,30 @@ function aggiornaPersone(){
   nascondiErrore('ePersone');
 }
 
+/* Nomi che compaiono in piu' categorie (es. "Prosciutto cotto" c'e' sia fra le
+   rosse sia fra le bianche). Negli ordini vanno qualificati, altrimenti chi
+   ordina alla pizzeria non sa quale delle due preparare. */
+function nomiAmbigui(){
+  var conta = {}, ambigui = {};
+  categorie().forEach(function(cat){
+    var vistiQui = {};
+    (Array.isArray(cat.voci) ? cat.voci : []).forEach(function(v){
+      var n = String(V(v.nome, ''));
+      if(!n || vistiQui[n]) return;   /* doppioni dentro la stessa categoria non contano */
+      vistiQui[n] = true;
+      conta[n] = (conta[n] || 0) + 1;
+      if(conta[n] > 1) ambigui[n] = true;
+    });
+  });
+  return ambigui;
+}
+
 /* ---------------------------- calcolo del totale --------------------------- */
 function calcola(){
   var menu = V(DATI.menu, {});
   var tutte = categorie();
   var righe = [], subCibo = 0, subBev = 0;
+  var ambigui = nomiAmbigui();
 
   tutte.forEach(function(cat, ic){
     (Array.isArray(cat.voci) ? cat.voci : []).forEach(function(v, iv){
@@ -1111,7 +1130,9 @@ function calcola(){
       if(q <= 0) return;
       var prezzo = Number(v.prezzo) || 0;
       var importo = prezzo * q;
-      righe.push({ nome: V(v.nome, ''), quantita:q, prezzo:prezzo, importo:importo, tipo:cat.tipo });
+      var nome = V(v.nome, '');
+      if(ambigui[nome] && cat.nome) nome = nome + ' (' + cat.nome + ')';
+      righe.push({ nome: nome, quantita:q, prezzo:prezzo, importo:importo, tipo:cat.tipo });
       if(cat.tipo === 'bevanda') subBev += importo; else subCibo += importo;
     });
   });

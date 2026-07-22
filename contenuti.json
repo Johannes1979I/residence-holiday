@@ -16,15 +16,15 @@
   "evento": {
     "data": "2026-08-08",
     "orario": "20:00",
-    "orarioFine": "24:00",
+    "orarioFine": "23:00",
     "luogo": "Piscina del Residence Holiday",
     "descrizione": "Si parte con la prima serata dell'estate: PIZZA a bordo piscina! Le pizze sono a cura della Pizzeria Bar Oasi di Montalto di Castro. Prenota qui sotto per te e la tua famiglia: bastano due minuti e ricevi il tuo voucher da mostrare all'ingresso.",
     "dressCode": "Look estivo",
     "postiTotali": 80
   },
   "menu": {
-    "descrizione": "Pizze della Pizzeria Bar Oasi di Montalto di Castro. Scegli quante ne vuoi: il totale si calcola da solo.",
-    "avviso": "Alcuni prezzi sono ancora in verifica con la pizzeria: il totale del voucher è indicativo e viene confermato dagli organizzatori.",
+    "descrizione": "Il listino della Pizzeria Bar Oasi di Montalto di Castro. Scegli quante pizze vuoi: il totale si calcola da solo.",
+    "avviso": "Listino ripreso dal tabellone della Pizzeria Oasi: i prezzi vanno riconfermati con la pizzeria prima della serata. Ogni ingrediente aggiunto costa € 0,50 e su richiesta si può avere la pizza senza lattosio. I prezzi delle bevande sono indicativi.",
     "copertoPersona": 3,
     "copertoEtichetta": "Quota assistenza in piscina",
     "copertoEmoji": "🛟",
@@ -36,17 +36,18 @@
         "emoji": "🍕",
         "tipo": "cibo",
         "voci": [
-          { "nome": "Marinara", "descrizione": "Pomodoro, aglio, origano", "prezzo": 5 },
-          { "nome": "Margherita", "descrizione": "Pomodoro, mozzarella, basilico", "prezzo": 6 },
-          { "nome": "Napoli", "descrizione": "Pomodoro, mozzarella, acciughe, origano", "prezzo": 7 },
-          { "nome": "Prosciutto e funghi", "descrizione": "Pomodoro, mozzarella, prosciutto cotto, funghi", "prezzo": 8 },
-          { "nome": "Diavola", "descrizione": "Pomodoro, mozzarella, salame piccante", "prezzo": 8 },
-          { "nome": "Capricciosa", "descrizione": "Pomodoro, mozzarella, prosciutto, funghi, carciofi, olive", "prezzo": 9 },
-          { "nome": "Quattro stagioni", "descrizione": "Pomodoro, mozzarella, funghi, carciofi, prosciutto, olive", "prezzo": 9 },
-          { "nome": "Vegetariana", "descrizione": "Pomodoro, mozzarella, verdure grigliate", "prezzo": 8 },
-          { "nome": "Bufala", "descrizione": "Pomodoro, mozzarella di bufala, basilico", "prezzo": 9 },
-          { "nome": "Wurstel e patatine", "descrizione": "La preferita dei bambini", "prezzo": 7 },
-          { "nome": "Calzone", "descrizione": "Ripieno di prosciutto cotto e mozzarella", "prezzo": 8 }
+          { "nome": "Margherita", "descrizione": "Pomodoro, mozzarella", "prezzo": 5 },
+          { "nome": "Napoletana", "descrizione": "Pomodoro, alici", "prezzo": 5 },
+          { "nome": "Capricciosa", "descrizione": "Pomodoro, mozzarella, funghi, prosciutto cotto, würstel, uovo", "prezzo": 7 },
+          { "nome": "Quattro stagioni", "descrizione": "Pomodoro, mozzarella, funghi, prosciutto cotto, würstel, uovo", "prezzo": 7 },
+          { "nome": "Diavola", "descrizione": "Pomodoro, mozzarella, salame piccante", "prezzo": 6 },
+          { "nome": "Würstel", "descrizione": "Pomodoro, mozzarella, würstel", "prezzo": 6 },
+          { "nome": "Prosciutto cotto", "descrizione": "Pomodoro, mozzarella, prosciutto cotto", "prezzo": 6 },
+          { "nome": "Prosciutto crudo", "descrizione": "Pomodoro, mozzarella, prosciutto crudo", "prezzo": 6 },
+          { "nome": "Funghi champignon", "descrizione": "Pomodoro, mozzarella, funghi champignon", "prezzo": 7 },
+          { "nome": "Funghi porcini", "descrizione": "Pomodoro, mozzarella, funghi porcini", "prezzo": 7 },
+          { "nome": "Ortolana", "descrizione": "Pomodoro, mozzarella, zucchine, melanzane, peperoni", "prezzo": 6 },
+          { "nome": "Bufalina", "descrizione": "Pomodoro, bufala, prezzemolo", "prezzo": 6 }
         ]
       },
       {
@@ -55,8 +56,18 @@
         "emoji": "🧀",
         "tipo": "cibo",
         "voci": [
-          { "nome": "Quattro formaggi", "descrizione": "Mozzarella e mix di formaggi", "prezzo": 8 },
-          { "nome": "Prosciutto crudo", "descrizione": "Mozzarella, prosciutto crudo, rucola", "prezzo": 7 }
+          { "nome": "Focaccia", "descrizione": "Semplice, con olio e sale", "prezzo": 3 },
+          { "nome": "Quattro formaggi", "descrizione": "Mozzarella e formaggi misti", "prezzo": 7 },
+          { "nome": "Bresaola", "descrizione": "Mozzarella, bresaola, rucola, grana", "prezzo": 7 },
+          { "nome": "Salmone", "descrizione": "Mozzarella, salmone, rucola", "prezzo": 7 },
+          { "nome": "Würstel e patate", "descrizione": "Mozzarella, würstel, patate", "prezzo": 6 },
+          { "nome": "Prosciutto cotto", "descrizione": "Mozzarella, prosciutto cotto", "prezzo": 6 },
+          { "nome": "Prosciutto crudo", "descrizione": "Mozzarella, prosciutto crudo", "prezzo": 7 },
+          { "nome": "Boscaiola", "descrizione": "Mozzarella, funghi, salsiccia", "prezzo": 7 },
+          { "nome": "Funghi champignon", "descrizione": "Mozzarella, funghi champignon", "prezzo": 7 },
+          { "nome": "Funghi porcini", "descrizione": "Mozzarella, funghi porcini", "prezzo": 7 },
+          { "nome": "Ortolana", "descrizione": "Mozzarella, zucchine, melanzane, peperoni", "prezzo": 6 },
+          { "nome": "Pizza Oasi", "descrizione": "Mozzarella, bacon, salsiccia, funghi, cicoria, uovo alla bismarck — si può fare bianca o rossa", "prezzo": 8 }
         ]
       },
       {
@@ -78,7 +89,7 @@
     "referente": "la bagnina della piscina",
     "scadenza": "2026-08-06",
     "orari": "in piscina, tutti i giorni dalle 10:00 alle 18:00",
-    "istruzioni": "Porta l'importo del tuo voucher in contanti alla bagnina della piscina. Il totale comprende già le pizze, le bevande e la quota di 3 € a persona per l'assistenza in piscina. La prenotazione è confermata solo dopo il pagamento: serve per ordinare le pizze in tempo.",
+    "istruzioni": "Porta l'importo del tuo voucher in contanti alla bagnina della piscina. La prenotazione è confermata solo dopo il pagamento: serve per ordinare le pizze in tempo.",
     "nota": "Se non riesci entro la scadenza, avvisa gli organizzatori su WhatsApp."
   },
   "prenotazione": {
