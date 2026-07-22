@@ -85,8 +85,23 @@ header.hero{
 .hero .azioni{ margin-top:28px; display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
 .onde{ position:absolute; bottom:-2px; left:0; width:100%; height:110px; z-index:2; }
 
+/* data e ora della festa, in grande sopra il conto alla rovescia */
+.data-festa{
+  margin-top:24px; display:flex; flex-direction:column; align-items:center; gap:4px;
+}
+.data-festa .giorno{
+  font-size:clamp(1.45rem,4.8vw,2.7rem); font-weight:bold; line-height:1.04;
+  text-transform:uppercase; letter-spacing:.4px;
+  text-shadow:0 4px 20px rgba(0,0,0,.45);
+}
+.data-festa .ora{
+  font-size:clamp(1.05rem,2.9vw,1.65rem); font-weight:bold; color:var(--c3);
+  text-shadow:0 3px 14px rgba(0,0,0,.5);
+}
+.data-festa:empty{ display:none; }
+
 /* conto alla rovescia */
-.conto{ display:flex; gap:10px; justify-content:center; margin-top:26px; flex-wrap:wrap; }
+.conto{ display:flex; gap:10px; justify-content:center; margin-top:22px; flex-wrap:wrap; }
 .conto-box{
   background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.45);
   border-radius:16px; padding:10px 14px; min-width:72px; backdrop-filter:blur(4px);
@@ -388,6 +403,10 @@ footer .servizio a:hover{ opacity:1; }
     <h1 id="heroTitolo">Festa in Piscina</h1>
     <p class="sottotitolo" id="heroSottotitolo"></p>
     <p class="posto" id="heroLuogo"></p>
+    <div class="data-festa">
+      <div class="giorno" id="heroDataGiorno"></div>
+      <div class="ora" id="heroDataOra"></div>
+    </div>
     <div class="conto" id="conto"></div>
     <div class="azioni">
       <a href="#prenota" class="btn btn-p">🎟️ Prenota il tuo posto</a>
@@ -774,6 +793,12 @@ function disegna(){
   testo('heroTitolo', V(tema.titoloFesta, 'Festa in Piscina'));
   testo('heroSottotitolo', V(tema.sottotitolo, ''));
   testo('heroLuogo', '📍 ' + V(res.nome, '') + (res.localita ? ' · ' + res.localita : ''));
+
+  /* data e ora in evidenza, subito sopra il conto alla rovescia */
+  testo('heroDataGiorno', dataIt(ev.data));
+  testo('heroDataOra', ev.orario
+    ? ('ore ' + ev.orario + (ev.orarioFine ? ' → ' + ev.orarioFine : ''))
+    : '');
   document.title = V(tema.titoloFesta, 'Festa') + ' — ' + V(res.nome, 'Residence');
 
   var foto = (DATI.foto && DATI.foto.length) ? DATI.foto : [];

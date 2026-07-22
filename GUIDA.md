@@ -183,9 +183,10 @@ Se riapre il sito dallo stesso telefono lo ritrova con «Rivedi il voucher». Al
 l'hai tu nella chat WhatsApp.
 
 **Piove.**
-Nel regolamento c'è già scritto che si va nell'area coperta comune, stessa data e ora.
-Puoi cambiare il testo dall'admin, sezione *Regolamento*, e pubblicare: il sito si
-aggiorna per tutti.
+Decidi tu cosa fare e avvisa i condomini: puoi aggiungere una riga dall'admin, sezione
+*Regolamento* (per esempio «in caso di maltempo la serata si sposta nell'area coperta
+comune»), oppure cambiare la data dell'evento e ripubblicare. Il sito si aggiorna per
+tutti in meno di un minuto, e se hai configurato il bot parte anche l'avviso su Telegram.
 
 **Voglio rifare la festa il mese prossimo.**
 Cambia data, tema e menù dall'admin e pubblica. Le prenotazioni vecchie salvate sui
