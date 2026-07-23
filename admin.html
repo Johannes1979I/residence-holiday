@@ -62,7 +62,9 @@
   .toolbar{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:10px}
 
   /* ---------- struttura ---------- */
-  .wrap{max-width:840px;margin:0 auto;padding:20px 14px 90px}
+  /* piena larghezza a ogni risoluzione, con margine laterale che cresce sui
+     monitor grandi. I contenuti restano dentro le card, leggibili. */
+  .wrap{width:100%;max-width:100%;margin:0 auto;padding:20px clamp(14px,3vw,56px) 90px}
   .card{background:#fff;border-radius:var(--radius);padding:20px 18px;margin-bottom:18px;
         box-shadow:0 12px 32px -22px rgba(13,43,62,.55);scroll-margin-top:150px}
   .card h2{font-size:1rem;color:var(--c1);text-transform:uppercase;letter-spacing:.6px;

@@ -29,7 +29,10 @@ body{
 }
 h1,h2,h3,h4{ line-height:1.1; }
 img{ max-width:100%; }
-.wrap{ max-width:1060px; margin:0 auto; padding:0 18px; }
+/* Piena larghezza a ogni risoluzione: i contenitori riempiono lo schermo, con
+   un margine laterale che cresce sui monitor grandi. I blocchi di testo interni
+   restano centrati e leggibili grazie ai loro max-width. */
+.wrap{ width:100%; max-width:100%; margin:0 auto; padding:0 clamp(16px, 3.5vw, 64px); }
 section{ padding:56px 0; }
 .titolo-sez{ text-align:center; font-size:clamp(1.7rem,4.4vw,2.5rem); margin-bottom:8px; }
 .titolo-sez .em{ color:var(--c1); }
@@ -401,19 +404,9 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
 }
 .v-piede{ margin-top:14px; text-align:center; font-size:.8rem; color:var(--muted); }
 
-/* esito dell'invio automatico agli organizzatori */
-.stato-invio{
-  margin-top:18px; border-radius:14px; padding:14px 16px; font-weight:bold;
-  text-align:center; font-size:1rem; display:none;
-}
-.stato-invio.visibile{ display:block; }
-.stato-invio.in-corso{ background:rgba(42,171,238,.12); border:1px solid rgba(42,171,238,.5); color:#0d6a8f; }
-.stato-invio.ok{ background:rgba(37,184,120,.14); border:1px solid rgba(37,184,120,.55); color:#136c3b; }
-.stato-invio.ko{ background:rgba(255,183,3,.16); border:1px solid rgba(255,140,0,.55); color:#7a4d00; }
-.stato-invio .grande{ display:block; font-size:1.12rem; margin-bottom:3px; }
-.stato-invio .piccolo{ display:block; font-weight:normal; font-size:.9rem; margin-top:4px; opacity:.9; }
+.invio-avviso{ text-align:center; margin-top:18px; font-size:.95rem; color:#fff; opacity:.95; }
 
-.azioni-voucher{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:18px; }
+.azioni-voucher{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px; }
 .azioni-voucher .btn{ flex:1 1 210px; }
 
 /* schermata di chiusura dopo "Ho finito" */
@@ -716,11 +709,7 @@ footer .servizio a:hover{ opacity:1; }
           </div>
         </div>
 
-        <!-- esito dell'invio automatico agli organizzatori -->
-        <div class="stato-invio" id="statoInvio"></div>
-
-        <!-- ripiego: compare solo se l'invio automatico non è possibile -->
-        <a href="#" class="btn btn-tg" id="btnTelegramFallback" target="_blank" rel="noopener" style="display:none">✈️ Invia tu la prenotazione su Telegram</a>
+        <p class="invio-avviso" id="invioAvviso">Quando premi <b>«Ho finito, chiudi»</b> la prenotazione viene inviata agli organizzatori.</p>
 
         <div class="azioni-voucher">
           <button type="button" class="btn btn-scuro" id="btnStampaVoucher">🖨️ Stampa / salva il voucher</button>
@@ -733,7 +722,7 @@ footer .servizio a:hover{ opacity:1; }
       <div class="fatto" id="schermataFine">
         <div class="faccia">🎉</div>
         <h3>Prenotazione completata!</h3>
-        <p>La tua richiesta è stata inviata agli organizzatori. Non devi fare altro: puoi chiudere questa pagina.</p>
+        <p id="fineEsito">La tua richiesta è stata inviata agli organizzatori. Non devi fare altro: puoi chiudere questa pagina.</p>
         <p>Il tuo codice è <span class="codice-grande" id="fineCodice"></span> — ricordati di consegnare la quota in tempo.</p>
         <div class="azioni-voucher">
           <button type="button" class="btn btn-scuro" id="btnRiapri">👈 Rivedi il voucher</button>
@@ -1727,8 +1716,7 @@ function mostraVoucher(){
   $('voucher').style.display = '';
   var azV = document.querySelector('#areaVoucher .azioni-voucher');
   if(azV) azV.style.display = '';
-  $('statoInvio').className = 'stato-invio';         /* azzera l'esito precedente */
-  $('btnTelegramFallback').style.display = 'none';
+  if($('invioAvviso')) $('invioAvviso').style.display = p.inviata ? 'none' : '';
 
   testo('vCasa', (V(res.emoji, '🌴') + ' ' + V(res.nome, '')).trim());
   testo('vTitolo', V(tema.titoloFesta, 'Festa in piscina'));
@@ -1802,7 +1790,6 @@ function mostraVoucher(){
         new Date(p.creatoIl).toLocaleDateString('it-IT') + ' · ' + V(res.nome, ''));
 
   disegnaQrVoucher(p);
-  preparaBottoniInvio(p);
 
   $('areaVoucher').scrollIntoView({ behavior:'smooth', block:'start' });
 }
@@ -1913,79 +1900,33 @@ function componiMessaggio(p){
   return r.join('\n');
 }
 
-/* Invia la prenotazione agli organizzatori. Prima prova l'invio automatico al
-   Telegram degli organizzatori (bot). Se non e' configurato o fallisce, mostra
-   un pulsante di ripiego perche' la mandi la persona stessa: cosi' la richiesta
-   non va comunque persa. */
-function preparaBottoniInvio(p){
-  var cond = V(DATI.condivisione, {});
-  var messaggio = componiMessaggio(p);
-
-  /* ripiego: finestra di condivisione Telegram gia' pronta */
-  var sito = V(cond.urlSito, location.href.split('#')[0]);
-  $('btnTelegramFallback').href = cond.linkGruppoTelegram
-    ? String(cond.linkGruppoTelegram)
-    : 'https://t.me/share/url?url=' + encodeURIComponent(sito) + '&text=' + encodeURIComponent(messaggio);
-
-  inviaTelegramAuto(p, messaggio);
-}
-
-function statoInvio(classe, testoGrande, testoPiccolo){
-  var el = $('statoInvio');
-  el.textContent = '';
-  el.className = 'stato-invio visibile ' + classe;
-  var g = document.createElement('span'); g.className = 'grande'; g.textContent = testoGrande;
-  el.appendChild(g);
-  if(testoPiccolo){
-    var s = document.createElement('span'); s.className = 'piccolo'; s.textContent = testoPiccolo;
-    el.appendChild(s);
-  }
-}
-
-function mostraRipiego(){
-  $('btnTelegramFallback').style.display = '';
-}
-
-function inviaTelegramAuto(p, messaggio){
+/* Invia la prenotazione al Telegram degli organizzatori (bot). Ritorna una
+   Promise che si risolve a true/false. Viene chiamata quando la persona preme
+   "Ho finito, chiudi": in quel momento la richiesta parte da sola. */
+function inviaPrenotazioneTelegram(p){
   var n = V(DATI.notifiche, {});
   var token = String(V(n.telegramBotToken, '')).trim();
   var chat  = String(V(n.telegramChatId, '')).trim();
 
-  /* gia' inviata in una sessione precedente: non la reinvio */
-  if(p.inviata){
-    statoInvio('ok', '✅ Prenotazione già inviata agli organizzatori');
-    return;
-  }
-  if(!token || !chat){
-    statoInvio('ko', '⚠️ Invio automatico non ancora attivo',
-      'Tocca il pulsante qui sotto per mandare tu la prenotazione agli organizzatori.');
-    mostraRipiego();
-    return;
-  }
+  if(p.inviata) return Promise.resolve(true);   /* gia' inviata: non ripeto */
+  if(!token || !chat) return Promise.resolve(false);
 
-  statoInvio('in-corso', '⏳ Sto inviando la prenotazione agli organizzatori…');
-  fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+  return fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
     method:'POST',
     headers:{ 'Content-Type':'application/json' },
-    body: JSON.stringify({ chat_id: chat, text: messaggio, disable_web_page_preview:true })
+    body: JSON.stringify({ chat_id: chat, text: componiMessaggio(p), disable_web_page_preview:true })
   })
   .then(function(r){ return r.json(); })
   .then(function(j){
     if(j && j.ok){
-      statoInvio('ok', '✅ Prenotazione inviata agli organizzatori!',
-        'È tutto a posto: conserva il voucher e consegna la quota in tempo.');
       p.inviata = true;
       memScrivi(CHIAVE_MEM, JSON.stringify(p));
       if(prenotazioneFatta) prenotazioneFatta.inviata = true;
-    } else {
-      throw new Error((j && j.description) || 'risposta non valida');
+      return true;
     }
+    return false;
   })
-  .catch(function(){
-    statoInvio('ko', '⚠️ Non sono riuscito a inviarla da solo',
-      'Nessun problema: tocca il pulsante qui sotto per mandarla tu agli organizzatori.');
-    mostraRipiego();
-  });
+  .catch(function(){ return false; });
 }
 
 /* ------------------------ prenotazione gia' salvata ------------------------ */
@@ -2023,8 +1964,6 @@ function nuovaPrenotazione(){
   $('voucher').style.display = '';
   var azN = document.querySelector('#areaVoucher .azioni-voucher');
   if(azN) azN.style.display = '';
-  $('statoInvio').className = 'stato-invio';
-  $('btnTelegramFallback').style.display = 'none';
   $('pannelloPassi').style.display = '';
   costruisciElenco('elencoCibo', 'cibo');
   costruisciElenco('elencoBevande', 'bevanda');
@@ -2072,16 +2011,27 @@ $('btnNuova2').addEventListener('click', nuovaPrenotazione);
 $('btnCancella').addEventListener('click', nuovaPrenotazione);
 $('btnRivedi').addEventListener('click', function(){ mostraVoucher(); });
 
-/* "Ho finito": nasconde il voucher e mostra la schermata di chiusura, cosi' e'
-   chiaro che la prenotazione e' gia' stata inviata e si puo' chiudere la pagina. */
+/* "Ho finito, chiudi": è il momento in cui la prenotazione viene inviata agli
+   organizzatori (Telegram del bot). Poi si mostra la schermata di chiusura. */
 $('btnFine').addEventListener('click', function(){
-  $('voucher').style.display = 'none';
-  $('statoInvio').className = 'stato-invio';
-  $('btnTelegramFallback').style.display = 'none';
-  document.querySelector('#areaVoucher .azioni-voucher').style.display = 'none';
-  testo('fineCodice', prenotazioneFatta ? prenotazioneFatta.codice : '');
-  $('schermataFine').className = 'fatto visibile';
-  $('schermataFine').scrollIntoView({ behavior:'smooth', block:'center' });
+  var btn = this;
+  btn.disabled = true;
+  var p = prenotazioneFatta;
+
+  function mostraFine(inviata){
+    $('voucher').style.display = 'none';
+    document.querySelector('#areaVoucher .azioni-voucher').style.display = 'none';
+    testo('fineCodice', p ? p.codice : '');
+    testo('fineEsito', inviata
+      ? 'La tua richiesta è stata inviata agli organizzatori. Non devi fare altro: puoi chiudere questa pagina.'
+      : 'La tua prenotazione è registrata. Mostra il codice qui sotto all\'ingresso della festa.');
+    $('schermataFine').className = 'fatto visibile';
+    $('schermataFine').scrollIntoView({ behavior:'smooth', block:'center' });
+    btn.disabled = false;
+  }
+
+  if(!p){ mostraFine(false); return; }
+  inviaPrenotazioneTelegram(p).then(mostraFine);
 });
 $('btnRiapri').addEventListener('click', function(){
   document.querySelector('#areaVoucher .azioni-voucher').style.display = '';
