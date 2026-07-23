@@ -2532,11 +2532,15 @@ function registroCollega(){
   });
 
   $('reg_btnSvuota').addEventListener('click', () => {
-    if(!REGISTRO.length){ toast('Il registro è già vuoto.', 4000); return; }
-    if(!confirm('Cancello TUTTE le ' + REGISTRO.length + ' prenotazioni?\n\nFai prima un backup se non l’hai ancora fatto: l’operazione non si può annullare.')) return;
+    const quante = REGISTRO.length + CESTINO.length;
+    if(!quante){ toast('Non c’è nessuna prenotazione da cancellare.', 4000); return; }
+    if(!confirm('Cancello TUTTE le prenotazioni (registro e cestino)?\n\n' +
+                'In tutto: ' + quante + '. Fai prima un backup se ti serve: non si può annullare.')) return;
     REGISTRO = [];
+    CESTINO = [];
     regSalva(); regDisegna();
-    toast('Registro svuotato.', 4000);
+    try{ localStorage.removeItem('rh_prenotazione'); }catch(e){}   /* eventuale prova fatta da questo browser */
+    toast('✅ Fatto: tutte le prenotazioni sono state cancellate. Pagina pulita per le prenotazioni vere.', 6000);
   });
 }
 
