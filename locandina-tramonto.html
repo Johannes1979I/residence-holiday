@@ -501,10 +501,11 @@ function disegna(d){
 
   /* banda fotografica */
   set('t-sottotitolo', V(tema.sottotitolo, ''));
-  const foto = 'images/piscina-sera.jpg';  /* versione tramonto: piscina di sera */
+  const foto = String(loc.fotoTramonto || 'images/piscina-sera.jpg');  /* versione tramonto */
   const img = document.getElementById('t-foto');
   img.addEventListener('error', function(){ img.style.display = 'none'; }); /* resta la banda scura */
   img.setAttribute('src', foto);
+  img.style.objectPosition = String(loc.fotoTramontoPos || 'center 30%');
   img.setAttribute('alt', 'La piscina di ' + V(res.nome, 'Residence'));
 
   /* data enorme: "SABATO 8 AGOSTO" grande + anno piccolo accanto */

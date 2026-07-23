@@ -500,10 +500,11 @@ function disegna(d){
 
   /* banda fotografica */
   set('t-sottotitolo', V(tema.sottotitolo, ''));
-  const foto = (Array.isArray(d.foto) && d.foto.length) ? String(d.foto[0]) : 'images/piscina-vasca.jpg';
+  const foto = String(loc.fotoClassica || (Array.isArray(d.foto) && d.foto.length ? d.foto[0] : 'images/piscina-vasca.jpg'));
   const img = document.getElementById('t-foto');
   img.addEventListener('error', function(){ img.style.display = 'none'; }); /* resta la banda scura */
   img.setAttribute('src', foto);
+  if(loc.fotoClassicaPos) img.style.objectPosition = String(loc.fotoClassicaPos);
   img.setAttribute('alt', 'La piscina di ' + V(res.nome, 'Residence'));
 
   /* data enorme: "SABATO 8 AGOSTO" grande + anno piccolo accanto */

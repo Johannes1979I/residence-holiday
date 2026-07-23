@@ -146,6 +146,12 @@
   .reg-sessione{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
                 background:#eefaf1;border:1px solid #9ad9b0;border-radius:12px;padding:9px 13px;margin:6px 0 14px;font-size:.88rem}
   .errore-reg{color:var(--c1);font-weight:bold;font-size:.88rem;margin-top:8px}
+  .loc-foto{border:1px solid #dbe8ee;border-radius:12px;padding:12px 14px;margin:10px 0;background:#fafdff}
+  .loc-foto-testa{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .loc-foto-testa b{font-size:.98rem}
+  .loc-foto-azioni{display:flex;align-items:center;gap:12px;margin-top:8px}
+  .loc-foto-antep{width:120px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #ccd;background:#eef}
+  .loc-foto-antep:not([src]){display:none}
   label.check{display:flex;align-items:center;gap:10px;font-weight:normal;background:#f6fcfe;border:1px solid #cfe6ec;border-radius:10px;padding:11px 13px;margin:6px 0;cursor:pointer}
   label.check input{width:20px;height:20px;flex:0 0 auto;accent-color:var(--c2)}
   .aspetto-sez{border:1px solid #dbe8ee;border-radius:12px;padding:13px 15px;margin-bottom:12px;background:#fafdff}
@@ -802,10 +808,53 @@
       <textarea id="l_nota" rows="2"></textarea>
       <p class="hint">Es. scadenza delle prenotazioni e a chi si consegna la quota.</p>
 
-      <div class="toolbar" style="justify-content:flex-start">
-        <button class="btn btn-s" id="btnLoc2">🖨️ Apri la locandina</button>
+      <h3 class="sub-h">Immagini delle due locandine</h3>
+      <p class="hint" style="margin-bottom:10px">
+        Ci sono due versioni della locandina: <b>Classica</b> (turchese/piscina) e <b>Tramonto</b>
+        (colori caldi). Per ognuna puoi scegliere l’immagine della fascia: incolla l’indirizzo di
+        un file già presente (es. <code>images/piscina-vasca.jpg</code>) oppure <b>carica</b> una
+        foto dal telefono/computer.
+      </p>
+
+      <div class="loc-foto">
+        <div class="loc-foto-testa">
+          <b>🏊 Locandina classica</b>
+          <a class="reg-mini" id="l_apri_classica" href="locandina.html" target="_blank">Apri</a>
+        </div>
+        <input id="l_fotoClassica" placeholder="images/piscina-vasca.jpg" />
+        <div class="loc-foto-azioni">
+          <label class="btn btn-w reg-mini" for="l_fileClassica">📷 Carica una foto</label>
+          <input type="file" id="l_fileClassica" accept="image/*" style="display:none" />
+          <img class="loc-foto-antep" id="l_antepClassica" alt="" />
+        </div>
       </div>
-      <p class="hint">Si apre in una nuova scheda: da lì puoi stamparla o salvarla in PDF. Ricordati di pubblicare prima le modifiche.</p>
+
+      <div class="loc-foto">
+        <div class="loc-foto-testa">
+          <b>🌅 Locandina tramonto</b>
+          <a class="reg-mini" id="l_apri_tramonto" href="locandina-tramonto.html" target="_blank">Apri</a>
+        </div>
+        <input id="l_fotoTramonto" placeholder="images/festa-lungomare.jpg" />
+        <div class="loc-foto-azioni">
+          <label class="btn btn-w reg-mini" for="l_fileTramonto">📷 Carica una foto</label>
+          <input type="file" id="l_fileTramonto" accept="image/*" style="display:none" />
+          <img class="loc-foto-antep" id="l_antepTramonto" alt="" />
+        </div>
+        <label for="l_posTramonto" style="margin-top:8px">Posizione della foto nella fascia</label>
+        <select id="l_posTramonto">
+          <option value="center 20%">Più in alto</option>
+          <option value="center 30%">Alto (consigliato per volti)</option>
+          <option value="center 50%">Centro</option>
+          <option value="center 70%">Basso</option>
+        </select>
+        <p class="hint">Se la foto ha un volto o un soggetto in alto, scegli “Alto” per non tagliarlo.</p>
+      </div>
+
+      <div class="toolbar" style="justify-content:flex-start">
+        <button class="btn btn-s" id="btnLoc2">🖨️ Apri la locandina classica</button>
+        <button class="btn btn-s" id="btnLoc3">🌅 Apri la locandina tramonto</button>
+      </div>
+      <p class="hint">Si aprono in una nuova scheda: da lì stampi o salvi in PDF. Pubblica prima le modifiche.</p>
     </div>
 
     <!-- ---------- FILE E BACKUP ---------- -->
@@ -909,7 +958,7 @@ function schemaVuoto(){
     foto:[],
     condivisione:{ urlSito:"", linkGruppoTelegram:"", linkGruppoWhatsApp:"" },
     contatti:{ organizzatore:"", telefono:"", email:"" },
-    locandina:{ claim:"", istruzioniQr:"", nota:"" },
+    locandina:{ claim:"", istruzioniQr:"", nota:"", fotoClassica:"", fotoTramonto:"", fotoTramontoPos:"center 30%" },
     stile:{}
   };
 }
@@ -1140,6 +1189,10 @@ function riempi(){
   $('l_claim').value = lo.claim||"";
   $('l_qr').value    = lo.istruzioniQr||"";
   $('l_nota').value  = lo.nota||"";
+  $('l_fotoClassica').value = lo.fotoClassica||"";
+  $('l_fotoTramonto').value = lo.fotoTramonto||"";
+  $('l_posTramonto').value  = lo.fotoTramontoPos||"center 30%";
+  aggiornaAntepLoc();
 
   $('categorie').textContent = "";
   (me.categorie||[]).forEach(c => $('categorie').appendChild(creaCategoria(c)));
@@ -1512,9 +1565,12 @@ function collect(){
   });
 
   d.locandina = Object.assign({}, d.locandina, {
-    claim:        $('l_claim').value.trim(),
-    istruzioniQr: $('l_qr').value.trim(),
-    nota:         $('l_nota').value.trim()
+    claim:         $('l_claim').value.trim(),
+    istruzioniQr:  $('l_qr').value.trim(),
+    nota:          $('l_nota').value.trim(),
+    fotoClassica:  $('l_fotoClassica').value.trim(),
+    fotoTramonto:  $('l_fotoTramonto').value.trim(),
+    fotoTramontoPos: $('l_posTramonto').value
   });
 
   d.stile = raccogliAspetto();
@@ -1685,13 +1741,11 @@ async function pubblica(){
   }
 }
 
-async function caricaFoto(ev){
-  const file = ev.target.files && ev.target.files[0];
-  if(!file) return;
+/* Carica un file immagine su GitHub e passa il percorso a "onDone". */
+async function caricaImmagineGitHub(file, onDone){
   const s = gh();
   if(!s.owner || !s.repo || !s.token){
-    toast('Per caricare una foto configura prima GitHub, oppure scrivi a mano il nome del file.', 7000);
-    ev.target.value='';
+    toast('Per caricare una foto configura prima GitHub (in fondo), oppure scrivi a mano il nome del file.', 8000);
     return;
   }
   const reader = new FileReader();
@@ -1702,15 +1756,32 @@ async function caricaFoto(ev){
       const nome = file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_');
       const path = 'images/' + Date.now() + '_' + nome;
       await ghPut(path, dati, 'Carica foto '+nome);
-      addFoto(path);
+      onDone(path);
       tocca();
-      toast('✅ Foto caricata e aggiunta in fondo all’elenco. Premi “Pubblica online” per mostrarla nel sito.', 8000);
+      toast('✅ Foto caricata. Premi “Pubblica online” per mostrarla.', 8000);
     }catch(e){
       toast('⚠️ ' + e.message, 9000);
     }
   };
   reader.readAsDataURL(file);
+}
+
+async function caricaFoto(ev){
+  const file = ev.target.files && ev.target.files[0];
+  if(!file){ return; }
+  await caricaImmagineGitHub(file, (path) => {
+    addFoto(path);
+    toast('✅ Foto aggiunta in fondo all’elenco. Premi “Pubblica online” per mostrarla nel sito.', 8000);
+  });
   ev.target.value='';
+}
+
+/* anteprima delle immagini delle locandine (accanto ai campi) */
+function aggiornaAntepLoc(){
+  const c = $('l_fotoClassica').value.trim(), t = $('l_fotoTramonto').value.trim();
+  const ac = $('l_antepClassica'), at = $('l_antepTramonto');
+  if(c){ ac.setAttribute('src', c); } else { ac.removeAttribute('src'); }
+  if(t){ at.setAttribute('src', t); } else { at.removeAttribute('src'); }
 }
 
 /* =========================================================
@@ -1726,6 +1797,22 @@ function collegaEventi(){
   $('btnSito').addEventListener('click', ()=>apri('index.html'));
   $('btnLoc').addEventListener('click', ()=>apri('locandina.html'));
   $('btnLoc2').addEventListener('click', ()=>apri('locandina.html'));
+  $('btnLoc3').addEventListener('click', ()=>apri('locandina-tramonto.html'));
+
+  /* immagini delle locandine: campi, anteprima e caricamento */
+  $('l_fotoClassica').addEventListener('input', ()=>{ aggiornaAntepLoc(); tocca(); });
+  $('l_fotoTramonto').addEventListener('input', ()=>{ aggiornaAntepLoc(); tocca(); });
+  $('l_posTramonto').addEventListener('change', tocca);
+  $('l_fileClassica').addEventListener('change', async ev => {
+    const f = ev.target.files && ev.target.files[0]; if(!f) return;
+    await caricaImmagineGitHub(f, path => { $('l_fotoClassica').value = path; aggiornaAntepLoc(); });
+    ev.target.value='';
+  });
+  $('l_fileTramonto').addEventListener('change', async ev => {
+    const f = ev.target.files && ev.target.files[0]; if(!f) return;
+    await caricaImmagineGitHub(f, path => { $('l_fotoTramonto').value = path; aggiornaAntepLoc(); });
+    ev.target.value='';
+  });
   $('btnAddCat').addEventListener('click', addCategoria);
   $('btnAddRegola').addEventListener('click', ()=>{ addRegola(''); tocca(); });
   $('btnAddFoto').addEventListener('click', ()=>{ addFoto(''); tocca(); });
