@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Locandina da stampare — Residence Holiday</title>
+<title>Locandina tramonto — Residence Holiday</title>
 <script src="qr.js"></script>
 <style>
 /* =========================================================================
@@ -34,11 +34,11 @@
 
 :root{
   /* palette: i primi tre valori vengono sovrascritti a runtime dal JSON */
-  --c1:#e63946;                                   /* primario   */
-  --c2:#12b6c9;                                   /* secondario */
-  --c3:#ffd23f;                                   /* accento    */
-  --ink:#0d2b3e;
-  --paper:#fffdf7;
+  --c1:#ff7a4d;                                   /* primario (corallo tramonto) */
+  --c2:#2f8fb0;                                   /* secondario (mare al crepuscolo) */
+  --c3:#ffbf47;                                   /* accento (sole dorato) */
+  --ink:#2a2440;
+  --paper:#fff7ee;
   --muted:#5a7583;
   --radius:22px;
   --shadow:0 18px 45px -20px rgba(13,43,62,.5);
@@ -58,7 +58,7 @@ html, body{
   position:sticky; top:0; z-index:50;
   display:flex; flex-wrap:wrap; align-items:center; gap:10px;
   padding:10px 14px;
-  background:linear-gradient(120deg, var(--ink), #134b63);
+  background:linear-gradient(120deg, var(--ink), #5b3f6e);
   color:#fff;
   box-shadow:0 6px 18px -10px rgba(13,43,62,.85);
 }
@@ -94,7 +94,7 @@ html, body{
 
 /* --- riga 1 (20mm): testata --------------------------------------- */
 .testata{
-  background:linear-gradient(115deg, var(--c2) 0%, #0e8fa4 46%, var(--c1) 100%);
+  background:linear-gradient(115deg, #ffbf47 0%, #ff8a4d 45%, #e05a6e 100%);
   color:#fff;
   display:flex; align-items:center; justify-content:space-between; gap:6mm;
   padding:0 10mm;
@@ -154,7 +154,7 @@ html, body{
 
 /* --- riga 4 (52mm): la data, il pezzo che si legge da lontano ------ */
 .quando{
-  background:linear-gradient(135deg, var(--ink) 0%, #123f57 58%, #0b2331 100%);
+  background:linear-gradient(135deg, #3a2b52 0%, #2a2440 60%, #171331 100%);
   color:#fff;
   padding:4mm 8mm;
   display:flex; flex-direction:column;
@@ -185,7 +185,7 @@ html, body{
   padding:2mm 8mm;
   display:flex; flex-direction:column;
   align-items:center; justify-content:center; gap:1.6mm;
-  background:linear-gradient(180deg, #f2fbfd, var(--paper));
+  background:linear-gradient(180deg, #fff1e6, var(--paper));
   border-bottom:.6mm dashed rgba(18,182,201,.55);
 }
 .chips{ font-size:13pt; display:flex; flex-wrap:wrap; justify-content:center; gap:3mm; max-width:100%; }
@@ -205,7 +205,7 @@ html, body{
   height:100%;
   display:flex; align-items:center; gap:6mm;
   padding:4mm;
-  background:linear-gradient(140deg, #ffffff 0%, #eefbfd 100%);
+  background:linear-gradient(140deg, #ffffff 0%, #fff2e8 100%);
   border:1.2mm solid var(--c2);
   border-radius:7mm;
 }
@@ -255,7 +255,7 @@ html, body{
 
 /* --- riga 7 (27mm): piede ------------------------------------------ */
 .piede{
-  background:linear-gradient(115deg, var(--c1) 0%, #d2405c 55%, var(--c2) 100%);
+  background:linear-gradient(115deg, #ff8a4d 0%, #e05a6e 50%, #7a4f9e 100%);
   color:#fff;
   padding:3.5mm 8mm;
   display:flex; flex-direction:column;
@@ -314,7 +314,7 @@ html, body{
 <div class="barra">
   <button id="btnStampa" type="button">🖨️ Stampa / Salva PDF</button>
   <span class="sugg">Stampa su <strong>A4 verticale</strong>, senza margini (&laquo;Dimensioni reali&raquo; / 100%) e con i <strong>colori e le immagini di sfondo</strong> attivi.</span>
-  <a href="locandina-tramonto.html">🌅 Versione tramonto</a>
+  <a href="locandina.html">🏊 Versione classica</a>
   <a href="index.html">← Torna al sito</a>
 </div>
 
@@ -482,9 +482,10 @@ function disegna(d){
 
   /* palette dal JSON, applicata come custom properties su :root */
   const root = document.documentElement.style;
-  root.setProperty('--c1', V(tema.colorePrimario,   '#e63946'));
-  root.setProperty('--c2', V(tema.coloreSecondario, '#12b6c9'));
-  root.setProperty('--c3', V(tema.coloreAccento,    '#ffd23f'));
+  /* palette FISSA "tramonto": non segue i colori del tema */
+  root.setProperty('--c1', '#ff7a4d');
+  root.setProperty('--c2', '#2f8fb0');
+  root.setProperty('--c3', '#ffbf47');
 
   /* testata */
   set('t-residence', (V(res.emoji, '🌴') + ' ' + V(res.nome, 'Residence')).trim());
@@ -500,7 +501,7 @@ function disegna(d){
 
   /* banda fotografica */
   set('t-sottotitolo', V(tema.sottotitolo, ''));
-  const foto = (Array.isArray(d.foto) && d.foto.length) ? String(d.foto[0]) : 'images/piscina-vasca.jpg';
+  const foto = 'images/piscina-sera.jpg';  /* versione tramonto: piscina di sera */
   const img = document.getElementById('t-foto');
   img.addEventListener('error', function(){ img.style.display = 'none'; }); /* resta la banda scura */
   img.setAttribute('src', foto);
