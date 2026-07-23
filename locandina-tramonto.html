@@ -87,70 +87,47 @@ html, body{
   overflow:hidden;
   background:var(--paper);
   display:grid;
-  grid-template-rows:20mm 62mm 32mm 52mm 18mm 86mm 27mm;   /* = 297mm */
+  grid-template-rows:147mm 44mm 16mm 71mm 19mm;   /* = 297mm — foto protagonista */
   -webkit-print-color-adjust:exact; print-color-adjust:exact;
 }
 .riga{ position:relative; overflow:hidden; }
 
 /* --- riga 1 (20mm): testata --------------------------------------- */
-.testata{
-  background:linear-gradient(115deg, #ffbf47 0%, #ff8a4d 45%, #e05a6e 100%);
-  color:#fff;
-  display:flex; align-items:center; justify-content:space-between; gap:6mm;
-  padding:0 10mm;
+/* --- riga 1 (150mm): FOTO protagonista con titolo sovrapposto -------
+   La foto riempie tutta la fascia; il titolo sta in basso su una sfumatura
+   che ne garantisce la leggibilita' e copre l'area meno importante.        */
+.fotohero{ background:var(--ink); }
+.fotohero img{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; object-position:center 32%; display:block;
 }
-.testata .casa{ font-size:15pt; font-weight:bold; letter-spacing:.3pt; }
-.testata .dove{ font-size:10.5pt; font-weight:bold; text-align:right; opacity:.95; }
-
-/* --- riga 2 (62mm): claim + titolo enorme + tema ------------------- */
-.hero{
-  padding:5mm 8mm;
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center; text-align:center; gap:3mm;
-  background:
-    radial-gradient(circle at 10% 18%, rgba(18,182,201,.16) 0 15mm, transparent 15mm),
-    radial-gradient(circle at 92% 84%, rgba(255,210,63,.30) 0 13mm, transparent 13mm),
-    var(--paper);
+.fh-top{
+  position:absolute; top:0; left:0; right:0;
+  display:flex; justify-content:space-between; align-items:flex-start; gap:6mm;
+  padding:5mm 9mm 14mm;
+  background:linear-gradient(180deg, rgba(20,15,35,.72) 0%, rgba(20,15,35,0) 100%);
+  color:#fff;
+}
+.fh-top .casa{ font-size:15pt; font-weight:bold; letter-spacing:.3pt; text-shadow:0 1px 4px rgba(0,0,0,.7); }
+.fh-top .dove{ font-size:10.5pt; font-weight:bold; text-align:right; text-shadow:0 1px 4px rgba(0,0,0,.7); }
+.fh-bottom{
+  position:absolute; left:0; right:0; bottom:0;
+  display:flex; flex-direction:column; align-items:center; text-align:center; gap:2.4mm;
+  padding:18mm 8mm 6mm;
+  background:linear-gradient(0deg, rgba(28,16,42,.94) 0%, rgba(40,25,58,.80) 48%, rgba(40,25,58,0) 100%);
 }
 .claim{
   background:var(--c3); color:var(--ink);
-  font-size:14pt; font-weight:bold; letter-spacing:.7pt; text-transform:uppercase;
-  padding:1.6mm 6mm; border-radius:99px;
+  font-size:13pt; font-weight:bold; letter-spacing:.6pt; text-transform:uppercase;
+  padding:1.4mm 5mm; border-radius:99px;
 }
 .titolo{
-  font-size:44pt; line-height:.95; font-weight:bold;
-  text-transform:uppercase; letter-spacing:-.7pt;
-  color:var(--c1); max-width:192mm;
+  font-size:40pt; line-height:.95; font-weight:bold;
+  text-transform:uppercase; letter-spacing:-.6pt;
+  color:#fff; max-width:194mm; text-shadow:0 2px 10px rgba(0,0,0,.55);
 }
-.tema{
-  font-size:15pt; font-weight:bold; letter-spacing:.4pt; color:var(--ink);
-  border-top:1.2mm solid var(--c2); border-bottom:1.2mm solid var(--c2);
-  padding:1.2mm 0;
-}
-
-/* --- riga 3 (32mm): banda fotografica ------------------------------
-   La foto e' un elemento grafico, non un fondale del testo: il velo scuro
-   a sinistra garantisce il contrasto della frase anche in stampa B/N.    */
-.banda{ background:var(--ink); }
-.banda img{
-  position:absolute; inset:0;
-  width:100%; height:100%;
-  object-fit:cover; object-position:center 62%;
-  display:block;
-}
-.banda .velo{
-  position:absolute; inset:0;
-  background:linear-gradient(90deg,
-    rgba(13,43,62,.88) 0%, rgba(13,43,62,.60) 46%, rgba(13,43,62,.10) 100%);
-}
-.banda .frase{
-  position:absolute; inset:0;
-  display:flex; align-items:center;
-  padding:0 10mm;
-  max-width:152mm;
-  color:#fff; font-size:17pt; font-weight:bold; line-height:1.18;
-  text-shadow:0 2px 6px rgba(0,0,0,.8), 0 0 2px rgba(0,0,0,.9);
-}
+.tema{ font-size:14pt; font-weight:bold; letter-spacing:.4pt; color:var(--c3); }
+.sottotitolo-fh{ font-size:12.5pt; font-weight:bold; color:#ffe9d0; max-width:172mm; }
 
 /* --- riga 4 (52mm): la data, il pezzo che si legge da lontano ------ */
 .quando{
@@ -210,13 +187,13 @@ html, body{
   border-radius:7mm;
 }
 .colonna-qr{
-  flex:0 0 58mm;
+  flex:0 0 47mm;
   display:flex; flex-direction:column; align-items:center; gap:1.5mm;
 }
-/* 58mm di lato meno 2.5mm di cornice = 53mm di grafica QR:
-   ben oltre i 45mm richiesti anche togliendo la zona di rispetto.        */
+/* 47mm di lato: la zona di rispetto (4 moduli) e' dentro l'SVG, quindi la
+   grafica utile resta ampiamente leggibile.                               */
 .qr-cornice{
-  width:58mm; height:58mm;
+  width:47mm; height:47mm;
   /* Niente padding: la zona di rispetto (4 moduli, come chiede la norma) e'
      gia' dentro l'SVG generato da qr.js, quindi il codice puo' occupare tutto
      il riquadro e restare il piu' grande possibile. */
@@ -232,8 +209,8 @@ html, body{
   word-break:break-all; line-height:1.3;
 }
 .url{
-  max-width:58mm;
-  font-size:10pt; font-weight:bold; line-height:1.2; text-align:center;
+  max-width:47mm;
+  font-size:9.5pt; font-weight:bold; line-height:1.2; text-align:center;
   color:var(--ink); background:var(--c3);
   border-radius:2mm; padding:1mm 2mm; word-break:break-all;
 }
@@ -321,24 +298,19 @@ html, body{
 <div class="palco" id="palco">
   <div class="foglio" id="foglio">
 
-    <!-- 20mm — testata -->
-    <header class="riga testata">
-      <div class="casa" id="t-residence">Residence Holiday</div>
-      <div class="dove" id="t-localita"></div>
-    </header>
-
-    <!-- 62mm — claim, titolo, tema -->
-    <section class="riga hero">
-      <div class="claim" id="t-claim" data-fit="14">Tutti in piscina!</div>
-      <h1 class="titolo" id="t-titolo" data-fit="44">Festa in piscina</h1>
-      <div class="tema" id="t-tema" data-fit="15"></div>
-    </section>
-
-    <!-- 32mm — banda fotografica -->
-    <section class="riga banda">
-      <img id="t-foto" src="images/piscina-vasca.jpg" alt="La piscina del residence">
-      <div class="velo"></div>
-      <p class="frase" id="t-sottotitolo" data-fit="17"></p>
+    <!-- 150mm — FOTO protagonista con titolo sovrapposto -->
+    <section class="riga fotohero">
+      <img id="t-foto" src="images/festa-lungomare.jpg" alt="La festa al Residence Holiday">
+      <div class="fh-top">
+        <div class="casa" id="t-residence">Residence Holiday</div>
+        <div class="dove" id="t-localita"></div>
+      </div>
+      <div class="fh-bottom">
+        <div class="claim" id="t-claim" data-fit="13">Tutti in piscina!</div>
+        <h1 class="titolo" id="t-titolo" data-fit="40">Festa in piscina</h1>
+        <div class="tema" id="t-tema" data-fit="14"></div>
+        <p class="sottotitolo-fh" id="t-sottotitolo" data-fit="12.5"></p>
+      </div>
     </section>
 
     <!-- 52mm — data e orario, in grande -->
