@@ -1747,13 +1747,32 @@ async function ghPut(path, contentB64, message){
   const branch = s.branch || 'main';
   const api = 'https://api.github.com/repos/'+s.owner+'/'+s.repo+'/contents/'+path;
   const headers = {'Authorization':'Bearer '+s.token, 'Accept':'application/vnd.github+json'};
-  let sha;
-  const cur = await fetch(api+'?ref='+encodeURIComponent(branch), {headers});
-  if(cur.ok){ sha = (await cur.json()).sha; }
-  const res = await fetch(api, {
-    method:'PUT', headers,
-    body: JSON.stringify({message:message, content:contentB64, branch:branch, sha:sha})
-  });
+
+  /* legge lo sha attuale del file, aggirando la cache (altrimenti si rischia
+     uno sha vecchio -> errore 409 "does not match") */
+  async function shaCorrente(){
+    const cur = await fetch(api+'?ref='+encodeURIComponent(branch)+'&_='+Date.now(),
+      { headers: Object.assign({}, headers, {'Cache-Control':'no-cache'}), cache:'no-store' });
+    if(cur.ok){ return (await cur.json()).sha; }
+    if(cur.status === 404){ return undefined; }   /* file non esiste ancora: si crea */
+    throw new Error('GitHub '+cur.status+': '+(await cur.text()));
+  }
+  function invia(sha){
+    return fetch(api, {
+      method:'PUT', headers,
+      body: JSON.stringify({message:message, content:contentB64, branch:branch, sha:sha})
+    });
+  }
+
+  let sha = await shaCorrente();
+  let res = await invia(sha);
+  /* 409 = la versione online è cambiata nel frattempo (es. un altro
+     aggiornamento): riprendo lo sha aggiornato e riprovo, fino a 4 volte. */
+  for(let i = 0; i < 4 && res.status === 409; i++){
+    await new Promise(r => setTimeout(r, 400));
+    sha = await shaCorrente();
+    res = await invia(sha);
+  }
   if(!res.ok){ throw new Error('GitHub '+res.status+': '+(await res.text())); }
   return res.json();
 }
