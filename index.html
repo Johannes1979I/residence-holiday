@@ -840,6 +840,58 @@ function colore(v, def){
   return /^#[0-9a-fA-F]{3,8}$/.test(String(v || '')) ? String(v) : def;
 }
 
+/* =================== ASPETTO (stili per sezione dall'admin) =================== */
+/* Le sezioni personalizzabili e il pezzo di pagina a cui applicare lo stile. */
+var SEZIONI_STILE = [
+  { id:'hero',        sel:'header.hero .hero-dentro' },
+  { id:'festa',       sel:'#festa .wrap' },
+  { id:'foto',        sel:'#foto .wrap' },
+  { id:'menu',        sel:'#menu .wrap' },
+  { id:'pagamento',   sel:'#pagamento .wrap' },
+  { id:'regolamento', sel:'#regolamento .wrap' },
+  { id:'prenota',     sel:'#prenota .wrap' },
+  { id:'footer',      sel:'footer' }
+];
+/* Caratteri disponibili, tutti di sistema (nessun font caricato da internet). */
+function fontStack(key){
+  switch(String(key||'')){
+    case 'georgia':     return 'Georgia, "Times New Roman", serif';
+    case 'palatino':    return '"Palatino Linotype", Palatino, "Book Antiqua", serif';
+    case 'baskerville': return 'Baskerville, "Baskerville Old Face", Garamond, serif';
+    case 'sistema':     return 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+    case 'verdana':     return 'Verdana, Geneva, Tahoma, sans-serif';
+    case 'courier':     return '"Courier New", Courier, monospace';
+    default:            return '';   /* predefinito: non tocca il carattere */
+  }
+}
+
+/* Genera un foglio di stile <style id="stileUtente"> con le scelte dell'admin. */
+function applicaStile(){
+  var stile = V(DATI.stile, {});
+  var css = '';
+  SEZIONI_STILE.forEach(function(s){
+    var st = stile[s.id] || {};
+    var reg = [];
+    var fam = fontStack(st.font);
+    if(fam) reg.push('font-family:' + fam);
+    var scala = Number(st.scala) || 100;
+    if(scala && scala !== 100) reg.push('zoom:' + (scala / 100));
+    if(st.allineamento === 'left' || st.allineamento === 'center' || st.allineamento === 'right')
+      reg.push('text-align:' + st.allineamento);
+    var col = colore(st.colore, '');
+    if(col) reg.push('color:' + col);
+    if(reg.length) css += s.sel + '{' + reg.join(';') + '}\n';
+
+    var figli = [];
+    if(st.grassetto) figli.push('font-weight:bold !important');
+    if(st.corsivo)   figli.push('font-style:italic !important');
+    if(figli.length) css += s.sel + ' *{' + figli.join(';') + '}\n';
+  });
+  var el = document.getElementById('stileUtente');
+  if(!el){ el = document.createElement('style'); el.id = 'stileUtente'; document.head.appendChild(el); }
+  el.textContent = css;
+}
+
 /* localStorage puo' lanciare in navigazione privata: mai fidarsi. */
 function memLeggi(chiave){
   try{ return window.localStorage.getItem(chiave); }catch(e){ return null; }
@@ -921,6 +973,8 @@ function disegna(){
   if(window.FB && cloud.firebaseApiKey && cloud.firebaseProjectId){
     FB.cfg(cloud.firebaseApiKey, cloud.firebaseProjectId);
   }
+
+  applicaStile();   /* stili per sezione scelti dall'admin */
 
   disegnaGalleria(foto, V(res.nome, 'Residence'));
   disegnaMenu(menu);

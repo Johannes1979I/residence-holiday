@@ -18,7 +18,7 @@
     "orario": "20:00",
     "orarioFine": "23:00",
     "luogo": "Piscina del Residence Holiday",
-    "descrizione": "Si parte con la prima serata dell'estate: PIZZA a bordo piscina! Le pizze sono a cura della Pizzeria Antico Forno da Fabrizio di Montalto di Castro. Prenota qui sotto per te e la tua famiglia: bastano due minuti e ricevi il tuo voucher da mostrare all'ingresso.",
+    "descrizione": "Veronica la \"Sindaca del Residence Holiday\" è lieta di annunciare la prima serata dell'estate: PIZZA a bordo piscina! Le pizze sono a cura della Pizzeria Antico Forno da Fabrizio di Montalto di Castro. Prenota qui sotto per te e la tua famiglia: bastano due minuti e ricevi il tuo voucher da mostrare all'ingresso.",
     "dressCode": "Look estivo",
     "postiTotali": 80
   },
@@ -31,7 +31,7 @@
     "copertoNota": "Anche di sera la nostra bagnina Aurora resta in servizio, per la sicurezza dei grandi e soprattutto dei bambini. I 3 € a persona coprono la sua presenza per tutta la durata della festa: un piccolo contributo che ci permette di goderci la serata in tranquillità.",
     "speciali": {
       "glutine": true,
-      "lattosio": true
+      "lattosio": false
     },
     "categorie": [
       {
@@ -176,7 +176,7 @@
     "attivo": true,
     "titolo": "Come si paga",
     "referente": "Alla bagnina della piscina Aurora",
-    "scadenza": "2026-08-06",
+    "scadenza": "2026-08-02",
     "orari": "in piscina, tutti i giorni dalle 10:00 alle 18:00",
     "istruzioni": "Porta l'importo del tuo voucher in contanti alla bagnina della piscina. La prenotazione è confermata solo dopo il pagamento: serve per ordinare le pizze in tempo.",
     "nota": "Se non riesci entro la scadenza, avvisa gli organizzatori."
@@ -194,6 +194,72 @@
   "cloud": {
     "firebaseApiKey": "AIzaSyCB1Opg-CGCPTx4JDl7QNPYHMHVChYnHcw",
     "firebaseProjectId": "residence-holiday-ef6e9"
+  },
+  "stile": {
+    "hero": {
+      "font": "",
+      "scala": 100,
+      "grassetto": false,
+      "corsivo": false,
+      "allineamento": "",
+      "colore": ""
+    },
+    "festa": {
+      "font": "",
+      "scala": 100,
+      "grassetto": false,
+      "corsivo": false,
+      "allineamento": "",
+      "colore": ""
+    },
+    "foto": {
+      "font": "",
+      "scala": 100,
+      "grassetto": false,
+      "corsivo": false,
+      "allineamento": "",
+      "colore": ""
+    },
+    "menu": {
+      "font": "",
+      "scala": 100,
+      "grassetto": false,
+      "corsivo": false,
+      "allineamento": "",
+      "colore": ""
+    },
+    "pagamento": {
+      "font": "",
+      "scala": 100,
+      "grassetto": false,
+      "corsivo": false,
+      "allineamento": "",
+      "colore": ""
+    },
+    "regolamento": {
+      "font": "",
+      "scala": 100,
+      "grassetto": false,
+      "corsivo": false,
+      "allineamento": "",
+      "colore": ""
+    },
+    "prenota": {
+      "font": "",
+      "scala": 100,
+      "grassetto": false,
+      "corsivo": false,
+      "allineamento": "",
+      "colore": ""
+    },
+    "footer": {
+      "font": "",
+      "scala": 100,
+      "grassetto": false,
+      "corsivo": false,
+      "allineamento": "",
+      "colore": ""
+    }
   },
   "regolamento": [
     "Prenotazione obbligatoria entro giovedì 6 agosto: le pizze vengono ordinate in base alle prenotazioni.",
@@ -224,8 +290,8 @@
     "email": ""
   },
   "locandina": {
-    "claim": "Tutti in piscina!",
+    "claim": "Tutti in piscina con  Veronica la Sindaca dell'Holiday",
     "istruzioniQr": "Inquadra il QR con la fotocamera del telefono per vedere il menù e prenotare",
-    "nota": "Prenotazioni entro giovedì 6 agosto — quota da consegnare alla bagnina"
+    "nota": "Prenotazioni entro domenica 2 agosto — quota da consegnare alla bagnina"
   }
 }

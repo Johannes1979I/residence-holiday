@@ -148,6 +148,16 @@
   .errore-reg{color:var(--c1);font-weight:bold;font-size:.88rem;margin-top:8px}
   label.check{display:flex;align-items:center;gap:10px;font-weight:normal;background:#f6fcfe;border:1px solid #cfe6ec;border-radius:10px;padding:11px 13px;margin:6px 0;cursor:pointer}
   label.check input{width:20px;height:20px;flex:0 0 auto;accent-color:var(--c2)}
+  .aspetto-sez{border:1px solid #dbe8ee;border-radius:12px;padding:13px 15px;margin-bottom:12px;background:#fafdff}
+  .aspetto-sez h4{font-size:.98rem;margin-bottom:10px;color:var(--ink)}
+  .aspetto-griglia{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  @media(max-width:600px){.aspetto-griglia{grid-template-columns:1fr}}
+  .aspetto-griglia label{font-size:.8rem;font-weight:bold;display:block;margin-bottom:3px}
+  .aspetto-griglia select{width:100%;padding:9px 10px;border:2px solid #d5e2e8;border-radius:9px;font-family:inherit;font-size:.92rem;background:#fff}
+  .aspetto-toggle{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px}
+  .aspetto-toggle .check2{display:flex;align-items:center;gap:6px;font-size:.9rem;cursor:pointer}
+  .aspetto-toggle .check2 input{width:18px;height:18px;accent-color:var(--c2)}
+  .aspetto-toggle .asp-color{width:44px;height:34px;padding:2px;border:2px solid #d5e2e8;border-radius:8px}
   .reg-proposta{background:#e8f6ec;border:2px solid #7fcf9c;border-radius:12px;padding:13px 15px;margin:12px 0;font-size:.9rem}
   .reg-proposta b{display:block;margin-bottom:6px}
   .reg-speciali-editor{border:2px solid var(--c1);border-radius:12px;padding:12px 14px;margin-top:14px;background:rgba(230,57,70,.05)}
@@ -285,6 +295,7 @@
       <a href="#sec-registro">📒 Prenotazioni</a>
       <a href="#sec-residence">🏠 Residence</a>
       <a href="#sec-tema">🎨 Tema</a>
+      <a href="#sec-aspetto">🖌️ Aspetto</a>
       <a href="#sec-evento">📅 Evento</a>
       <a href="#sec-menu">🍽️ Menù</a>
       <a href="#sec-pagamento">💶 Pagamento</a>
@@ -487,6 +498,20 @@
           <p class="hint">Giallo per le evidenziazioni.</p>
         </div>
       </div>
+    </div>
+
+    <!-- ---------- ASPETTO ---------- -->
+    <div class="card" id="sec-aspetto">
+      <h2>🎨 Aspetto delle sezioni</h2>
+      <p class="intro">
+        Per ogni sezione del sito puoi cambiare carattere, dimensione del testo,
+        grassetto/corsivo, allineamento e colore. Lascia tutto com’è per non modificare nulla.
+      </p>
+      <div id="stileLista"></div>
+      <p class="hint" style="margin-top:8px">
+        Suggerimento: dopo aver salvato, apri <b>👁️ Vedi il sito</b> per controllare il risultato.
+        Se qualcosa non ti piace, rimetti “Predefinito”, dimensione 100% e allineamento “Come impostato”.
+      </p>
     </div>
 
     <!-- ---------- EVENTO ---------- -->
@@ -884,7 +909,8 @@ function schemaVuoto(){
     foto:[],
     condivisione:{ urlSito:"", linkGruppoTelegram:"", linkGruppoWhatsApp:"" },
     contatti:{ organizzatore:"", telefono:"", email:"" },
-    locandina:{ claim:"", istruzioniQr:"", nota:"" }
+    locandina:{ claim:"", istruzioniQr:"", nota:"" },
+    stile:{}
   };
 }
 
@@ -1125,6 +1151,103 @@ function riempi(){
   $('foto').textContent = "";
   (d.foto||[]).forEach(u => addFoto(u));
   aggiornaFoto();
+
+  costruisciAspetto();
+  riempiAspetto(d.stile || {});
+}
+
+/* =========================================================
+   ASPETTO: stili per sezione
+   ========================================================= */
+const ASPETTO_SEZIONI = [
+  { id:'hero',        nome:'Copertina (titolo, data)' },
+  { id:'festa',       nome:'La festa' },
+  { id:'foto',        nome:'Galleria foto' },
+  { id:'menu',        nome:'Menù' },
+  { id:'pagamento',   nome:'Come si paga' },
+  { id:'regolamento', nome:'Regolamento' },
+  { id:'prenota',     nome:'Prenotazione' },
+  { id:'footer',      nome:'Fondo pagina' }
+];
+const ASPETTO_FONT = [
+  ['',            'Predefinito'],
+  ['georgia',     'Classico (Georgia)'],
+  ['palatino',    'Elegante (Palatino)'],
+  ['baskerville', 'Raffinato (Baskerville)'],
+  ['sistema',     'Moderno (sistema)'],
+  ['verdana',     'Pulito (Verdana)'],
+  ['courier',     'Macchina da scrivere']
+];
+const ASPETTO_SCALA = [70,80,90,100,110,125,150,175,200];
+const ASPETTO_ALIGN = [['','Come impostato'],['left','Sinistra'],['center','Centro'],['right','Destra']];
+
+function costruisciAspetto(){
+  const cont = $('stileLista');
+  if(!cont || cont.childElementCount) return;   /* costruito una volta sola */
+  ASPETTO_SEZIONI.forEach(s => {
+    const box = crea('div','aspetto-sez');
+    box.appendChild(crea('h4', null, s.nome));
+
+    const g = crea('div','aspetto-griglia');
+    g.appendChild(campoSelect('asp_'+s.id+'_font',  'Carattere',    ASPETTO_FONT));
+    g.appendChild(campoSelect('asp_'+s.id+'_scala', 'Dimensione',   ASPETTO_SCALA.map(n=>[String(n), n+'%'])));
+    g.appendChild(campoSelect('asp_'+s.id+'_align', 'Allineamento', ASPETTO_ALIGN));
+    box.appendChild(g);
+
+    const t = crea('div','aspetto-toggle');
+    t.appendChild(checkInline('asp_'+s.id+'_bold',   'Grassetto'));
+    t.appendChild(checkInline('asp_'+s.id+'_italic', 'Corsivo'));
+    t.appendChild(checkInline('asp_'+s.id+'_usacol', 'Colore testo'));
+    const col = document.createElement('input');
+    col.type = 'color'; col.id = 'asp_'+s.id+'_col'; col.value = '#0d2b3e';
+    col.className = 'asp-color';
+    t.appendChild(col);
+    box.appendChild(t);
+
+    cont.appendChild(box);
+  });
+}
+function campoSelect(id, etichetta, opzioni){
+  const wrap = crea('div');
+  wrap.appendChild(crea('label', null, etichetta));
+  const sel = document.createElement('select');
+  sel.id = id;
+  opzioni.forEach(o => { const op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op); });
+  wrap.appendChild(sel);
+  return wrap;
+}
+function checkInline(id, etichetta){
+  const lab = crea('label','check2');
+  const ch = document.createElement('input'); ch.type = 'checkbox'; ch.id = id;
+  lab.appendChild(ch); lab.appendChild(document.createTextNode(' ' + etichetta));
+  return lab;
+}
+function riempiAspetto(stile){
+  ASPETTO_SEZIONI.forEach(s => {
+    const st = stile[s.id] || {};
+    $('asp_'+s.id+'_font').value  = st.font || '';
+    $('asp_'+s.id+'_scala').value = String(Number(st.scala) || 100);
+    $('asp_'+s.id+'_align').value = st.allineamento || '';
+    $('asp_'+s.id+'_bold').checked   = !!st.grassetto;
+    $('asp_'+s.id+'_italic').checked = !!st.corsivo;
+    const haCol = /^#[0-9a-fA-F]{3,8}$/.test(String(st.colore||''));
+    $('asp_'+s.id+'_usacol').checked = haCol;
+    if(haCol) $('asp_'+s.id+'_col').value = st.colore;
+  });
+}
+function raccogliAspetto(){
+  const out = {};
+  ASPETTO_SEZIONI.forEach(s => {
+    out[s.id] = {
+      font:         $('asp_'+s.id+'_font').value,
+      scala:        Number($('asp_'+s.id+'_scala').value) || 100,
+      grassetto:    $('asp_'+s.id+'_bold').checked,
+      corsivo:      $('asp_'+s.id+'_italic').checked,
+      allineamento: $('asp_'+s.id+'_align').value,
+      colore:       $('asp_'+s.id+'_usacol').checked ? $('asp_'+s.id+'_col').value : ''
+    };
+  });
+  return out;
 }
 
 /* =========================================================
@@ -1393,6 +1516,8 @@ function collect(){
     istruzioniQr: $('l_qr').value.trim(),
     nota:         $('l_nota').value.trim()
   });
+
+  d.stile = raccogliAspetto();
 
   DATA = d;
   return d;
