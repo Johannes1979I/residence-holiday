@@ -195,6 +195,7 @@
     "firebaseApiKey": "AIzaSyCB1Opg-CGCPTx4JDl7QNPYHMHVChYnHcw",
     "firebaseProjectId": "residence-holiday-ef6e9"
   },
+  "collage": "images/collage-festa.jpg",
   "stile": {
     "hero": {
       "font": "",
@@ -274,6 +275,7 @@
   ],
   "foto": [
     "images/piscina-vasca.jpg",
+    "images/piscina-sera.jpg",
     "images/dettaglio-acqua.jpg",
     "images/dettaglio-ombrelloni.jpg",
     "images/dettaglio-residence.jpg",

@@ -131,6 +131,7 @@ header.hero{
 .striscia-tema b{ font-size:1.3rem; }
 
 /* --------------------------- galleria ---------------------------- */
+.collage-festa{ width:100%; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:14px; display:block; }
 .galleria{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
 .galleria .g{
   position:relative; aspect-ratio:1/1; border-radius:var(--radius); overflow:hidden;
@@ -509,6 +510,7 @@ footer .servizio a:hover{ opacity:1; }
   <div class="wrap">
     <h2 class="titolo-sez">La nostra <span class="em">piscina</span></h2>
     <p class="occhiello">Il posto perfetto per una serata d'estate tutti insieme.</p>
+    <img class="collage-festa" id="collageFesta" alt="La festa in piscina al Residence Holiday" loading="lazy" style="display:none" />
     <div class="galleria" id="galleria"></div>
   </div>
 </section>
@@ -1027,6 +1029,14 @@ function salvaSuCloud(p){
 
 /* ------------------------------ galleria ------------------------------ */
 function disegnaGalleria(foto, nomeRes){
+  /* collage della festa, se impostato (banner a piena larghezza sopra la griglia) */
+  var coll = $('collageFesta');
+  if(coll){
+    var src = String(V(DATI.collage, '')).trim();
+    if(src){ coll.src = src; coll.style.display = ''; coll.onerror = function(){ coll.style.display = 'none'; }; }
+    else { coll.style.display = 'none'; }
+  }
+
   var g = $('galleria');
   g.textContent = '';
   var sfondi = ['linear-gradient(135deg,var(--c1),var(--c2))','linear-gradient(135deg,var(--c2),var(--c3))',
