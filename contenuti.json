@@ -28,7 +28,7 @@
     "copertoPersona": 3,
     "copertoEtichetta": "Quota assistenza in piscina",
     "copertoEmoji": "🛟",
-    "copertoNota": "Anche di sera la nostra bagnina resta in servizio, per la sicurezza dei grandi e soprattutto dei bambini. I 3 € a persona coprono la sua presenza per tutta la durata della festa: un piccolo contributo che ci permette di goderci la serata in tranquillità.",
+    "copertoNota": "Anche di sera la nostra bagnina Aurora resta in servizio, per la sicurezza dei grandi e soprattutto dei bambini. I 3 € a persona coprono la sua presenza per tutta la durata della festa: un piccolo contributo che ci permette di goderci la serata in tranquillità.",
     "categorie": [
       {
         "id": "rosse",
@@ -36,18 +36,66 @@
         "emoji": "🍕",
         "tipo": "cibo",
         "voci": [
-          { "nome": "Margherita", "descrizione": "Pomodoro, mozzarella", "prezzo": 5 },
-          { "nome": "Napoletana", "descrizione": "Pomodoro, alici", "prezzo": 5 },
-          { "nome": "Capricciosa", "descrizione": "Pomodoro, mozzarella, funghi, prosciutto cotto, würstel, uovo", "prezzo": 7 },
-          { "nome": "Quattro stagioni", "descrizione": "Pomodoro, mozzarella, funghi, prosciutto cotto, würstel, uovo", "prezzo": 7 },
-          { "nome": "Diavola", "descrizione": "Pomodoro, mozzarella, salame piccante", "prezzo": 6 },
-          { "nome": "Würstel", "descrizione": "Pomodoro, mozzarella, würstel", "prezzo": 6 },
-          { "nome": "Prosciutto cotto", "descrizione": "Pomodoro, mozzarella, prosciutto cotto", "prezzo": 6 },
-          { "nome": "Prosciutto crudo", "descrizione": "Pomodoro, mozzarella, prosciutto crudo", "prezzo": 6 },
-          { "nome": "Funghi champignon", "descrizione": "Pomodoro, mozzarella, funghi champignon", "prezzo": 7 },
-          { "nome": "Funghi porcini", "descrizione": "Pomodoro, mozzarella, funghi porcini", "prezzo": 7 },
-          { "nome": "Ortolana", "descrizione": "Pomodoro, mozzarella, zucchine, melanzane, peperoni", "prezzo": 6 },
-          { "nome": "Bufalina", "descrizione": "Pomodoro, bufala, prezzemolo", "prezzo": 6 }
+          {
+            "nome": "Margherita",
+            "descrizione": "Pomodoro, mozzarella",
+            "prezzo": 5
+          },
+          {
+            "nome": "Napoletana",
+            "descrizione": "Pomodoro, alici",
+            "prezzo": 5
+          },
+          {
+            "nome": "Capricciosa",
+            "descrizione": "Pomodoro, mozzarella, funghi, prosciutto cotto, würstel, uovo",
+            "prezzo": 7
+          },
+          {
+            "nome": "Quattro stagioni",
+            "descrizione": "Pomodoro, mozzarella, funghi, prosciutto cotto, würstel, uovo",
+            "prezzo": 7
+          },
+          {
+            "nome": "Diavola",
+            "descrizione": "Pomodoro, mozzarella, salame piccante",
+            "prezzo": 6
+          },
+          {
+            "nome": "Würstel",
+            "descrizione": "Pomodoro, mozzarella, würstel",
+            "prezzo": 6
+          },
+          {
+            "nome": "Prosciutto cotto",
+            "descrizione": "Pomodoro, mozzarella, prosciutto cotto",
+            "prezzo": 6
+          },
+          {
+            "nome": "Prosciutto crudo",
+            "descrizione": "Pomodoro, mozzarella, prosciutto crudo",
+            "prezzo": 6
+          },
+          {
+            "nome": "Funghi champignon",
+            "descrizione": "Pomodoro, mozzarella, funghi champignon",
+            "prezzo": 7
+          },
+          {
+            "nome": "Funghi porcini",
+            "descrizione": "Pomodoro, mozzarella, funghi porcini",
+            "prezzo": 7
+          },
+          {
+            "nome": "Ortolana",
+            "descrizione": "Pomodoro, mozzarella, zucchine, melanzane, peperoni",
+            "prezzo": 6
+          },
+          {
+            "nome": "Bufalina",
+            "descrizione": "Pomodoro, bufala, prezzemolo",
+            "prezzo": 6
+          }
         ]
       },
       {
@@ -56,18 +104,66 @@
         "emoji": "🧀",
         "tipo": "cibo",
         "voci": [
-          { "nome": "Focaccia", "descrizione": "Semplice, con olio e sale", "prezzo": 3 },
-          { "nome": "Quattro formaggi", "descrizione": "Mozzarella e formaggi misti", "prezzo": 7 },
-          { "nome": "Bresaola", "descrizione": "Mozzarella, bresaola, rucola, grana", "prezzo": 7 },
-          { "nome": "Salmone", "descrizione": "Mozzarella, salmone, rucola", "prezzo": 7 },
-          { "nome": "Würstel e patate", "descrizione": "Mozzarella, würstel, patate", "prezzo": 6 },
-          { "nome": "Prosciutto cotto", "descrizione": "Mozzarella, prosciutto cotto", "prezzo": 6 },
-          { "nome": "Prosciutto crudo", "descrizione": "Mozzarella, prosciutto crudo", "prezzo": 7 },
-          { "nome": "Boscaiola", "descrizione": "Mozzarella, funghi, salsiccia", "prezzo": 7 },
-          { "nome": "Funghi champignon", "descrizione": "Mozzarella, funghi champignon", "prezzo": 7 },
-          { "nome": "Funghi porcini", "descrizione": "Mozzarella, funghi porcini", "prezzo": 7 },
-          { "nome": "Ortolana", "descrizione": "Mozzarella, zucchine, melanzane, peperoni", "prezzo": 6 },
-          { "nome": "Pizza Oasi", "descrizione": "Mozzarella, bacon, salsiccia, funghi, cicoria, uovo alla bismarck — si può fare bianca o rossa", "prezzo": 8 }
+          {
+            "nome": "Focaccia",
+            "descrizione": "Semplice, con olio e sale",
+            "prezzo": 3
+          },
+          {
+            "nome": "Quattro formaggi",
+            "descrizione": "Mozzarella e formaggi misti",
+            "prezzo": 7
+          },
+          {
+            "nome": "Bresaola",
+            "descrizione": "Mozzarella, bresaola, rucola, grana",
+            "prezzo": 7
+          },
+          {
+            "nome": "Salmone",
+            "descrizione": "Mozzarella, salmone, rucola",
+            "prezzo": 7
+          },
+          {
+            "nome": "Würstel e patate",
+            "descrizione": "Mozzarella, würstel, patate",
+            "prezzo": 6
+          },
+          {
+            "nome": "Prosciutto cotto",
+            "descrizione": "Mozzarella, prosciutto cotto",
+            "prezzo": 6
+          },
+          {
+            "nome": "Prosciutto crudo",
+            "descrizione": "Mozzarella, prosciutto crudo",
+            "prezzo": 7
+          },
+          {
+            "nome": "Boscaiola",
+            "descrizione": "Mozzarella, funghi, salsiccia",
+            "prezzo": 7
+          },
+          {
+            "nome": "Funghi champignon",
+            "descrizione": "Mozzarella, funghi champignon",
+            "prezzo": 7
+          },
+          {
+            "nome": "Funghi porcini",
+            "descrizione": "Mozzarella, funghi porcini",
+            "prezzo": 7
+          },
+          {
+            "nome": "Ortolana",
+            "descrizione": "Mozzarella, zucchine, melanzane, peperoni",
+            "prezzo": 6
+          },
+          {
+            "nome": "Pizza Oasi",
+            "descrizione": "Mozzarella, bacon, salsiccia, funghi, cicoria, uovo alla bismarck — si può fare bianca o rossa",
+            "prezzo": 8
+          }
         ]
       }
     ]
@@ -75,7 +171,7 @@
   "pagamento": {
     "attivo": true,
     "titolo": "Come si paga",
-    "referente": "la bagnina della piscina",
+    "referente": "Alla bagnina della piscina Aurora",
     "scadenza": "2026-08-06",
     "orari": "in piscina, tutti i giorni dalle 10:00 alle 18:00",
     "istruzioni": "Porta l'importo del tuo voucher in contanti alla bagnina della piscina. La prenotazione è confermata solo dopo il pagamento: serve per ordinare le pizze in tempo.",
