@@ -31,7 +31,7 @@
     "copertoNota": "Anche di sera la nostra bagnina Aurora resta in servizio, per la sicurezza dei grandi e soprattutto dei bambini. I 3 € a persona coprono la sua presenza per tutta la durata della festa: un piccolo contributo che ci permette di goderci la serata in tranquillità.",
     "speciali": {
       "glutine": true,
-      "lattosio": true
+      "lattosio": false
     },
     "categorie": [
       {
@@ -176,7 +176,7 @@
     "attivo": true,
     "titolo": "Come si paga",
     "referente": "Alla bagnina della piscina Aurora",
-    "scadenza": "2026-08-06",
+    "scadenza": "2026-08-02",
     "orari": "in piscina, tutti i giorni dalle 10:00 alle 18:00",
     "istruzioni": "Porta l'importo del tuo voucher in contanti alla bagnina della piscina. La prenotazione è confermata solo dopo il pagamento: serve per ordinare le pizze in tempo.",
     "nota": "Se non riesci entro la scadenza, avvisa gli organizzatori."
@@ -196,7 +196,7 @@
     "firebaseProjectId": "residence-holiday-ef6e9"
   },
   "regolamento": [
-    "Prenotazione obbligatoria entro giovedì 6 agosto: le pizze vengono ordinate in base alle prenotazioni.",
+    "Prenotazione obbligatoria entro domenica 2 agosto: le pizze vengono ordinate in base alle prenotazioni.",
     "Porta con te il voucher (stampato o sul telefono) e mostralo all'ingresso della festa.",
     "La prenotazione è confermata solo dopo il pagamento della quota alla bagnina.",
     "Al costo delle pizze si aggiungono 3 € a persona per l'assistenza della bagnina durante la serata.",
