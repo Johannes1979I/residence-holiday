@@ -292,18 +292,18 @@
     "email": ""
   },
   "locandina": {
-    "claim": "Tutti in piscina con  Veronica la Sindaca dell'Holiday",
+    "claim": "Tutti in piscina con Veronica la Sindaca dell'Holiday",
     "istruzioniQr": "Inquadra il QR con la fotocamera del telefono per vedere il menù e prenotare",
     "nota": "Prenotazioni entro domenica 2 agosto — quota da consegnare alla bagnina",
     "fotoClassica": "images/piscina-vasca.jpg",
     "fotoTramonto": "images/festa-lungomare.jpg",
     "fotoTramontoPos": "center 30%",
     "classica": {
-      "claim": "",
+      "claim": "Tutti in piscina per festeggiare l'estate",
       "titolo": "",
       "sottotitolo": "",
-      "istruzioniQr": "",
-      "nota": ""
+      "istruzioniQr": "Inquadra il QR con la fotocamera del telefono per vedere il menù e prenotare",
+      "nota": "Prenotazioni entro domenica 2 agosto — quota da consegnare alla bagnina"
     },
     "tramonto": {
       "claim": "",
