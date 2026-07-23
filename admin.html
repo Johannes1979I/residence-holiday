@@ -736,11 +736,11 @@
           <div class="grid2">
             <div>
               <label for="gh_owner">Utente o organizzazione GitHub</label>
-              <input id="gh_owner" placeholder="tuonome" />
+              <input id="gh_owner" placeholder="tuonome" value="Johannes1979I" />
             </div>
             <div>
               <label for="gh_repo">Nome del repository</label>
-              <input id="gh_repo" placeholder="residence-holiday" />
+              <input id="gh_repo" placeholder="residence-holiday" value="residence-holiday" />
             </div>
           </div>
           <div class="grid2">
@@ -1389,10 +1389,12 @@ function saveGh(){
 function loadGh(){
   try{
     const s = JSON.parse(localStorage.getItem('rh_gh')||'{}');
-    $('gh_owner').value  = s.owner||"";
-    $('gh_repo').value   = s.repo||"";
-    $('gh_branch').value = s.branch||"main";
-    $('gh_token').value  = s.token||"";
+    /* se non c'e' nulla di salvato si tengono i valori gia' scritti nel modulo
+       (Johannes1979I / residence-holiday), cosi' resta da incollare solo il token */
+    if(s.owner)  $('gh_owner').value  = s.owner;
+    if(s.repo)   $('gh_repo').value   = s.repo;
+    $('gh_branch').value = s.branch || $('gh_branch').value || "main";
+    if(s.token)  $('gh_token').value  = s.token;
   }catch(e){}
 }
 function gh(){ try{ return JSON.parse(localStorage.getItem('rh_gh')||'{}'); }catch(e){ return {}; } }
