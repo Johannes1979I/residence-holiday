@@ -125,10 +125,15 @@
   .reg-pizze .r .pr{color:#cfe9f2;font-size:.9em}
   .reg-pizze .r.grande{margin-top:8px;padding-top:9px;border-top:2px solid var(--c3);font-size:1.1rem}
   .reg-pizze .r.grande b{font-size:1.35rem}
+  .reg-pizze .r.speciale{color:#ff9aa4}
+  .reg-pizze .r.speciale .tag{color:#ff9aa4;font-weight:bold}
+  .reg-pizze .r.speciale .pr{color:#ff9aa4}
   .reg-pizze .vuoto{opacity:.7}
   .reg-allerta{margin-top:8px;border:2px solid var(--c1);background:rgba(230,57,70,.07);
                border-radius:10px;padding:9px 11px;font-size:.88rem}
   .reg-allerta b{color:var(--c1);display:block;margin-bottom:3px}
+  .reg-pizze .r.speciale span:first-child{color:#ff9aa2}
+  .reg-pizze .r.speciale .tag{color:#ff5964;font-weight:bold}
   .reg-allerta-forte{background:#c1121f;color:#fff;border-radius:10px;padding:11px 13px;
                      margin-bottom:12px;font-size:.9rem;line-height:1.5}
   .reg-allerta-forte b{display:block;margin-bottom:5px;letter-spacing:.5px}
@@ -172,12 +177,12 @@
   .foglio-corpo td.m{font-family:"Courier New",monospace;font-size:10pt}
   .foglio-corpo small{color:#5a7583}
   .foglio-corpo tfoot td{font-weight:bold;background:#f3f9fb;border-top:2px solid var(--ink)}
-  .foglio-corpo .allerta{border:2.5px solid #c1121f;border-radius:8px;padding:11px 13px;
-                         margin-bottom:16px;background:#fdf0f1}
-  .foglio-corpo .allerta h2{color:#c1121f}
-  .foglio-corpo .allerta p.sotto{font-size:9.5pt;color:#7a2028;margin-bottom:8px}
-  .foglio-corpo .allerta th{background:#c1121f}
-  .foglio-corpo .allerta .forte{font-weight:bold;color:#c1121f}
+  /* righe delle pizze speciali dentro l'elenco unico */
+  .foglio-corpo tr.sep td{background:#fdf0f1;color:#c1121f;font-weight:bold;font-size:9pt;
+                          text-transform:uppercase;letter-spacing:.4px;border-bottom:none;padding-top:11px}
+  .foglio-corpo tr.spr td{background:#fdf0f1;color:#c1121f}
+  .foglio-corpo tr.spr td small{color:#a83842}
+  .foglio-corpo tr.spr .forte{font-weight:bold;color:#c1121f}
   .foglio-corpo .totale{background:var(--ink);color:#fff;border-radius:8px;padding:13px 16px;
                         display:flex;justify-content:space-between;align-items:center;margin:10px 0 20px}
   .foglio-corpo .totale span{font-size:12pt;text-transform:uppercase;letter-spacing:.6px}
@@ -199,7 +204,8 @@
     body.stampa-foglio .foglio-barra{display:none !important}
     body.stampa-foglio .foglio-corpo{box-shadow:none;margin:0;padding:0;max-width:100%;border-radius:0}
     body.stampa-foglio .foglio-corpo th,
-    body.stampa-foglio .foglio-corpo .allerta,
+    body.stampa-foglio .foglio-corpo tr.sep td,
+    body.stampa-foglio .foglio-corpo tr.spr td,
     body.stampa-foglio .foglio-corpo .totale,
     body.stampa-foglio .foglio-corpo .quota,
     body.stampa-foglio .foglio-corpo tr.pagata td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -274,6 +280,7 @@
       <a href="#sec-menu">🍽️ Menù</a>
       <a href="#sec-pagamento">💶 Pagamento</a>
       <a href="#sec-prenotazione">🎟️ Prenotazione</a>
+      <a href="#sec-notifiche">🔔 Avvisi</a>
       <a href="#sec-regolamento">📋 Regolamento</a>
       <a href="#sec-foto">📷 Foto</a>
       <a href="#sec-condivisione">📣 Condivisione</a>
@@ -592,13 +599,9 @@
       <h2>🎟️ Prenotazione</h2>
       <p class="intro">Come arrivano le prenotazioni agli organizzatori e come è fatto il voucher.</p>
 
-      <label for="pr_num">Numero WhatsApp degli organizzatori</label>
-      <input id="pr_num" inputmode="tel" placeholder="393331234567" />
-      <p class="hint">Con il prefisso internazionale e <b>senza</b> + né spazi: per l’Italia inizia con 39.</p>
-
       <label for="pr_msg">Messaggio base della prenotazione</label>
       <textarea id="pr_msg" rows="3"></textarea>
-      <p class="hint">La prima riga del messaggio WhatsApp/Telegram: sotto viene aggiunto in automatico tutto l’ordine.</p>
+      <p class="hint">La prima riga del messaggio inviato agli organizzatori: sotto viene aggiunto in automatico tutto l’ordine.</p>
 
       <label for="pr_scad">Scadenza delle prenotazioni</label>
       <input type="date" id="pr_scad" />
@@ -618,6 +621,37 @@
           <input id="pr_prefisso" placeholder="RH" />
           <p class="hint">Poche lettere maiuscole: con <b>RH</b> i codici diventano tipo <b>RH-0808-K7QA</b>.</p>
         </div>
+      </div>
+    </div>
+
+    <!-- ---------- NOTIFICHE ---------- -->
+    <div class="card" id="sec-notifiche">
+      <h2>🔔 Avvisi automatici Telegram</h2>
+      <p class="intro">
+        Quando un condomino prenota, la richiesta viene <b>inviata da sola</b> al tuo Telegram.
+        Così non dipende dal fatto che si ricordi di premere «invia».
+      </p>
+
+      <label for="nt_token">Token del bot Telegram</label>
+      <input id="nt_token" placeholder="123456789:AAxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+      <p class="hint">Te lo dà <b>@BotFather</b> quando crei il bot (comando <code>/newbot</code>).</p>
+
+      <label for="nt_chat">ID della chat o del gruppo che riceve gli avvisi</label>
+      <input id="nt_chat" placeholder="es. 123456789 oppure -1001234567890" autocomplete="off" />
+      <p class="hint">
+        È dove ti arrivano le prenotazioni. Per riceverle sul tuo Telegram personale scrivi al bot
+        <b>@userinfobot</b>: ti dice il tuo <b>Id</b>. Per un gruppo, aggiungi il bot al gruppo e usa l’id del gruppo (inizia con <code>-100</code>).
+      </p>
+
+      <div class="reg-azioni">
+        <button class="btn btn-w" type="button" id="nt_prova">✈️ Invia un messaggio di prova</button>
+      </div>
+
+      <div class="gh-box" style="margin-top:14px">
+        <b>⚠️ Nota importante.</b> Il token finisce nel sito, che è pubblico: chi è pratico potrebbe leggerlo.
+        Per la festa tra condomini è un rischio minimo, ma usa <b>un bot dedicato solo a questo</b> (non un bot
+        che usi per altro): al massimo qualcuno potrebbe scrivere nel gruppo tramite quel bot, e in quel caso
+        basta rigenerare il token da BotFather.
       </div>
     </div>
 
@@ -802,7 +836,8 @@ function schemaVuoto(){
     menu:{ descrizione:"", avviso:"", copertoPersona:0, copertoEtichetta:"",
            copertoEmoji:"", copertoNota:"", categorie:[] },
     pagamento:{ attivo:true, titolo:"Come si paga", referente:"", scadenza:"", orari:"", istruzioni:"", nota:"" },
-    prenotazione:{ whatsappNumero:"", messaggioBase:"", scadenza:"", chiediAppartamento:true, prefissoCodice:"RH" },
+    prenotazione:{ messaggioBase:"", scadenza:"", chiediAppartamento:true, prefissoCodice:"RH" },
+    notifiche:{ telegramBotToken:"", telegramChatId:"" },
     regolamento:[],
     foto:[],
     condivisione:{ urlSito:"", linkGruppoTelegram:"", linkGruppoWhatsApp:"" },
@@ -979,7 +1014,7 @@ function riempi(){
   const d = DATA;
   const res = d.residence||{}, tem = d.tema||{}, ev = d.evento||{}, me = d.menu||{},
         pg = d.pagamento||{}, pr = d.prenotazione||{}, co = d.condivisione||{},
-        ct = d.contatti||{}, lo = d.locandina||{};
+        ct = d.contatti||{}, lo = d.locandina||{}, nt = d.notifiche||{};
 
   $('r_nome').value  = res.nome||"";
   $('r_loc').value   = res.localita||"";
@@ -1015,11 +1050,13 @@ function riempi(){
   $('pg_istr').value   = pg.istruzioni||"";
   $('pg_nota').value   = pg.nota||"";
 
-  $('pr_num').value      = pr.whatsappNumero||"";
   $('pr_msg').value      = pr.messaggioBase||"";
   $('pr_scad').value     = pr.scadenza||"";
   $('pr_appart').value   = (pr.chiediAppartamento===false) ? "no" : "si";
   $('pr_prefisso').value = pr.prefissoCodice||"RH";
+
+  $('nt_token').value = nt.telegramBotToken||"";
+  $('nt_chat').value  = nt.telegramChatId||"";
 
   $('c_url').value = co.urlSito||"";
   $('c_tg').value  = co.linkGruppoTelegram||"";
@@ -1276,11 +1313,15 @@ function collect(){
   });
 
   d.prenotazione = Object.assign({}, d.prenotazione, {
-    whatsappNumero:     $('pr_num').value.replace(/[^\d]/g,''),
     messaggioBase:      $('pr_msg').value.trim(),
     scadenza:           $('pr_scad').value,
     chiediAppartamento: $('pr_appart').value === 'si',
     prefissoCodice:     ($('pr_prefisso').value.trim().toUpperCase() || 'RH')
+  });
+
+  d.notifiche = Object.assign({}, d.notifiche, {
+    telegramBotToken: $('nt_token').value.trim(),
+    telegramChatId:   $('nt_chat').value.trim()
   });
 
   d.regolamento = [...document.querySelectorAll('#regole .reg-val')]
@@ -1314,10 +1355,11 @@ function collect(){
 /* controlli gentili prima di salvare: avvisano, non bloccano */
 function avvisi(d){
   const p=[];
-  if(!d.evento.data)                 p.push('la data della festa');
-  if(!d.tema.titoloFesta)            p.push('il titolo della festa');
-  if(!d.prenotazione.whatsappNumero) p.push('il numero WhatsApp');
-  if(!d.menu.categorie.length)       p.push('almeno una categoria del menù');
+  if(!d.evento.data)                        p.push('la data della festa');
+  if(!d.tema.titoloFesta)                   p.push('il titolo della festa');
+  if(!(d.notifiche && d.notifiche.telegramBotToken && d.notifiche.telegramChatId))
+                                            p.push('gli avvisi Telegram (token e chat) per ricevere le prenotazioni');
+  if(!d.menu.categorie.length)              p.push('almeno una categoria del menù');
   return p;
 }
 
@@ -1406,6 +1448,36 @@ function b64(str){
   return btoa(bin);
 }
 
+/* Invia un messaggio di prova al Telegram configurato, usando i valori appena
+   scritti nei campi (non serve aver pubblicato). */
+async function provaTelegram(){
+  const token = $('nt_token').value.trim();
+  const chat  = $('nt_chat').value.trim();
+  if(!token || !chat){
+    toast('⚠️ Inserisci prima il token del bot e l’id della chat.', 6000);
+    return;
+  }
+  toast('Invio il messaggio di prova…', 60000);
+  try{
+    const testo = '✅ Prova riuscita! Qui riceverai le prenotazioni della ' +
+      (((DATA||{}).tema||{}).titoloFesta || 'festa') + '.';
+    const r = await fetch('https://api.telegram.org/bot'+token+'/sendMessage', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ chat_id: chat, text: testo })
+    });
+    const j = await r.json();
+    if(j && j.ok){
+      toast('✅ Messaggio inviato! Controlla Telegram. Ricordati di premere “Pubblica online” per attivarlo sul sito.', 8000);
+    }else{
+      toast('⚠️ Telegram ha risposto: ' + ((j && j.description) || 'errore') +
+            '. Controlla token e id, e che il bot sia nel gruppo.', 9000);
+    }
+  }catch(e){
+    toast('⚠️ Non riesco a contattare Telegram: ' + e.message, 8000);
+  }
+}
+
 async function ghPut(path, contentB64, message){
   const s = gh();
   if(!s.owner || !s.repo || !s.token) throw new Error('Configura prima GitHub (utente, repository, token).');
@@ -1487,6 +1559,7 @@ function collegaEventi(){
   $('btnAddRegola').addEventListener('click', ()=>{ addRegola(''); tocca(); });
   $('btnAddFoto').addEventListener('click', ()=>{ addFoto(''); tocca(); });
   $('btnSaveGh').addEventListener('click', saveGh);
+  $('nt_prova').addEventListener('click', provaTelegram);
   $('fileFoto').addEventListener('change', caricaFoto);
   $('fileJson').addEventListener('change', caricaJsonLocale);
 
@@ -1874,25 +1947,6 @@ function regDisegnaCestino(){
 
 /* somma di tutte le pizze prenotate, con prezzo unitario e importo:
    e' la lista da dare alla pizzeria */
-function regTotalePizze(){
-  const somma = {};
-  REGISTRO.forEach(p => (p.righe||[]).forEach(r => {
-    const nome = String(r.nome||'').trim();
-    if(!nome) return;
-    const q = Number(r.quantita)||0;
-    if(!somma[nome]) somma[nome] = { quantita:0, importo:0, prezzo:0 };
-    somma[nome].quantita += q;
-    somma[nome].importo  += Number(r.importo)||0;
-  }));
-  return Object.keys(somma).map(nome => {
-    const v = somma[nome];
-    /* prezzo unitario: dedotto dagli importi, con il menù come riserva */
-    v.prezzo = v.quantita ? (v.importo / v.quantita) : regPrezzoDi(nome);
-    if(!v.importo) { v.prezzo = regPrezzoDi(nome); v.importo = v.prezzo * v.quantita; }
-    return { nome, quantita:v.quantita, prezzo:v.prezzo, importo:v.importo };
-  }).sort((a,b) => b.quantita-a.quantita || a.nome.localeCompare(b.nome,'it'));
-}
-
 /* etichetta della richiesta alimentare, identica in tutti i punti dell'admin */
 function regEtichettaSpeciale(tipo){
   if(tipo === 'entrambi') return 'SENZA GLUTINE E SENZA LATTOSIO';
@@ -1900,18 +1954,63 @@ function regEtichettaSpeciale(tipo){
   return 'SENZA LATTOSIO';
 }
 
-/* tutte le esigenze alimentari, raggruppate e con il nome di chi le ha chieste */
-function regSpecialiTotali(){
-  const mappa = {};
-  REGISTRO.forEach(p => (p.speciali||[]).forEach(s => {
-    const chiave = s.tipo + '|' + s.nome;
-    if(!mappa[chiave]) mappa[chiave] = { tipo:s.tipo, nome:s.nome, quantita:0, chi:[] };
-    mappa[chiave].quantita += Number(s.quantita)||0;
-    if(mappa[chiave].chi.indexOf(p.nome) === -1) mappa[chiave].chi.push(p.nome);
+/* Riepilogo delle pizze da ordinare, in UN solo elenco: le pizze normali e,
+   raggruppate dopo, quelle speciali (celiaci/lattosio). Una pizza speciale NON
+   compare anche fra le normali: la sua quantita' viene sottratta, cosi' la
+   pizzeria sa esattamente quante pizze "comuni" fare e quante separate. */
+function regRiepilogoPizze(){
+  /* pizze totali per nome, con prezzo unitario dedotto dagli importi */
+  const perNome = {};
+  REGISTRO.forEach(p => (p.righe||[]).forEach(r => {
+    const nome = String(r.nome||'').trim();
+    if(!nome) return;
+    const q = Number(r.quantita)||0;
+    if(!perNome[nome]) perNome[nome] = { quantita:0, importo:0 };
+    perNome[nome].quantita += q;
+    perNome[nome].importo  += Number(r.importo)||0;
   }));
-  return Object.keys(mappa).map(k => mappa[k])
-    .sort((a,b) => { const ord={entrambi:0,glutine:1,lattosio:2};
-      return (ord[a.tipo]-ord[b.tipo]) || a.nome.localeCompare(b.nome,'it'); });
+  Object.keys(perNome).forEach(nome => {
+    const v = perNome[nome];
+    v.prezzo = v.quantita ? (v.importo / v.quantita) : regPrezzoDi(nome);
+    if(!v.importo){ v.prezzo = regPrezzoDi(nome); v.importo = v.prezzo * v.quantita; }
+  });
+
+  /* speciali per nome+tipo, con l'elenco di chi le ha chieste */
+  const perSpec = {};
+  const specialiPerNome = {};
+  REGISTRO.forEach(p => (p.speciali||[]).forEach(s => {
+    const nome = String(s.nome||'').trim();
+    if(!nome) return;
+    const q = Number(s.quantita)||0;
+    const chiave = nome + '|' + s.tipo;
+    if(!perSpec[chiave]) perSpec[chiave] = { nome, tipo:s.tipo, quantita:0, chi:[] };
+    perSpec[chiave].quantita += q;
+    if(perSpec[chiave].chi.indexOf(p.nome) === -1) perSpec[chiave].chi.push(p.nome);
+    specialiPerNome[nome] = (specialiPerNome[nome]||0) + q;
+  }));
+
+  /* normali = totale per nome - le sue speciali */
+  const normali = [];
+  Object.keys(perNome).forEach(nome => {
+    const v = perNome[nome];
+    const qNorm = Math.max(0, v.quantita - (specialiPerNome[nome]||0));
+    if(qNorm > 0) normali.push({ nome, quantita:qNorm, prezzo:v.prezzo, importo:qNorm * v.prezzo });
+  });
+  normali.sort((a,b) => b.quantita-a.quantita || a.nome.localeCompare(b.nome,'it'));
+
+  const speciali = Object.keys(perSpec).map(k => {
+    const s = perSpec[k];
+    const prezzo = perNome[s.nome] ? perNome[s.nome].prezzo : regPrezzoDi(s.nome);
+    return { nome:s.nome, tipo:s.tipo, quantita:s.quantita, prezzo, importo:s.quantita*prezzo, chi:s.chi };
+  });
+  const ord = { entrambi:0, glutine:1, lattosio:2 };
+  speciali.sort((a,b) => (ord[a.tipo]-ord[b.tipo]) || a.nome.localeCompare(b.nome,'it'));
+
+  /* i totali si basano sulle righe reali: sono la fonte di verita' */
+  const totaleQuantita = Object.keys(perNome).reduce((s,n)=> s + perNome[n].quantita, 0);
+  const totaleImporto  = Object.keys(perNome).reduce((s,n)=> s + perNome[n].importo, 0);
+
+  return { normali, speciali, totaleQuantita, totaleImporto };
 }
 
 /* totale delle quote a persona (la bagnina) su tutte le prenotazioni */
@@ -1926,39 +2025,36 @@ function regTotaleQuote(){
 function regDisegnaOrdine(){
   const box = $('reg_totalePizze');
   box.textContent = '';
-  const voci = regTotalePizze();
-  if(!voci.length){
+  const rp = regRiepilogoPizze();
+  if(!rp.normali.length && !rp.speciali.length){
     box.appendChild(crea('div','vuoto','Nessuna pizza prenotata per ora.'));
     return;
   }
 
-  /* le esigenze alimentari vanno in cima, non in mezzo all'elenco */
-  const speciali = regSpecialiTotali();
-  if(speciali.length){
-    const all = crea('div','reg-allerta-forte');
-    all.appendChild(crea('b', null, '⚠️ ATTENZIONE — PIZZE SPECIALI'));
-    speciali.forEach(s => {
-      all.appendChild(crea('div', null, '• ' + s.quantita + ' × ' + s.nome + ' — ' +
-        regEtichettaSpeciale(s.tipo) +
-        '  [' + s.chi.join(', ') + ']'));
-    });
-    box.appendChild(all);
-  }
-
-  voci.forEach(v => {
+  /* prima le normali */
+  rp.normali.forEach(v => {
     const r = crea('div','r');
-    r.appendChild(crea('span', null, v.nome));
+    r.appendChild(crea('span', null, v.quantita + ' × ' + v.nome));
     const d = crea('span');
-    d.appendChild(crea('b', null, '× ' + v.quantita));
-    d.appendChild(crea('span','pr', '  ' + regEuro(v.importo)));
+    d.appendChild(crea('span','pr', regEuro(v.importo)));
     r.appendChild(d);
     box.appendChild(r);
   });
 
-  const sommaPizze = voci.reduce((s,v)=>s+v.importo,0);
+  /* poi, raggruppate e in rosso, le speciali */
+  rp.speciali.forEach(s => {
+    const r = crea('div','r speciale');
+    const sx = crea('span');
+    sx.appendChild(crea('span', null, s.quantita + ' × ' + s.nome + ' '));
+    sx.appendChild(crea('b','tag', regEtichettaSpeciale(s.tipo)));
+    r.appendChild(sx);
+    r.appendChild(crea('span','pr', regEuro(s.importo)));
+    box.appendChild(r);
+  });
+
   const tot = crea('div','r');
-  tot.appendChild(crea('span', null, 'Totale pizze (' + voci.reduce((s,v)=>s+v.quantita,0) + ')'));
-  tot.appendChild(crea('b', null, regEuro(sommaPizze)));
+  tot.appendChild(crea('span', null, 'Totale pizze (' + rp.totaleQuantita + ')'));
+  tot.appendChild(crea('b', null, regEuro(rp.totaleImporto)));
   box.appendChild(tot);
 
   const q = regTotaleQuote();
@@ -1971,32 +2067,29 @@ function regDisegnaOrdine(){
 
   const grande = crea('div','r grande');
   grande.appendChild(crea('span', null, 'TOTALE DA RACCOGLIERE'));
-  grande.appendChild(crea('b', null, regEuro(sommaPizze + q.importo)));
+  grande.appendChild(crea('b', null, regEuro(rp.totaleImporto + q.importo)));
   box.appendChild(grande);
 }
 
 function regTestoOrdine(){
-  const voci = regTotalePizze();
-  if(!voci.length) return '';
+  const rp = regRiepilogoPizze();
+  if(!rp.normali.length && !rp.speciali.length) return '';
   const ev = (DATA.evento && DATA.evento.data) || '';
-  const speciali = regSpecialiTotali();
-  const sommaPizze = voci.reduce((s,v)=>s+v.importo,0);
-  const q = regTotaleQuote();
 
   const r = [];
   r.push('Ordine pizze — ' + ((DATA.tema && DATA.tema.titoloFesta) || 'festa') +
          (ev ? ' del ' + dataItaliana(ev) : ''));
   r.push('');
-  if(speciali.length){
-    r.push('⚠️ ATTENZIONE — PIZZE SPECIALI (allergie e intolleranze):');
-    speciali.forEach(s => r.push('‼️ ' + s.quantita + ' × ' + s.nome + ' — ' +
-      regEtichettaSpeciale(s.tipo)));
-    r.push('');
-  }
-  voci.forEach(v => r.push('• ' + v.quantita + ' × ' + v.nome +
+  rp.normali.forEach(v => r.push('• ' + v.quantita + ' × ' + v.nome +
     ' — ' + regEuro(v.prezzo) + ' cad. — ' + regEuro(v.importo)));
+  if(rp.speciali.length){
+    r.push('');
+    r.push('⚠️ SPECIALI (allergie e intolleranze) — da preparare separatamente:');
+    rp.speciali.forEach(s => r.push('‼️ ' + s.quantita + ' × ' + s.nome +
+      ' ' + regEtichettaSpeciale(s.tipo) + ' — ' + regEuro(s.importo)));
+  }
   r.push('');
-  r.push('TOTALE PIZZE: ' + voci.reduce((s,v)=>s+v.quantita,0) + ' pizze — ' + regEuro(sommaPizze));
+  r.push('TOTALE PIZZE: ' + rp.totaleQuantita + ' pizze — ' + regEuro(rp.totaleImporto));
   return r.join('\n');
 }
 
@@ -2214,6 +2307,8 @@ function regProponiLocale(){
   const b = crea('button','btn btn-p','➕ Aggiungila al registro');
   b.type = 'button';
   b.addEventListener('click', () => {
+    if(b.disabled) return;                 /* niente doppio clic */
+    b.disabled = true;
     const c = p.conto;
     const speciali = [];
     (c.speciali || []).forEach(r => {
@@ -2221,13 +2316,20 @@ function regProponiLocale(){
       if(r.celiaci > 0)  speciali.push({quantita:r.celiaci, nome:r.nome, tipo:'glutine'});
       if(r.lattosio > 0) speciali.push({quantita:r.lattosio, nome:r.nome, tipo:'lattosio'});
     });
-    regAggiungi({
+    const ok = regAggiungi({
       codice:p.codice, nome:p.nome, telefono:p.telefono, appartamento:p.appartamento,
       adulti:p.adulti, bambini:p.bambini, note:p.note,
       righe:(c.righe||[]).map(r => ({quantita:r.quantita, nome:r.nome, importo:r.importo})),
       speciali, coperto:c.coperto, totale:c.totale
     });
-    toast('✅ Aggiunta al registro.', 5000);
+    if(ok){
+      /* aggiunta: il riquadro sparisce, cosi' non la si aggiunge due volte */
+      box.style.display = 'none';
+      box.textContent = '';
+      toast('✅ Aggiunta al registro.', 5000);
+    } else {
+      b.disabled = false;                  /* fallita: si puo' riprovare */
+    }
   });
   azioni.appendChild(b);
   box.appendChild(azioni);
@@ -2238,10 +2340,9 @@ function regProponiLocale(){
 function regDocumentoOrdine(){
   if(!REGISTRO.length){ toast('Non c’è ancora nessuna prenotazione.', 5000); return; }
 
-  const voci = regTotalePizze();
-  const speciali = regSpecialiTotali();
+  const rp = regRiepilogoPizze();
   const q = regTotaleQuote();
-  const sommaPizze = voci.reduce((s,v)=>s+v.importo,0);
+  const sommaPizze = rp.totaleImporto;
   const totaleGenerale = sommaPizze + q.importo;
 
   const titolo = (DATA.tema && DATA.tema.titoloFesta) || 'Festa';
@@ -2251,27 +2352,25 @@ function regDocumentoOrdine(){
   const incassato = REGISTRO.filter(p=>p.pagato).reduce((s,p)=>s+(Number(p.totale)||0),0);
   const previsto  = REGISTRO.reduce((s,p)=>s+(Number(p.totale)||0),0);
 
-  const bloccoSpeciali = speciali.length ? `
-    <div class="allerta">
-      <h2>⚠️ PIZZE SPECIALI — ALLERGIE E INTOLLERANZE</h2>
-      <p class="sotto">Da preparare separatamente, evitando la contaminazione. Verificare con la pizzeria.</p>
-      <table class="sp">
-        <thead><tr><th>Q.tà</th><th>Pizza</th><th>Richiesta</th><th>Per chi</th></tr></thead>
-        <tbody>${speciali.map(s => `<tr>
-          <td class="c"><b>${s.quantita}</b></td>
-          <td>${escHtml(s.nome)}</td>
-          <td class="forte">${escHtml(regEtichettaSpeciale(s.tipo))}</td>
-          <td>${escHtml(s.chi.join(', '))}</td></tr>`).join('')}
-        </tbody>
-      </table>
-    </div>` : '';
-
-  const righePizze = voci.map(v => `<tr>
+  /* Un solo elenco: prima le pizze normali, poi le speciali raggruppate e in
+     rosso, con la richiesta in grassetto e il nome di chi le ha chieste. */
+  const righeNormali = rp.normali.map(v => `<tr>
       <td class="c"><b>${v.quantita}</b></td>
       <td>${escHtml(v.nome)}</td>
       <td class="r">${escHtml(regEuro(v.prezzo))}</td>
       <td class="r">${escHtml(regEuro(v.importo))}</td>
     </tr>`).join('');
+
+  const righeSpeciali = rp.speciali.length ? `
+      <tr class="sep"><td colspan="4">⚠️ Da preparare separatamente, evitando la contaminazione — verificare con la pizzeria</td></tr>
+      ${rp.speciali.map(s => `<tr class="spr">
+        <td class="c"><b>${s.quantita}</b></td>
+        <td>${escHtml(s.nome)} — <b class="forte">${escHtml(regEtichettaSpeciale(s.tipo))}</b><br><small>per: ${escHtml(s.chi.join(', '))}</small></td>
+        <td class="r">${escHtml(regEuro(s.prezzo))}</td>
+        <td class="r">${escHtml(regEuro(s.importo))}</td>
+      </tr>`).join('')}` : '';
+
+  const righePizze = righeNormali + righeSpeciali;
 
   const righePagamenti = REGISTRO.slice()
     .sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'it'))
@@ -2288,14 +2387,12 @@ function regDocumentoOrdine(){
   <h1>🍕 Ordine per la pizzeria</h1>
   <p class="sub">${escHtml(titolo)}${ev ? ' · ' + escHtml(dataItaliana(ev)) : ''} · ${REGISTRO.length} prenotazioni · ${REGISTRO.reduce((s,p)=>s+regPartecipanti(p),0)} partecipanti</p>
 
-  ${bloccoSpeciali}
-
-  <h2>Pizze per tipologia</h2>
+  <h2>Pizze da preparare</h2>
   <table>
     <thead><tr><th style="width:12%">Q.tà</th><th>Pizza</th><th style="width:20%" class="r">Prezzo</th><th style="width:20%" class="r">Totale</th></tr></thead>
     <tbody>${righePizze}</tbody>
     <tfoot><tr>
-      <td class="c">${voci.reduce((s,v)=>s+v.quantita,0)}</td>
+      <td class="c">${rp.totaleQuantita}</td>
       <td>Totale pizze</td><td></td>
       <td class="r">${escHtml(regEuro(sommaPizze))}</td>
     </tr></tfoot>

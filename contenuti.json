@@ -175,14 +175,17 @@
     "scadenza": "2026-08-06",
     "orari": "in piscina, tutti i giorni dalle 10:00 alle 18:00",
     "istruzioni": "Porta l'importo del tuo voucher in contanti alla bagnina della piscina. La prenotazione è confermata solo dopo il pagamento: serve per ordinare le pizze in tempo.",
-    "nota": "Se non riesci entro la scadenza, avvisa gli organizzatori su WhatsApp."
+    "nota": "Se non riesci entro la scadenza, avvisa gli organizzatori."
   },
   "prenotazione": {
-    "whatsappNumero": "393277565727",
     "messaggioBase": "Ciao! Ecco la mia prenotazione per la Serata Pizza in Piscina del Residence Holiday.",
     "scadenza": "2026-08-06",
     "chiediAppartamento": true,
     "prefissoCodice": "RH"
+  },
+  "notifiche": {
+    "telegramBotToken": "",
+    "telegramChatId": ""
   },
   "regolamento": [
     "Prenotazione obbligatoria entro giovedì 6 agosto: le pizze vengono ordinate in base alle prenotazioni.",

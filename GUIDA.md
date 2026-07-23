@@ -52,16 +52,18 @@ Poi il sito genera il **voucher**, che contiene:
 - data, ora e luogo della festa,
 - il riquadro con **a chi e entro quando consegnare i soldi**.
 
-Il condomino ha tre pulsanti: **stampare il voucher**, **inviartelo su WhatsApp**,
-**inviarlo su Telegram**. Il messaggio è già scritto: deve solo premere invio.
+Appena conferma, la richiesta **viene inviata da sola al tuo Telegram** (vedi punto 7): il
+condomino non deve ricordarsi di mandarti niente. Poi ha i pulsanti per **stampare il
+voucher** e **«Ho finito»**, che gli chiarisce che può chiudere la pagina. Se l'invio
+automatico non è ancora attivo, compare un pulsante di ripiego per mandartelo a mano su
+Telegram.
 
 > La prenotazione resta salvata nel suo telefono: se riapre il sito ritrova il suo voucher
 > con il pulsante «Rivedi il voucher».
 
 ### La sera della festa
 All'ingresso fatti mostrare il voucher (stampato o sul telefono) e controlla il **codice**
-e il **nome**. Se hai un elenco delle prenotazioni ricevute su WhatsApp, ti basta spuntare
-il codice corrispondente.
+e il **nome**. Nel registro dell'admin puoi spuntare il codice corrispondente.
 
 ---
 
@@ -74,26 +76,38 @@ In alto cinque numeri, sempre aggiornati: quante prenotazioni sono arrivate, qua
 partecipanti, quante pizze in tutto, quanto hai **incassato** e quanto ti resta **da
 incassare**.
 
-### Registrare una prenotazione — tre modi
-Quando un condomino prenota, il suo messaggio WhatsApp contiene in fondo un **link**
-«Organizzatori, tocca qui per registrarla». Il modo più semplice:
+### Come ti arrivano le prenotazioni
+Quando un condomino conferma, la sua richiesta viene **inviata da sola al tuo Telegram**
+(vedi «Avvisi automatici» più sotto): non dipende dal fatto che si ricordi di premere
+qualcosa. Nel messaggio che ricevi c'è in fondo un **link** «Organizzatori, tocca qui per
+registrarla».
 
-1. **Tocca quel link** dal messaggio: si apre l'admin e la prenotazione entra da sola nel
-   registro. Aprilo sempre **dallo stesso dispositivo** dove tieni il registro.
+Per metterla nel registro:
 
-Se preferisci, restano gli altri due modi:
+1. **Tocca quel link** dal messaggio Telegram: si apre l'admin e la prenotazione entra da
+   sola nel registro. Aprilo sempre **dallo stesso dispositivo** dove tieni il registro.
+
+Se preferisci, restano gli altri modi:
 
 2. **Incolla il messaggio** — tienilo premuto, **Copia**, poi nell'admin incollalo nel
    riquadro grande e premi **📥 Leggi il messaggio e aggiungi**. Nome, telefono,
    appartamento, partecipanti, ordine, pizze speciali, quota e totale vengono letti da soli.
 3. **✍️ Aggiungi a mano** — per chi ti prenota a voce: scrivi nome e ordine (una riga per
    pizza, es. `2 x Margherita`) e i prezzi li prende dal menù. Con **⚠️ Esigenze
-   alimentari** aggiungi le pizze senza glutine, senza lattosio o entrambi.
+   alimentari** aggiungi le pizze senza glutine, senza lattosio o entrambe.
 
 > Se hai fatto tu una prenotazione di prova dal sito, riaprendo l'admin **dallo stesso
 > browser** compare in alto un riquadro verde che ti propone di aggiungerla al registro.
+> Dopo che l'hai aggiunta, il riquadro sparisce, così non la aggiungi due volte.
 
 Un messaggio già registrato non si duplica: il codice viene riconosciuto.
+
+### L'ordine per la pizzeria
+Con **🧾 Genera l'ordine per la pizzeria** ottieni un foglio da stampare o salvare in PDF
+con tutte le pizze per tipologia, quantità, prezzi e totale. Le **pizze speciali** (celiaci
+e/o intolleranti al lattosio) sono raggruppate in fondo all'elenco, in **rosso**, con la
+richiesta in grassetto e il nome di chi le ha chieste: consegna quel foglio alla pizzeria
+così com'è. In fondo c'è anche l'elenco di chi ha già versato la quota.
 
 ### Modificare, eliminare, recuperare
 Sotto ogni prenotazione:
@@ -186,33 +200,34 @@ lo inquadra con la fotocamera del telefono e prenota in un minuto.
 
 ---
 
-## 7. Avviso automatico sul gruppo Telegram
+## 7. Avvisi automatici Telegram (per ricevere le prenotazioni)
 
-Ogni volta che aggiorni i contenuti, un messaggio può partire da solo nel gruppo.
+È il pezzo che ti fa arrivare **da sole** le prenotazioni. Si imposta una volta.
 
 1. Su Telegram cerca **@BotFather**, scrivi `/newbot` e segui le istruzioni.
-   Alla fine ricevi un **token** del bot: copialo.
-2. Apri il tuo **gruppo Telegram** e **aggiungi il bot** ai membri, dandogli il permesso
-   di scrivere.
-3. Per sapere l'**id del gruppo**: aggiungi temporaneamente al gruppo il bot
-   **@RawDataBot** (o **@getidsbot**) e leggi il numero `id` del gruppo — inizia con
-   `-100...`. Poi puoi rimuoverlo.
-4. Su GitHub, nel repository `residence-holiday`:
-   **Settings → Secrets and variables → Actions → New repository secret**.
-   Crea due segreti:
-   - `TELEGRAM_BOT_TOKEN` = il token del bot
-   - `TELEGRAM_CHAT_ID` = l'id del gruppo (es. `-1001234567890`)
+   Alla fine ricevi un **token** del bot (tipo `123456789:AA...`): copialo.
+2. Decidi **dove** vuoi ricevere le prenotazioni:
+   - **sul tuo Telegram personale**: scrivi al bot **@userinfobot**, che ti risponde con il
+     tuo **Id** (un numero); poi apri una chat con il tuo bot e premi **Avvia/Start**, così
+     può scriverti;
+   - **in un gruppo**: crea il gruppo, **aggiungi il bot** e prendi l'id del gruppo (con
+     **@userinfobot** o **@RawDataBot**); inizia con `-100...`.
+3. Nell'admin apri **🔔 Avvisi automatici Telegram**, incolla **token** e **id**.
+4. Premi **✈️ Invia un messaggio di prova**: se su Telegram arriva, è tutto a posto.
+   Poi premi **🚀 Pubblica online** per attivarlo sul sito.
 
-Fatto. Da quel momento ogni «Pubblica online» manda l'avviso al gruppo. Puoi anche
-inviarlo a mano da **Actions → «Avviso Telegram festa» → Run workflow**.
+Da quel momento, ogni volta che un condomino conferma, la richiesta ti arriva su Telegram
+con tutti i dettagli e il link per registrarla.
 
-> Finché non metti i due segreti non succede nulla di male: il sistema si accorge che
-> mancano e non invia niente, senza dare errori.
+> **⚠️ Nota di sicurezza.** Il token finisce nel sito, che è pubblico: chi è pratico
+> potrebbe leggerlo. Per una festa tra condomini è un rischio minimo, ma **usa un bot
+> dedicato solo a questo**. Se un giorno qualcuno ne abusa, chiedi a BotFather un nuovo
+> token e rimettilo nell'admin.
 
-### E su WhatsApp?
-L'invio **automatico** su WhatsApp non è gratuito (serve la WhatsApp Business API).
-Per un gruppo di condomini conviene il pulsante **«Passa parola → WhatsApp»** in fondo al
-sito: apre il messaggio già pronto, lo mandi al gruppo con un tocco.
+### E l'avviso quando aggiorni i contenuti?
+C'è anche un avviso automatico che parte quando cambi i contenuti della festa (file
+`.github/workflows/telegram.yml`), utile per annunciare novità. È indipendente dalle
+prenotazioni, usa i *secrets* di GitHub e, se non lo configuri, semplicemente non fa nulla.
 
 ---
 
@@ -238,16 +253,16 @@ computer invece che online: dimmelo e lo sistemiamo.
 
 **Un condomino non paga entro la scadenza.**
 La prenotazione non è confermata: le pizze si ordinano in base a chi ha pagato. Il voucher
-lo dice chiaramente, e nel riquadro «Come si paga» c'è scritto di avvisarti su WhatsApp se
-non riesce in tempo. Puoi sempre spostare la scadenza dall'admin, sezione *Pagamento*.
+lo dice chiaramente, e nel riquadro «Come si paga» c'è scritto di avvisare gli organizzatori
+se non riesce in tempo. Puoi sempre spostare la scadenza dall'admin, sezione *Pagamento*.
 
 **Qualcuno vuole cambiare l'ordine.**
-Basta che rifaccia la prenotazione dal sito (pulsante «Nuova prenotazione») e ti mandi il
-nuovo voucher: fa fede l'ultimo codice che ti arriva.
+Può rifare la prenotazione dal sito (pulsante «Nuova prenotazione»): ti arriva la nuova, e
+fa fede l'ultimo codice. Oppure la modifichi tu direttamente nel registro con **✏️ Modifica**.
 
 **Ha perso il voucher.**
 Se riapre il sito dallo stesso telefono lo ritrova con «Rivedi il voucher». Altrimenti ce
-l'hai tu nella chat WhatsApp.
+l'hai tu nel registro dell'admin (e nel messaggio che ti è arrivato su Telegram).
 
 **Piove.**
 Decidi tu cosa fare e avvisa i condomini: puoi aggiungere una riga dall'admin, sezione

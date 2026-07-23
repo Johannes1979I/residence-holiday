@@ -400,8 +400,32 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
   border-radius:12px; padding:11px;
 }
 .v-piede{ margin-top:14px; text-align:center; font-size:.8rem; color:var(--muted); }
-.azioni-voucher{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:22px; }
+
+/* esito dell'invio automatico agli organizzatori */
+.stato-invio{
+  margin-top:18px; border-radius:14px; padding:14px 16px; font-weight:bold;
+  text-align:center; font-size:1rem; display:none;
+}
+.stato-invio.visibile{ display:block; }
+.stato-invio.in-corso{ background:rgba(42,171,238,.12); border:1px solid rgba(42,171,238,.5); color:#0d6a8f; }
+.stato-invio.ok{ background:rgba(37,184,120,.14); border:1px solid rgba(37,184,120,.55); color:#136c3b; }
+.stato-invio.ko{ background:rgba(255,183,3,.16); border:1px solid rgba(255,140,0,.55); color:#7a4d00; }
+.stato-invio .grande{ display:block; font-size:1.12rem; margin-bottom:3px; }
+.stato-invio .piccolo{ display:block; font-weight:normal; font-size:.9rem; margin-top:4px; opacity:.9; }
+
+.azioni-voucher{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:18px; }
 .azioni-voucher .btn{ flex:1 1 210px; }
+
+/* schermata di chiusura dopo "Ho finito" */
+.fatto{
+  display:none; text-align:center; background:#fff; color:var(--ink);
+  border-radius:var(--radius); max-width:620px; margin:0 auto; padding:34px 26px; box-shadow:var(--shadow);
+}
+.fatto.visibile{ display:block; }
+.fatto .faccia{ font-size:3rem; }
+.fatto h3{ font-size:1.5rem; margin:8px 0 6px; }
+.fatto p{ color:var(--muted); margin-bottom:8px; }
+.fatto .codice-grande{ font-weight:bold; color:var(--c1); letter-spacing:2px; font-size:1.2rem; font-family:"Courier New",monospace; }
 
 /* --------------------------- condividi --------------------------- */
 .condividi{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; align-items:center; margin-top:26px; }
@@ -692,19 +716,35 @@ footer .servizio a:hover{ opacity:1; }
           </div>
         </div>
 
+        <!-- esito dell'invio automatico agli organizzatori -->
+        <div class="stato-invio" id="statoInvio"></div>
+
+        <!-- ripiego: compare solo se l'invio automatico non è possibile -->
+        <a href="#" class="btn btn-tg" id="btnTelegramFallback" target="_blank" rel="noopener" style="display:none">✈️ Invia tu la prenotazione su Telegram</a>
+
         <div class="azioni-voucher">
-          <button type="button" class="btn btn-scuro" id="btnStampaVoucher">🖨️ Stampa il voucher</button>
-          <a href="#" class="btn btn-wa" id="btnWhatsApp" target="_blank" rel="noopener">📲 Invia su WhatsApp</a>
-          <a href="#" class="btn btn-tg" id="btnTelegram" target="_blank" rel="noopener">✈️ Invia su Telegram</a>
+          <button type="button" class="btn btn-scuro" id="btnStampaVoucher">🖨️ Stampa / salva il voucher</button>
+          <button type="button" class="btn btn-p" id="btnFine">✅ Ho finito, chiudi</button>
           <button type="button" class="btn btn-chiaro" id="btnNuova">➕ Nuova prenotazione</button>
+        </div>
+      </div>
+
+      <!-- schermata finale: chiarisce che la prenotazione è già stata inviata -->
+      <div class="fatto" id="schermataFine">
+        <div class="faccia">🎉</div>
+        <h3>Prenotazione completata!</h3>
+        <p>La tua richiesta è stata inviata agli organizzatori. Non devi fare altro: puoi chiudere questa pagina.</p>
+        <p>Il tuo codice è <span class="codice-grande" id="fineCodice"></span> — ricordati di consegnare la quota in tempo.</p>
+        <div class="azioni-voucher">
+          <button type="button" class="btn btn-scuro" id="btnRiapri">👈 Rivedi il voucher</button>
+          <button type="button" class="btn btn-chiaro" id="btnNuova2">➕ Nuova prenotazione</button>
         </div>
       </div>
     </div>
 
     <div class="condividi">
-      <span class="et">Passa parola:</span>
-      <a href="#" class="btn btn-wa btn-piccolo" id="condWa" target="_blank" rel="noopener">WhatsApp</a>
-      <a href="#" class="btn btn-tg btn-piccolo" id="condTg" target="_blank" rel="noopener">Telegram</a>
+      <span class="et">Fai girare la voce:</span>
+      <a href="#" class="btn btn-tg btn-piccolo" id="condTg" target="_blank" rel="noopener">Condividi su Telegram</a>
     </div>
   </div>
 </section>
@@ -736,7 +776,8 @@ var RISERVA = {
   evento:{ data:"", orario:"20:00", orarioFine:"", luogo:"", descrizione:"", dressCode:"", postiTotali:0 },
   menu:{ descrizione:"", avviso:"", copertoPersona:0, copertoEtichetta:"", copertoEmoji:"🛟", copertoNota:"", categorie:[] },
   pagamento:{ attivo:false, titolo:"Come si paga", referente:"", scadenza:"", orari:"", istruzioni:"", nota:"" },
-  prenotazione:{ whatsappNumero:"", messaggioBase:"", scadenza:"", chiediAppartamento:true, prefissoCodice:"RH" },
+  prenotazione:{ messaggioBase:"", scadenza:"", chiediAppartamento:true, prefissoCodice:"RH" },
+  notifiche:{ telegramBotToken:"", telegramChatId:"" },
   regolamento:[], foto:[],
   condivisione:{ urlSito:"", linkGruppoTelegram:"", linkGruppoWhatsApp:"" },
   contatti:{ organizzatore:"", telefono:"", email:"" },
@@ -1676,6 +1717,12 @@ function mostraVoucher(){
   $('pannelloPassi').style.display = 'none';
   $('areaVoucher').className = 'visibile';
   $('giaPrenotato').className = 'gia-prenotato';
+  $('schermataFine').className = 'fatto';           /* nascondi l'eventuale schermata di chiusura */
+  $('voucher').style.display = '';
+  var azV = document.querySelector('#areaVoucher .azioni-voucher');
+  if(azV) azV.style.display = '';
+  $('statoInvio').className = 'stato-invio';         /* azzera l'esito precedente */
+  $('btnTelegramFallback').style.display = 'none';
 
   testo('vCasa', (V(res.emoji, '🌴') + ' ' + V(res.nome, '')).trim());
   testo('vTitolo', V(tema.titoloFesta, 'Festa in piscina'));
@@ -1860,19 +1907,79 @@ function componiMessaggio(p){
   return r.join('\n');
 }
 
+/* Invia la prenotazione agli organizzatori. Prima prova l'invio automatico al
+   Telegram degli organizzatori (bot). Se non e' configurato o fallisce, mostra
+   un pulsante di ripiego perche' la mandi la persona stessa: cosi' la richiesta
+   non va comunque persa. */
 function preparaBottoniInvio(p){
-  var pren = V(DATI.prenotazione, {}), cond = V(DATI.condivisione, {});
+  var cond = V(DATI.condivisione, {});
   var messaggio = componiMessaggio(p);
-  var numero = String(V(pren.whatsappNumero, '')).replace(/\D/g, '');
 
-  $('btnWhatsApp').href = 'https://wa.me/' + numero + '?text=' + encodeURIComponent(messaggio);
-
-  /* Telegram: se c'e' il gruppo si apre quello, altrimenti la finestra di
-     condivisione dove si sceglie il destinatario. */
+  /* ripiego: finestra di condivisione Telegram gia' pronta */
   var sito = V(cond.urlSito, location.href.split('#')[0]);
-  $('btnTelegram').href = cond.linkGruppoTelegram
+  $('btnTelegramFallback').href = cond.linkGruppoTelegram
     ? String(cond.linkGruppoTelegram)
     : 'https://t.me/share/url?url=' + encodeURIComponent(sito) + '&text=' + encodeURIComponent(messaggio);
+
+  inviaTelegramAuto(p, messaggio);
+}
+
+function statoInvio(classe, testoGrande, testoPiccolo){
+  var el = $('statoInvio');
+  el.textContent = '';
+  el.className = 'stato-invio visibile ' + classe;
+  var g = document.createElement('span'); g.className = 'grande'; g.textContent = testoGrande;
+  el.appendChild(g);
+  if(testoPiccolo){
+    var s = document.createElement('span'); s.className = 'piccolo'; s.textContent = testoPiccolo;
+    el.appendChild(s);
+  }
+}
+
+function mostraRipiego(){
+  $('btnTelegramFallback').style.display = '';
+}
+
+function inviaTelegramAuto(p, messaggio){
+  var n = V(DATI.notifiche, {});
+  var token = String(V(n.telegramBotToken, '')).trim();
+  var chat  = String(V(n.telegramChatId, '')).trim();
+
+  /* gia' inviata in una sessione precedente: non la reinvio */
+  if(p.inviata){
+    statoInvio('ok', '✅ Prenotazione già inviata agli organizzatori');
+    return;
+  }
+  if(!token || !chat){
+    statoInvio('ko', '⚠️ Invio automatico non ancora attivo',
+      'Tocca il pulsante qui sotto per mandare tu la prenotazione agli organizzatori.');
+    mostraRipiego();
+    return;
+  }
+
+  statoInvio('in-corso', '⏳ Sto inviando la prenotazione agli organizzatori…');
+  fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({ chat_id: chat, text: messaggio, disable_web_page_preview:true })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(j){
+    if(j && j.ok){
+      statoInvio('ok', '✅ Prenotazione inviata agli organizzatori!',
+        'È tutto a posto: conserva il voucher e consegna la quota in tempo.');
+      p.inviata = true;
+      memScrivi(CHIAVE_MEM, JSON.stringify(p));
+      if(prenotazioneFatta) prenotazioneFatta.inviata = true;
+    } else {
+      throw new Error((j && j.description) || 'risposta non valida');
+    }
+  })
+  .catch(function(){
+    statoInvio('ko', '⚠️ Non sono riuscito a inviarla da solo',
+      'Nessun problema: tocca il pulsante qui sotto per mandarla tu agli organizzatori.');
+    mostraRipiego();
+  });
 }
 
 /* ------------------------ prenotazione gia' salvata ------------------------ */
@@ -1906,6 +2013,12 @@ function nuovaPrenotazione(){
   $('avvisoPizze').className = 'avvisino';
   $('giaPrenotato').className = 'gia-prenotato';
   $('areaVoucher').className = '';
+  $('schermataFine').className = 'fatto';
+  $('voucher').style.display = '';
+  var azN = document.querySelector('#areaVoucher .azioni-voucher');
+  if(azN) azN.style.display = '';
+  $('statoInvio').className = 'stato-invio';
+  $('btnTelegramFallback').style.display = 'none';
   $('pannelloPassi').style.display = '';
   costruisciElenco('elencoCibo', 'cibo');
   costruisciElenco('elencoBevande', 'bevanda');
@@ -1923,9 +2036,6 @@ function preparaCondivisione(){
                  ' — ' + dataIt(ev.data) + (ev.orario ? ' ore ' + ev.orario : '') +
                  '! Info, menù e prenotazioni qui:';
 
-  $('condWa').href = cond.linkGruppoWhatsApp
-    ? String(cond.linkGruppoWhatsApp)
-    : 'https://wa.me/?text=' + encodeURIComponent(testoMsg + ' ' + sito);
   $('condTg').href = cond.linkGruppoTelegram
     ? String(cond.linkGruppoTelegram)
     : 'https://t.me/share/url?url=' + encodeURIComponent(sito) + '&text=' + encodeURIComponent(testoMsg);
@@ -1947,8 +2057,25 @@ $('fNote').addEventListener('input', function(){ testo('contaNote', String($('fN
 
 $('btnStampaVoucher').addEventListener('click', function(){ window.print(); });
 $('btnNuova').addEventListener('click', nuovaPrenotazione);
+$('btnNuova2').addEventListener('click', nuovaPrenotazione);
 $('btnCancella').addEventListener('click', nuovaPrenotazione);
 $('btnRivedi').addEventListener('click', function(){ mostraVoucher(); });
+
+/* "Ho finito": nasconde il voucher e mostra la schermata di chiusura, cosi' e'
+   chiaro che la prenotazione e' gia' stata inviata e si puo' chiudere la pagina. */
+$('btnFine').addEventListener('click', function(){
+  $('voucher').style.display = 'none';
+  $('statoInvio').className = 'stato-invio';
+  $('btnTelegramFallback').style.display = 'none';
+  document.querySelector('#areaVoucher .azioni-voucher').style.display = 'none';
+  testo('fineCodice', prenotazioneFatta ? prenotazioneFatta.codice : '');
+  $('schermataFine').className = 'fatto visibile';
+  $('schermataFine').scrollIntoView({ behavior:'smooth', block:'center' });
+});
+$('btnRiapri').addEventListener('click', function(){
+  document.querySelector('#areaVoucher .azioni-voucher').style.display = '';
+  mostraVoucher();
+});
 
 /* Invio da tastiera nei campi del passo 1: passa al passo successivo. */
 ['fNome','fTel','fApp'].forEach(function(id){
