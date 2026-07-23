@@ -491,15 +491,23 @@ function disegna(d){
   const localita = V(res.localita, '');
   set('t-localita', localita ? '📍 ' + localita : '');
 
+  /* Testi propri di QUESTA locandina: se il campo è vuoto si usa il testo
+     comune (fallback). "variante" distingue classica/tramonto. */
+  const variante = 'classica';
+  const T = (campo, fallback) => {
+    const v = ((loc[variante] || {})[campo]);
+    return (v !== undefined && String(v).trim() !== '') ? v : fallback;
+  };
+
   /* claim + titolo + tema */
-  set('t-claim', V(loc.claim, 'Tutti in piscina!'));
-  set('t-titolo', V(tema.titoloFesta, 'Festa in piscina'));
+  set('t-claim', T('claim', V(loc.claim, 'Tutti in piscina!')));
+  set('t-titolo', T('titolo', V(tema.titoloFesta, 'Festa in piscina')));
   const nomeTema = V(tema.nomeTema, '');
   const elTema = set('t-tema', nomeTema);
   if(elTema && !nomeTema) elTema.style.display = 'none';
 
   /* banda fotografica */
-  set('t-sottotitolo', V(tema.sottotitolo, ''));
+  set('t-sottotitolo', T('sottotitolo', V(tema.sottotitolo, '')));
   const foto = String(loc.fotoClassica || (Array.isArray(d.foto) && d.foto.length ? d.foto[0] : 'images/piscina-vasca.jpg'));
   const img = document.getElementById('t-foto');
   img.addEventListener('error', function(){ img.style.display = 'none'; }); /* resta la banda scura */
@@ -543,8 +551,8 @@ function disegna(d){
   set('t-url', url.replace(/^https?:\/\//, ''));
 
   /* istruzioni, scadenza delle prenotazioni, WhatsApp */
-  set('t-istruzioni', V(loc.istruzioniQr,
-      'Inquadra il QR con la fotocamera del telefono per vedere il menù e prenotare'));
+  set('t-istruzioni', T('istruzioniQr', V(loc.istruzioniQr,
+      'Inquadra il QR con la fotocamera del telefono per vedere il menù e prenotare')));
 
   const scad = dataIt(pren.scadenza, { weekday:'long', day:'numeric', month:'long' });
   set('t-scadenza', scad ? ('Prenota entro ' + scad) : 'Prenota il prima possibile');
@@ -564,7 +572,7 @@ function disegna(d){
   if(!tel) document.getElementById('p-whatsapp').style.display = 'none';
 
   /* piede */
-  const nota = V(loc.nota, '');
+  const nota = T('nota', V(loc.nota, ''));
   const elNota = set('t-nota', nota);
   if(elNota && !nota) elNota.style.display = 'none';
   set('t-saluto', 'Ci vediamo in piscina! 🏊‍♀️🍕 · ' + V(res.nome, ''));

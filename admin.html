@@ -151,6 +151,9 @@
   .loc-foto-testa b{font-size:.98rem}
   .loc-foto-azioni{display:flex;align-items:center;gap:12px;margin-top:8px}
   .loc-foto-antep{width:120px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #ccd;background:#eef}
+  .loc-testi{margin-top:10px;border-top:1px dashed #cfe6ec;padding-top:8px}
+  .loc-testi summary{cursor:pointer;font-weight:bold;color:var(--c2);font-size:.9rem}
+  .loc-testi label{font-size:.82rem;margin-top:8px}
   .loc-foto-antep:not([src]){display:none}
   label.check{display:flex;align-items:center;gap:10px;font-weight:normal;background:#f6fcfe;border:1px solid #cfe6ec;border-radius:10px;padding:11px 13px;margin:6px 0;cursor:pointer}
   label.check input{width:20px;height:20px;flex:0 0 auto;accent-color:var(--c2)}
@@ -827,6 +830,15 @@
           <input type="file" id="l_fileClassica" accept="image/*" style="display:none" />
           <img class="loc-foto-antep" id="l_antepClassica" alt="" />
         </div>
+        <details class="loc-testi">
+          <summary>✍️ Testi solo per questa locandina</summary>
+          <p class="hint">Lascia <b>vuoto</b> un campo per usare il testo comune (in alto). Compila solo ciò che vuoi diverso in questa versione.</p>
+          <label>Frase a effetto (claim)</label><input id="lc_claim" />
+          <label>Titolo</label><input id="lc_titolo" />
+          <label>Sottotitolo</label><input id="lc_sub" />
+          <label>Istruzioni QR</label><input id="lc_qr" />
+          <label>Nota in fondo</label><input id="lc_nota" />
+        </details>
       </div>
 
       <div class="loc-foto">
@@ -848,6 +860,15 @@
           <option value="center 70%">Basso</option>
         </select>
         <p class="hint">Se la foto ha un volto o un soggetto in alto, scegli “Alto” per non tagliarlo.</p>
+        <details class="loc-testi">
+          <summary>✍️ Testi solo per questa locandina</summary>
+          <p class="hint">Lascia <b>vuoto</b> un campo per usare il testo comune (in alto). Compila solo ciò che vuoi diverso in questa versione.</p>
+          <label>Frase a effetto (claim)</label><input id="lt_claim" />
+          <label>Titolo</label><input id="lt_titolo" />
+          <label>Sottotitolo</label><input id="lt_sub" />
+          <label>Istruzioni QR</label><input id="lt_qr" />
+          <label>Nota in fondo</label><input id="lt_nota" />
+        </details>
       </div>
 
       <div class="toolbar" style="justify-content:flex-start">
@@ -958,7 +979,9 @@ function schemaVuoto(){
     foto:[],
     condivisione:{ urlSito:"", linkGruppoTelegram:"", linkGruppoWhatsApp:"" },
     contatti:{ organizzatore:"", telefono:"", email:"" },
-    locandina:{ claim:"", istruzioniQr:"", nota:"", fotoClassica:"", fotoTramonto:"", fotoTramontoPos:"center 30%" },
+    locandina:{ claim:"", istruzioniQr:"", nota:"", fotoClassica:"", fotoTramonto:"", fotoTramontoPos:"center 30%",
+      classica:{ claim:"", titolo:"", sottotitolo:"", istruzioniQr:"", nota:"" },
+      tramonto:{ claim:"", titolo:"", sottotitolo:"", istruzioniQr:"", nota:"" } },
     stile:{}
   };
 }
@@ -1192,6 +1215,11 @@ function riempi(){
   $('l_fotoClassica').value = lo.fotoClassica||"";
   $('l_fotoTramonto').value = lo.fotoTramonto||"";
   $('l_posTramonto').value  = lo.fotoTramontoPos||"center 30%";
+  const lcl = lo.classica||{}, ltr = lo.tramonto||{};
+  $('lc_claim').value  = lcl.claim||"";  $('lc_titolo').value = lcl.titolo||"";
+  $('lc_sub').value    = lcl.sottotitolo||"";  $('lc_qr').value = lcl.istruzioniQr||"";  $('lc_nota').value = lcl.nota||"";
+  $('lt_claim').value  = ltr.claim||"";  $('lt_titolo').value = ltr.titolo||"";
+  $('lt_sub').value    = ltr.sottotitolo||"";  $('lt_qr').value = ltr.istruzioniQr||"";  $('lt_nota').value = ltr.nota||"";
   aggiornaAntepLoc();
 
   $('categorie').textContent = "";
@@ -1570,7 +1598,15 @@ function collect(){
     nota:          $('l_nota').value.trim(),
     fotoClassica:  $('l_fotoClassica').value.trim(),
     fotoTramonto:  $('l_fotoTramonto').value.trim(),
-    fotoTramontoPos: $('l_posTramonto').value
+    fotoTramontoPos: $('l_posTramonto').value,
+    classica: {
+      claim: $('lc_claim').value.trim(), titolo: $('lc_titolo').value.trim(),
+      sottotitolo: $('lc_sub').value.trim(), istruzioniQr: $('lc_qr').value.trim(), nota: $('lc_nota').value.trim()
+    },
+    tramonto: {
+      claim: $('lt_claim').value.trim(), titolo: $('lt_titolo').value.trim(),
+      sottotitolo: $('lt_sub').value.trim(), istruzioniQr: $('lt_qr').value.trim(), nota: $('lt_nota').value.trim()
+    }
   });
 
   d.stile = raccogliAspetto();

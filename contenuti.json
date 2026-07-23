@@ -297,6 +297,20 @@
     "nota": "Prenotazioni entro domenica 2 agosto — quota da consegnare alla bagnina",
     "fotoClassica": "images/piscina-vasca.jpg",
     "fotoTramonto": "images/festa-lungomare.jpg",
-    "fotoTramontoPos": "center 30%"
+    "fotoTramontoPos": "center 30%",
+    "classica": {
+      "claim": "",
+      "titolo": "",
+      "sottotitolo": "",
+      "istruzioniQr": "",
+      "nota": ""
+    },
+    "tramonto": {
+      "claim": "",
+      "titolo": "",
+      "sottotitolo": "",
+      "istruzioniQr": "",
+      "nota": ""
+    }
   }
 }
