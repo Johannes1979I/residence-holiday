@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#12b6c9" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌴</text></svg>" />
 <script src="qr.js"></script>
+<script src="firebase.js"></script>
 <style>
 /* =========================================================================
    Sito festa in piscina — Residence Holiday
@@ -621,7 +622,7 @@ footer .servizio a:hover{ opacity:1; }
         <div class="passo" id="passo2">
           <h3>🍕 Scegli le pizze</h3>
           <p class="guida">Usa i pulsanti + e − per indicare quante ne vuoi. Il totale si aggiorna da solo.</p>
-          <div class="nota-salute">
+          <div class="nota-salute" id="notaSalute">
             <b>⚠️ Allergie e intolleranze.</b> Quando scegli una pizza compare la riga per indicare
             quante devono essere <b>senza glutine (celiaci)</b> o <b>senza lattosio</b>.
             Segnalalo qui: la richiesta arriva alla pizzeria insieme all'ordine.
@@ -764,7 +765,7 @@ var RISERVA = {
   tema:{ titoloFesta:"Festa in Piscina", sottotitolo:"", nomeTema:"Festa",
          colorePrimario:"#e63946", coloreSecondario:"#12b6c9", coloreAccento:"#ffd23f" },
   evento:{ data:"", orario:"20:00", orarioFine:"", luogo:"", descrizione:"", dressCode:"", postiTotali:0 },
-  menu:{ descrizione:"", avviso:"", copertoPersona:0, copertoEtichetta:"", copertoEmoji:"🛟", copertoNota:"", categorie:[] },
+  menu:{ descrizione:"", avviso:"", copertoPersona:0, copertoEtichetta:"", copertoEmoji:"🛟", copertoNota:"", speciali:{ glutine:true, lattosio:true }, categorie:[] },
   pagamento:{ attivo:false, titolo:"Come si paga", referente:"", scadenza:"", orari:"", istruzioni:"", nota:"" },
   prenotazione:{ messaggioBase:"", scadenza:"", chiediAppartamento:true, prefissoCodice:"RH" },
   notifiche:{ telegramBotToken:"", telegramChatId:"" },
@@ -915,6 +916,12 @@ function disegna(){
   var posti = Number(ev.postiTotali) || 0;
   testo('sPosti', posti > 0 ? ' · posti disponibili: ' + posti : '');
 
+  /* collega il database cloud, se configurato */
+  var cloud = V(DATI.cloud, {});
+  if(window.FB && cloud.firebaseApiKey && cloud.firebaseProjectId){
+    FB.cfg(cloud.firebaseApiKey, cloud.firebaseProjectId);
+  }
+
   disegnaGalleria(foto, V(res.nome, 'Residence'));
   disegnaMenu(menu);
   disegnaPagamento();
@@ -924,6 +931,44 @@ function disegna(){
   disegnaPiede();
   avviaConto(ev);
   controllaPrenotazioneSalvata();
+}
+
+/* Costruisce l'oggetto-prenotazione completo (lo stesso formato che usa il
+   registro dell'admin) a partire dai dati inseriti. */
+function oggettoPrenotazione(p){
+  var c = p.conto;
+  var speciali = [];
+  (c.speciali || []).forEach(function(r){
+    if(r.entrambi > 0) speciali.push({ quantita:r.entrambi, nome:r.nome, tipo:'entrambi' });
+    if(r.celiaci > 0)  speciali.push({ quantita:r.celiaci, nome:r.nome, tipo:'glutine' });
+    if(r.lattosio > 0) speciali.push({ quantita:r.lattosio, nome:r.nome, tipo:'lattosio' });
+  });
+  return {
+    codice: p.codice, nome: p.nome, telefono: p.telefono,
+    appartamento: p.appartamento || '',
+    adulti: p.adulti, bambini: p.bambini,
+    righe: (c.righe || []).map(function(r){ return { quantita:r.quantita, nome:r.nome, importo:r.importo }; }),
+    speciali: speciali,
+    coperto: c.coperto, totale: c.totale,
+    note: p.note || '', pagato: false,
+    ricevutoIl: new Date().toISOString()
+  };
+}
+
+/* Salva la prenotazione nel database cloud (Firestore). Ritorna una Promise
+   true/false. Non blocca nulla: se il cloud non e' configurato o fallisce,
+   resta comunque l'invio Telegram. */
+function salvaSuCloud(p){
+  if(!window.FB || !FB.attivo() || p.salvataCloud) return Promise.resolve(false);
+  var b = oggettoPrenotazione(p);
+  return FB.creaPrenotazione({
+    nome: b.nome, codice: b.codice, stato: 'attiva',
+    creatoIl: b.ricevutoIl, json: JSON.stringify(b)
+  }).then(function(){
+    p.salvataCloud = true;
+    memScrivi(CHIAVE_MEM, JSON.stringify(p));
+    return true;
+  }).catch(function(){ return false; });
 }
 
 /* ------------------------------ galleria ------------------------------ */
@@ -1090,6 +1135,9 @@ function preparaPrenotazione(){
   var pren = V(DATI.prenotazione, {});
   $('bloccoAppartamento').style.display = (pren.chiediAppartamento === false) ? 'none' : '';
 
+  /* la nota su allergie/intolleranze compare solo se almeno un'opzione è attiva */
+  if($('notaSalute')) $('notaSalute').style.display = opzioniSpeciali().length ? '' : 'none';
+
   costruisciElenco('elencoCibo', 'cibo');
   costruisciElenco('elencoBevande', 'bevanda');
 
@@ -1174,14 +1222,32 @@ function rigaVoce(cat, v, ic, iv){
   cont.appendChild(meno); cont.appendChild(q); cont.appendChild(piu);
   riga.appendChild(cont);
   scatola.appendChild(riga);
-  scatola.appendChild(rigaSpeciali(chiave, V(v.nome, '')));
+  var rs = rigaSpeciali(chiave, V(v.nome, ''));
+  if(rs) scatola.appendChild(rs);
   return scatola;
 }
 
 /* Sottoriga delle esigenze alimentari. Resta nascosta finche' la pizza non
    viene scelta: cosi' l'elenco non si appesantisce, ma la scelta compare
    esattamente nel momento in cui serve. */
+/* Quali opzioni per allergie/intolleranze mostrare, in base alle spunte
+   dell'admin. "entrambi" (senza glutine E senza lattosio) compare solo se sono
+   attive tutte e due. Se il campo manca, si comportano come attive (retrocomp.). */
+function opzioniSpeciali(){
+  var s = (V(DATI.menu, {}).speciali) || {};
+  var glutine  = (s.glutine  === undefined) ? true : !!s.glutine;
+  var lattosio = (s.lattosio === undefined) ? true : !!s.lattosio;
+  var out = [];
+  if(glutine)  out.push(['celiaci',  '🌾 Senza glutine', 'per celiaci']);
+  if(lattosio) out.push(['lattosio', '🥛 Senza lattosio', 'per intolleranti al lattosio']);
+  if(glutine && lattosio) out.push(['entrambi', '🌾🥛 Senza glutine e senza lattosio', 'per chi è celiaco e anche intollerante']);
+  return out;
+}
+
 function rigaSpeciali(chiave, nomeVoce){
+  var opzioni = opzioniSpeciali();
+  if(!opzioni.length) return null;   /* nessuna opzione attiva: niente riga */
+
   var box = document.createElement('div');
   box.className = 'speciali';
   box.setAttribute('data-speciali', chiave);
@@ -1191,10 +1257,7 @@ function rigaSpeciali(chiave, nomeVoce){
   tit.textContent = '⚠️ Esigenze alimentari — di queste ' + nomeVoce.toLowerCase() + ':';
   box.appendChild(tit);
 
-  [['celiaci',  '🌾 Senza glutine', 'per celiaci'],
-   ['lattosio', '🥛 Senza lattosio', 'per intolleranti al lattosio'],
-   ['entrambi', '🌾🥛 Senza glutine e senza lattosio', 'per chi è celiaco e anche intollerante']
-  ].forEach(function(t){
+  opzioni.forEach(function(t){
     var tipo = t[0];
     var riga = document.createElement('div');
     riga.className = 'scelta';
@@ -1230,10 +1293,12 @@ function rigaSpeciali(chiave, nomeVoce){
   troppe.className = 'troppe';
   box.appendChild(troppe);
 
-  var avv = document.createElement('p');
-  avv.className = 'avvertenza';
-  avv.textContent = 'Chi è celiaco e anche intollerante al lattosio usi la terza riga: la pizza sarà senza glutine e senza lattosio insieme.';
-  box.appendChild(avv);
+  if(opzioni.some(function(o){ return o[0] === 'entrambi'; })){
+    var avv = document.createElement('p');
+    avv.className = 'avvertenza';
+    avv.textContent = 'Chi è celiaco e anche intollerante al lattosio usi la terza riga: la pizza sarà senza glutine e senza lattosio insieme.';
+    box.appendChild(avv);
+  }
 
   return box;
 }
@@ -1965,6 +2030,7 @@ function nuovaPrenotazione(){
   var azN = document.querySelector('#areaVoucher .azioni-voucher');
   if(azN) azN.style.display = '';
   $('pannelloPassi').style.display = '';
+  if($('notaSalute')) $('notaSalute').style.display = opzioniSpeciali().length ? '' : 'none';
   costruisciElenco('elencoCibo', 'cibo');
   costruisciElenco('elencoBevande', 'bevanda');
   aggiornaPersone();
@@ -2031,7 +2097,10 @@ $('btnFine').addEventListener('click', function(){
   }
 
   if(!p){ mostraFine(false); return; }
-  inviaPrenotazioneTelegram(p).then(mostraFine);
+  /* in parallelo: avviso Telegram + salvataggio nel registro cloud */
+  Promise.all([ inviaPrenotazioneTelegram(p), salvaSuCloud(p) ]).then(function(esiti){
+    mostraFine(esiti[0] || esiti[1]);
+  });
 });
 $('btnRiapri').addEventListener('click', function(){
   document.querySelector('#areaVoucher .azioni-voucher').style.display = '';

@@ -29,6 +29,10 @@
     "copertoEtichetta": "Quota assistenza in piscina",
     "copertoEmoji": "🛟",
     "copertoNota": "Anche di sera la nostra bagnina Aurora resta in servizio, per la sicurezza dei grandi e soprattutto dei bambini. I 3 € a persona coprono la sua presenza per tutta la durata della festa: un piccolo contributo che ci permette di goderci la serata in tranquillità.",
+    "speciali": {
+      "glutine": true,
+      "lattosio": true
+    },
     "categorie": [
       {
         "id": "rosse",
@@ -186,6 +190,10 @@
   "notifiche": {
     "telegramBotToken": "8857816817:AAEAO2_SADgpDs4aUTMOuoCmQWclxtgxOGs",
     "telegramChatId": "1992022292"
+  },
+  "cloud": {
+    "firebaseApiKey": "AIzaSyCB1Opg-CGCPTx4JDl7QNPYHMHVChYnHcw",
+    "firebaseProjectId": "residence-holiday-ef6e9"
   },
   "regolamento": [
     "Prenotazione obbligatoria entro giovedì 6 agosto: le pizze vengono ordinate in base alle prenotazioni.",

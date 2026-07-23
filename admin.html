@@ -141,6 +141,13 @@
   .reg-allerta-forte b{display:block;margin-bottom:5px;letter-spacing:.5px}
   .reg-privacy{background:#fff8e6;border:1px solid var(--c3);border-radius:12px;padding:13px 15px;font-size:.85rem;line-height:1.5}
   .reg-vuoto{color:var(--muted);font-size:.9rem;padding:14px;text-align:center;border:1px dashed #cddde3;border-radius:12px}
+  .reg-login{background:#eef7fb;border:2px solid var(--c2);border-radius:14px;padding:16px 18px;margin:6px 0 14px}
+  .reg-login > b{font-size:1.05rem;color:var(--ink)}
+  .reg-sessione{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+                background:#eefaf1;border:1px solid #9ad9b0;border-radius:12px;padding:9px 13px;margin:6px 0 14px;font-size:.88rem}
+  .errore-reg{color:var(--c1);font-weight:bold;font-size:.88rem;margin-top:8px}
+  label.check{display:flex;align-items:center;gap:10px;font-weight:normal;background:#f6fcfe;border:1px solid #cfe6ec;border-radius:10px;padding:11px 13px;margin:6px 0;cursor:pointer}
+  label.check input{width:20px;height:20px;flex:0 0 auto;accent-color:var(--c2)}
   .reg-proposta{background:#e8f6ec;border:2px solid #7fcf9c;border-radius:12px;padding:13px 15px;margin:12px 0;font-size:.9rem}
   .reg-proposta b{display:block;margin-bottom:6px}
   .reg-speciali-editor{border:2px solid var(--c1);border-radius:12px;padding:12px 14px;margin-top:14px;background:rgba(230,57,70,.05)}
@@ -301,6 +308,27 @@
         e quante pizze ordinare alla pizzeria.
       </p>
 
+      <!-- accesso al registro cloud (compare solo se il cloud è configurato) -->
+      <div id="reg_login" class="reg-login" style="display:none">
+        <b>🔒 Entra per vedere le prenotazioni</b>
+        <p class="hint">Le prenotazioni sono sincronizzate e private: entra con l’email e la password che hai creato su Firebase. Le vedrai da qualsiasi dispositivo.</p>
+        <div class="grid2">
+          <div><label for="reg_email">Email</label><input id="reg_email" type="email" autocomplete="username" placeholder="tua@email.it" /></div>
+          <div><label for="reg_pwd">Password</label><input id="reg_pwd" type="password" autocomplete="current-password" placeholder="la tua password" /></div>
+        </div>
+        <div class="reg-azioni">
+          <button class="btn btn-p" id="reg_btnEntra">🔑 Entra</button>
+        </div>
+        <p class="errore-reg" id="reg_loginErr" style="display:none"></p>
+      </div>
+
+      <!-- barra "connesso come…" -->
+      <div id="reg_sessione" class="reg-sessione" style="display:none">
+        <span>☁️ Prenotazioni sincronizzate · connesso come <b id="reg_chiEmail"></b></span>
+        <button class="btn btn-w reg-mini" id="reg_btnEsci">Esci</button>
+      </div>
+
+      <div id="reg_contenuto">
       <div class="reg-cruscotto" id="reg_cruscotto"></div>
 
       <div id="reg_proposta" class="reg-proposta" style="display:none"></div>
@@ -385,11 +413,11 @@
       <div id="reg_cestino"></div>
 
       <h3 class="sub-h">Salvataggio e backup</h3>
-      <div class="reg-privacy">
-        <b>🔒 Le prenotazioni restano su questo dispositivo.</b>
-        Nomi e numeri di telefono dei condomini <b>non</b> vengono pubblicati online: il sito è
-        pubblico e chiunque potrebbe leggerli. Per questo il registro vive nel browser che stai
-        usando. Fai ogni tanto un backup, e usalo per passare l’elenco a un altro organizzatore.
+      <div class="reg-privacy" id="reg_notaPrivacy">
+        <b>☁️ Le prenotazioni sono sincronizzate e private.</b>
+        Sono salvate nel tuo database Firebase: le ritrovi su ogni dispositivo entrando con la
+        tua password, e non si perdono svuotando la cache. Nomi e numeri <b>non</b> sono
+        leggibili da chi non ha la password. Il backup resta utile per tenere una copia tua.
       </div>
       <div class="reg-azioni">
         <button class="btn btn-s" id="reg_btnEsportaJson">💾 Backup (file JSON)</button>
@@ -398,6 +426,7 @@
         <input type="file" id="reg_fileImporta" accept=".json,application/json" style="display:none" />
         <button class="btn btn-x" id="reg_btnSvuota">🗑️ Svuota il registro</button>
       </div>
+      </div><!-- /reg_contenuto -->
     </div>
 
     <div class="card" id="sec-residence">
@@ -542,6 +571,16 @@
       <label for="m_copertoNota">Spiegazione per i condomini</label>
       <textarea id="m_copertoNota" rows="3"></textarea>
       <p class="hint">Frase gentile mostrata nella sezione Menù del sito, per spiegare a cosa serve la quota.</p>
+
+      <h3 class="sub-h">Allergie e intolleranze</h3>
+      <p class="hint" style="margin-bottom:8px">
+        Scegli quali opzioni può indicare chi prenota, per ogni pizza. Se attivi
+        <b>entrambe</b>, nel modulo compare anche la scelta “senza glutine <b>e</b> senza lattosio”
+        insieme (per chi è celiaco e anche intollerante). Se le spegni tutte e due, la sezione non
+        compare.
+      </p>
+      <label class="check"><input type="checkbox" id="m_sp_glutine" /> Permetti l’opzione <b>senza glutine (celiaci)</b></label>
+      <label class="check"><input type="checkbox" id="m_sp_lattosio" /> Permetti l’opzione <b>senza lattosio</b></label>
 
       <h3 class="sub-h">Categorie e voci <span class="conta" id="m_conteggio"></span></h3>
       <p class="hint" style="margin-bottom:12px">
@@ -811,6 +850,7 @@
 
 <div class="status" id="status" role="status" aria-live="polite"></div>
 
+<script src="firebase.js"></script>
 <script>
 /* =========================================================
    PASSWORD DEL PANNELLO (cambiala qui)
@@ -836,7 +876,7 @@ function schemaVuoto(){
            colorePrimario:"#e63946", coloreSecondario:"#12b6c9", coloreAccento:"#ffd23f" },
     evento:{ data:"", orario:"", orarioFine:"", luogo:"", descrizione:"", dressCode:"", postiTotali:0 },
     menu:{ descrizione:"", avviso:"", copertoPersona:0, copertoEtichetta:"",
-           copertoEmoji:"", copertoNota:"", categorie:[] },
+           copertoEmoji:"", copertoNota:"", speciali:{ glutine:true, lattosio:true }, categorie:[] },
     pagamento:{ attivo:true, titolo:"Come si paga", referente:"", scadenza:"", orari:"", istruzioni:"", nota:"" },
     prenotazione:{ messaggioBase:"", scadenza:"", chiediAppartamento:true, prefissoCodice:"RH" },
     notifiche:{ telegramBotToken:"", telegramChatId:"" },
@@ -1043,6 +1083,9 @@ function riempi(){
   $('m_copertoEtichetta').value = me.copertoEtichetta||"";
   $('m_copertoEmoji').value     = me.copertoEmoji||"";
   $('m_copertoNota').value      = me.copertoNota||"";
+  var sp = me.speciali || {};
+  $('m_sp_glutine').checked  = (sp.glutine  === undefined) ? true : !!sp.glutine;
+  $('m_sp_lattosio').checked = (sp.lattosio === undefined) ? true : !!sp.lattosio;
 
   $('pg_attivo').value = (pg.attivo===false) ? "no" : "si";
   $('pg_titolo').value = pg.titolo||"";
@@ -1301,6 +1344,7 @@ function collect(){
     copertoEtichetta: $('m_copertoEtichetta').value.trim(),
     copertoEmoji:     $('m_copertoEmoji').value.trim(),
     copertoNota:      $('m_copertoNota').value.trim(),
+    speciali:       { glutine: $('m_sp_glutine').checked, lattosio: $('m_sp_lattosio').checked },
     categorie:      raccogliCategorie()
   });
 
@@ -1623,6 +1667,133 @@ function regSalva(){
   }
 }
 
+/* =========================================================
+   CLOUD (Firebase Firestore) — sincronizzazione e login
+   ========================================================= */
+let FBSESS = null;   /* { idToken, refreshToken, scadenza, email } */
+
+function regCloudAttivo(){ return !!(window.FB && FB.attivo()); }
+function regLoggato(){ return !!(FBSESS && FBSESS.refreshToken); }
+
+function fbSessSalva(){ try{ localStorage.setItem('rh_fbsess', JSON.stringify(FBSESS)); }catch(e){} }
+function fbSessLeggi(){ try{ const s=JSON.parse(localStorage.getItem('rh_fbsess')||'null'); return (s&&s.refreshToken)?s:null; }catch(e){ return null; } }
+
+/* Ritorna un idToken valido, rinnovandolo se sta per scadere. */
+function fbToken(){
+  if(!FBSESS || !FBSESS.refreshToken) return Promise.reject(new Error('non connesso'));
+  if(FBSESS.idToken && FBSESS.scadenza && Date.now() < FBSESS.scadenza - 60000){
+    return Promise.resolve(FBSESS.idToken);
+  }
+  return FB.refresh(FBSESS.refreshToken).then(function(s){
+    FBSESS.idToken = s.idToken;
+    FBSESS.refreshToken = s.refreshToken || FBSESS.refreshToken;
+    FBSESS.scadenza = s.scadenza;
+    fbSessSalva();
+    return FBSESS.idToken;
+  });
+}
+
+/* la prenotazione, senza i campi tecnici, pronta per il campo "json" */
+function jsonPulito(p){
+  const c = Object.assign({}, p);
+  delete c._id; delete c.stato;
+  return JSON.stringify(c);
+}
+
+function regMostraConnesso(){
+  $('reg_login').style.display = 'none';
+  $('reg_contenuto').style.display = '';
+  $('reg_sessione').style.display = '';
+  $('reg_chiEmail').textContent = (FBSESS && FBSESS.email) || '';
+}
+function regMostraLogin(){
+  $('reg_login').style.display = '';
+  $('reg_contenuto').style.display = 'none';
+  $('reg_sessione').style.display = 'none';
+}
+function regLoginErrore(msg){
+  const e = $('reg_loginErr');
+  e.textContent = msg; e.style.display = msg ? '' : 'none';
+}
+function msgErroreFirebase(m){
+  m = String(m||'');
+  if(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND|MISSING_PASSWORD/.test(m))
+    return 'Email o password non corretti.';
+  if(/TOO_MANY_ATTEMPTS/.test(m)) return 'Troppi tentativi: riprova tra qualche minuto.';
+  if(/NETWORK|Failed to fetch/.test(m)) return 'Connessione assente: controlla internet e riprova.';
+  return 'Accesso non riuscito. Riprova.';
+}
+
+/* carica TUTTE le prenotazioni dal cloud in REGISTRO/CESTINO */
+function regCaricaCloud(){
+  return fbToken().then(FB.elenco).then(function(docs){
+    REGISTRO = []; CESTINO = [];
+    docs.forEach(function(doc){
+      let p = {};
+      try{ p = JSON.parse(doc.json || '{}'); }catch(e){ p = {}; }
+      p._id = doc._id;
+      p.stato = doc.stato || 'attiva';
+      if(!p.codice) p.codice = doc.codice || '';
+      if(!p.nome)   p.nome = doc.nome || '';
+      (p.stato === 'cestino' ? CESTINO : REGISTRO).push(p);
+    });
+    REGISTRO.sort(function(a,b){ return String(a.ricevutoIl||'').localeCompare(String(b.ricevutoIl||'')); });
+    try{ regSalva(); }catch(e){}   /* copia locale di comodo (offline) */
+    regDisegna();
+  });
+}
+
+function regLogin(){
+  const email = $('reg_email').value.trim(), pwd = $('reg_pwd').value;
+  regLoginErrore('');
+  if(!email || !pwd){ regLoginErrore('Inserisci email e password.'); return; }
+  const btn = $('reg_btnEntra'); btn.disabled = true; btn.textContent = '⏳ Entro…';
+  FB.signIn(email, pwd).then(function(s){
+    FBSESS = { idToken:s.idToken, refreshToken:s.refreshToken, scadenza:s.scadenza, email:s.email };
+    fbSessSalva();
+    return regCaricaCloud();
+  }).then(function(){
+    regMostraConnesso();
+    toast('☁️ Connesso: prenotazioni sincronizzate.', 4000);
+  }).catch(function(e){
+    regLoginErrore(msgErroreFirebase(e && e.message));
+    FBSESS = null; try{ localStorage.removeItem('rh_fbsess'); }catch(_){}
+  }).then(function(){
+    btn.disabled = false; btn.textContent = '🔑 Entra';
+  });
+}
+
+function regLogout(){
+  FBSESS = null; try{ localStorage.removeItem('rh_fbsess'); }catch(e){}
+  REGISTRO = []; CESTINO = [];
+  regDisegna();
+  regMostraLogin();
+}
+
+/* ---- sincronizzazione delle modifiche verso il cloud (ottimistica) ---- */
+function cloudCrea(rec){
+  if(!regCloudAttivo() || !regLoggato()) return;
+  fbToken().then(function(t){
+    return FB.creaPrenotazione({
+      nome: rec.nome, codice: rec.codice, stato:'attiva',
+      creatoIl: rec.ricevutoIl || new Date().toISOString(), json: jsonPulito(rec)
+    }).then(function(creato){
+      /* assegna subito l'id del cloud, così la si può poi modificare/eliminare */
+      if(creato && creato._id) rec._id = creato._id;
+    });
+  }).catch(function(){ toast('⚠️ Prenotazione non sincronizzata col cloud.', 5000); });
+}
+function cloudPatch(p, campi){
+  if(!regCloudAttivo() || !regLoggato() || !p._id) return;
+  fbToken().then(function(t){ return FB.aggiorna(t, p._id, campi); })
+    .catch(function(){ toast('⚠️ Modifica non sincronizzata: ricarico dal cloud…', 5000);
+      regCaricaCloud().catch(function(){}); });
+}
+function cloudElimina(p){
+  if(!regCloudAttivo() || !regLoggato() || !p._id) return Promise.resolve();
+  return fbToken().then(function(t){ return FB.elimina(t, p._id); });
+}
+
 function regEuro(n){
   const v = Number(n)||0;
   return '€ ' + (Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ','));
@@ -1746,17 +1917,19 @@ function regAggiungi(p){
     totale = righe.reduce((s,r)=> s + (Number(r.importo)||0), 0) + coperto;
     p.coperto = coperto;
   }
-  REGISTRO.push({
+  const rec = {
     codice, nome:(p.nome||'(senza nome)'), telefono:(p.telefono||''),
     appartamento:(p.appartamento||''),
     adulti:Number(p.adulti)||0, bambini:Number(p.bambini)||0,
     righe, speciali:(Array.isArray(p.speciali) ? p.speciali : []),
     coperto:Number(p.coperto)||0, totale,
-    note:(p.note||''), pagato:false, pagatoIl:null,
-    ricevutoIl:new Date().toISOString()
-  });
+    note:(p.note||''), pagato:(p.pagato===true), pagatoIl:(p.pagatoIl||null),
+    ricevutoIl:(p.ricevutoIl || new Date().toISOString())
+  };
+  REGISTRO.push(rec);
   regSalva();
   regDisegna();
+  cloudCrea(rec);          /* se il cloud è attivo, salva anche lì e assegna _id */
   return true;
 }
 
@@ -1857,6 +2030,7 @@ function regDisegna(){
       p.pagato = !p.pagato;
       p.pagatoIl = p.pagato ? new Date().toISOString() : null;
       regSalva(); regDisegna();
+      cloudPatch(p, { json: jsonPulito(p) });
     });
     azioni.appendChild(bPag);
 
@@ -1883,10 +2057,12 @@ function regDisegna(){
     bDel.type = 'button';
     bDel.addEventListener('click', () => {
       p.eliminatoIl = new Date().toISOString();
+      p.stato = 'cestino';
       CESTINO.unshift(p);
       REGISTRO = REGISTRO.filter(x => x !== p);
       if(regModificaCodice === p.codice) regChiudiForm();
       regSalva(); regDisegna();
+      cloudPatch(p, { stato: 'cestino' });
       toast('Spostata nel cestino: la trovi più in basso e puoi recuperarla.', 6000);
     });
     azioni.appendChild(bDel);
@@ -1928,15 +2104,18 @@ function regDisegnaCestino(){
         return;
       }
       delete p.eliminatoIl;
+      p.stato = 'attiva';
       REGISTRO.push(p);
       CESTINO = CESTINO.filter(x => x !== p);
       regSalva(); regDisegna();
+      cloudPatch(p, { stato: 'attiva' });
       toast('Prenotazione ripristinata.', 4000);
     });
     const bVia = crea('button','reg-mini rossa','✕ Elimina per sempre');
     bVia.type = 'button';
     bVia.addEventListener('click', () => {
       if(!confirm('Elimino definitivamente la prenotazione di ' + p.nome + '?\nQuesta non si può annullare.')) return;
+      cloudElimina(p).catch(function(){ toast('⚠️ Non sono riuscito a eliminarla dal cloud.', 5000); });
       CESTINO = CESTINO.filter(x => x !== p);
       regSalva(); regDisegna();
       toast('Eliminata definitivamente.', 4000);
@@ -2250,6 +2429,7 @@ function regSalvaDalForm(){
     p.note = $('reg_m_note').value.trim();
     p.modificatoIl = new Date().toISOString();
     regSalva(); regChiudiForm(); regDisegna();
+    cloudPatch(p, { nome: p.nome, json: jsonPulito(p) });
     toast('✅ Prenotazione aggiornata.', 4000);
     return;
   }
@@ -2536,18 +2716,54 @@ function registroCollega(){
     if(!quante){ toast('Non c’è nessuna prenotazione da cancellare.', 4000); return; }
     if(!confirm('Cancello TUTTE le prenotazioni (registro e cestino)?\n\n' +
                 'In tutto: ' + quante + '. Fai prima un backup se ti serve: non si può annullare.')) return;
+    /* prima cancella dal cloud (se attivo), poi svuota in locale */
+    const tutte = REGISTRO.concat(CESTINO);
+    if(regCloudAttivo() && regLoggato()){
+      fbToken().then(function(t){
+        return Promise.all(tutte.filter(x=>x._id).map(function(x){
+          return FB.elimina(t, x._id).catch(function(){});
+        }));
+      }).catch(function(){ toast('⚠️ Alcune non sono state cancellate dal cloud.', 6000); });
+    }
     REGISTRO = [];
     CESTINO = [];
     regSalva(); regDisegna();
     try{ localStorage.removeItem('rh_prenotazione'); }catch(e){}   /* eventuale prova fatta da questo browser */
     toast('✅ Fatto: tutte le prenotazioni sono state cancellate. Pagina pulita per le prenotazioni vere.', 6000);
   });
+
+  $('reg_btnEntra').addEventListener('click', regLogin);
+  $('reg_pwd').addEventListener('keydown', e => { if(e.key === 'Enter') regLogin(); });
+  $('reg_btnEsci').addEventListener('click', regLogout);
 }
 
 function registroAvvia(){
+  /* collega Firebase se configurato in contenuti.json */
+  const cl = (DATA && DATA.cloud) || {};
+  if(window.FB && cl.firebaseApiKey && cl.firebaseProjectId){
+    FB.cfg(cl.firebaseApiKey, cl.firebaseProjectId);
+  }
+
+  if(regCloudAttivo()){
+    /* modalità cloud: le prenotazioni stanno online, servono email+password */
+    FBSESS = fbSessLeggi();
+    if(regLoggato()){
+      regMostraConnesso();
+      regCaricaCloud().catch(function(){
+        /* sessione non più valida: torna al login */
+        FBSESS = null; try{ localStorage.removeItem('rh_fbsess'); }catch(e){}
+        regMostraLogin();
+      });
+    } else {
+      regMostraLogin();
+    }
+    return;
+  }
+
+  /* modalità locale (nessun cloud configurato): comportamento di prima */
   regLeggi();
-  regImportaDaLink();   /* prima: una prenotazione arrivata via link va aggiunta subito */
-  regProponiLocale();   /* poi: proponi quella eventualmente fatta da questo browser */
+  regImportaDaLink();
+  regProponiLocale();
   regDisegna();
 }
 </script>
