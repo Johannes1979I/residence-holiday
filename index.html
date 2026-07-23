@@ -827,6 +827,11 @@ function eur(n){
 function aChi(nome){
   var s = String(nome || '').trim();
   if(!s) return '';
+  /* se contiene gia' la preposizione (es. "Alla bagnina Aurora"), la si usa
+     cosi' com'e', solo con l'iniziale minuscola perche' finisce a meta' frase */
+  if(/^(a|ad|al|allo|alla|all['’]|ai|agli|alle)\b/i.test(s)){
+    return s.charAt(0).toLowerCase() + s.slice(1);
+  }
   var contrazioni = [
     [/^gli\s+/i, 'agli '], [/^lo\s+/i, 'allo '], [/^la\s+/i, 'alla '],
     [/^le\s+/i, 'alle '],  [/^il\s+/i, 'al '],   [/^i\s+/i, 'ai '],
