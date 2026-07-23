@@ -18,13 +18,13 @@
     "orario": "20:00",
     "orarioFine": "23:00",
     "luogo": "Piscina del Residence Holiday",
-    "descrizione": "Si parte con la prima serata dell'estate: PIZZA a bordo piscina! Le pizze sono a cura della Pizzeria Bar Oasi di Montalto di Castro. Prenota qui sotto per te e la tua famiglia: bastano due minuti e ricevi il tuo voucher da mostrare all'ingresso.",
+    "descrizione": "Si parte con la prima serata dell'estate: PIZZA a bordo piscina! Le pizze sono a cura della Pizzeria Antico Forno da Fabrizio di Montalto di Castro. Prenota qui sotto per te e la tua famiglia: bastano due minuti e ricevi il tuo voucher da mostrare all'ingresso.",
     "dressCode": "Look estivo",
     "postiTotali": 80
   },
   "menu": {
-    "descrizione": "Il listino della Pizzeria Bar Oasi di Montalto di Castro. Scegli quante pizze vuoi: il totale si calcola da solo.",
-    "avviso": "Si prenotano solo le pizze: bevande e dolce li porta ognuno da casa. Listino ripreso dal tabellone della Pizzeria Oasi, i prezzi vanno riconfermati prima della serata. Ogni ingrediente aggiunto costa € 0,50. Su richiesta la pizzeria prepara la pizza senza lattosio e quella per celiaci: segnalalo nelle note della prenotazione.",
+    "descrizione": "Il listino della Pizzeria Antico Forno da Fabrizio di Montalto di Castro. Scegli quante pizze vuoi: il totale si calcola da solo.",
+    "avviso": "Si prenotano solo le pizze: bevande e dolce li porta ognuno da casa. Listino ripreso dal tabellone della Pizzeria Antico Forno da Fabrizio. Su richiesta la pizzeria prepara la pizza per celiaci: segnalalo nelle note della prenotazione.",
     "copertoPersona": 3,
     "copertoEtichetta": "Quota assistenza in piscina",
     "copertoEmoji": "🛟",
@@ -183,7 +183,7 @@
   },
   "prenotazione": {
     "messaggioBase": "Ciao! Ecco la mia prenotazione per la Serata Pizza in Piscina del Residence Holiday.",
-    "scadenza": "2026-08-06",
+    "scadenza": "2026-08-02",
     "chiediAppartamento": true,
     "prefissoCodice": "RH"
   },
@@ -219,8 +219,8 @@
     "linkGruppoWhatsApp": ""
   },
   "contatti": {
-    "organizzatore": "Organizzazione festa — Residence Holiday",
-    "telefono": "",
+    "organizzatore": "Organizzazione festa — \"I morti de fame\"",
+    "telefono": "3277565727",
     "email": ""
   },
   "locandina": {
