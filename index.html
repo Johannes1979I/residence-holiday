@@ -744,6 +744,7 @@ footer .servizio a:hover{ opacity:1; }
 
     <div class="condividi">
       <span class="et">Fai girare la voce:</span>
+      <a href="#" class="btn btn-wa btn-piccolo" id="condWa" target="_blank" rel="noopener">Condividi su WhatsApp</a>
       <a href="#" class="btn btn-tg btn-piccolo" id="condTg" target="_blank" rel="noopener">Condividi su Telegram</a>
     </div>
   </div>
@@ -2041,6 +2042,11 @@ function preparaCondivisione(){
                  ' — ' + dataIt(ev.data) + (ev.orario ? ' ore ' + ev.orario : '') +
                  '! Info, menù e prenotazioni qui:';
 
+  /* condivisione WhatsApp: solo per far girare la voce (non per le prenotazioni,
+     che vanno su Telegram). Apre il messaggio pronto verso un contatto a scelta. */
+  $('condWa').href = cond.linkGruppoWhatsApp
+    ? String(cond.linkGruppoWhatsApp)
+    : 'https://wa.me/?text=' + encodeURIComponent(testoMsg + ' ' + sito);
   $('condTg').href = cond.linkGruppoTelegram
     ? String(cond.linkGruppoTelegram)
     : 'https://t.me/share/url?url=' + encodeURIComponent(sito) + '&text=' + encodeURIComponent(testoMsg);
