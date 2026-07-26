@@ -644,7 +644,7 @@ footer .servizio a:hover{ opacity:1; }
 
         <!-- PASSO 2 -->
         <div class="passo" id="passo2">
-          <h3>🍕 Scegli le pizze</h3>
+          <h3>🍕 Scegli pizze e fritti</h3>
           <p class="guida">Usa i pulsanti + e − per indicare quante ne vuoi. Il totale si aggiorna da solo.</p>
           <div class="nota-salute" id="notaSalute">
             <b>⚠️ Allergie e intolleranze.</b> Quando scegli una pizza compare la riga per indicare
@@ -1647,7 +1647,8 @@ function aggiornaSubtotali(){
     }
 
     var nPizze = c.righe.reduce(function(s,r){ return s + (r.tipo === 'bevanda' ? 0 : r.quantita); }, 0);
-    riga('', '🍕 Pizze', nPizze ? (nPizze === 1 ? '1 pizza' : nPizze + ' pizze') : 'nessuna ancora', c.subCibo);
+    riga('', '🍕 Pizze e fritti',
+      nPizze ? (nPizze === 1 ? '1 porzione' : nPizze + ' porzioni') : 'niente ancora', c.subCibo);
 
     if(c.subBev > 0 || id === 'distintaBevande'){
       riga('', '🥤 Bevande', '', c.subBev);

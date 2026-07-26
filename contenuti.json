@@ -43,62 +43,92 @@
           {
             "nome": "Margherita",
             "descrizione": "Pomodoro, mozzarella",
-            "prezzo": 5
+            "prezzo": 8
           },
           {
-            "nome": "Napoletana",
-            "descrizione": "Pomodoro, alici",
-            "prezzo": 5
-          },
-          {
-            "nome": "Capricciosa",
-            "descrizione": "Pomodoro, mozzarella, funghi, prosciutto cotto, würstel, uovo",
+            "nome": "Marinara",
+            "descrizione": "Pomodoro, aglio, origano, olio",
             "prezzo": 7
           },
           {
-            "nome": "Quattro stagioni",
-            "descrizione": "Pomodoro, mozzarella, funghi, prosciutto cotto, würstel, uovo",
-            "prezzo": 7
+            "nome": "Maremmana",
+            "descrizione": "Pomodoro, mozzarella, salsiccia, olive e peperoncino",
+            "prezzo": 9
           },
           {
-            "nome": "Diavola",
-            "descrizione": "Pomodoro, mozzarella, salame piccante",
-            "prezzo": 6
-          },
-          {
-            "nome": "Würstel",
-            "descrizione": "Pomodoro, mozzarella, würstel",
-            "prezzo": 6
-          },
-          {
-            "nome": "Prosciutto cotto",
-            "descrizione": "Pomodoro, mozzarella, prosciutto cotto",
-            "prezzo": 6
+            "nome": "Funghi",
+            "descrizione": "Pomodoro, mozzarella, funghi champignon",
+            "prezzo": 8.5
           },
           {
             "nome": "Prosciutto crudo",
             "descrizione": "Pomodoro, mozzarella, prosciutto crudo",
-            "prezzo": 6
+            "prezzo": 9
           },
           {
-            "nome": "Funghi champignon",
-            "descrizione": "Pomodoro, mozzarella, funghi champignon",
-            "prezzo": 7
+            "nome": "Diavola",
+            "descrizione": "Pomodoro, mozzarella, salame piccante, olive",
+            "prezzo": 9
           },
           {
-            "nome": "Funghi porcini",
-            "descrizione": "Pomodoro, mozzarella, funghi porcini",
-            "prezzo": 7
+            "nome": "Regina",
+            "descrizione": "Pomodoro, bufala, basilico",
+            "prezzo": 10
           },
           {
-            "nome": "Ortolana",
-            "descrizione": "Pomodoro, mozzarella, zucchine, melanzane, peperoni",
-            "prezzo": 6
+            "nome": "Würstel",
+            "descrizione": "Pomodoro, mozzarella, würstel",
+            "prezzo": 8.5
           },
           {
-            "nome": "Bufalina",
-            "descrizione": "Pomodoro, bufala, prezzemolo",
-            "prezzo": 6
+            "nome": "Rustica",
+            "descrizione": "Pomodoro, mozzarella, salsiccia",
+            "prezzo": 8.5
+          },
+          {
+            "nome": "Boscaiola",
+            "descrizione": "Pomodoro, mozzarella, salsiccia, funghi champignon",
+            "prezzo": 9
+          },
+          {
+            "nome": "Napoli",
+            "descrizione": "Pomodoro, mozzarella, alici",
+            "prezzo": 9
+          },
+          {
+            "nome": "Capricciosa",
+            "descrizione": "Pomodoro, mozzarella, olive, carciofini, prosciutto crudo, funghi",
+            "prezzo": 10
+          },
+          {
+            "nome": "Gamberi",
+            "descrizione": "Pomodoro, gamberi, salsa rosa, rucola",
+            "prezzo": 10
+          },
+          {
+            "nome": "Campagnola",
+            "descrizione": "Pomodoro, mozzarella, tonno, cipolla",
+            "prezzo": 9
+          },
+          {
+            "nome": "Piccantina",
+            "descrizione": "Pomodoro, pachino, peperoncino",
+            "prezzo": 8
+          },
+          {
+            "nome": "Siciliana",
+            "descrizione": "Pomodoro, acciughe, olive nere, capperi, origano",
+            "prezzo": 9
+          },
+          {
+            "nome": "Frutti di mare",
+            "descrizione": "Pomodoro, frutti di mare, prezzemolo, olio",
+            "prezzo": 12
+          },
+          {
+            "nome": "Calabrese",
+            "descrizione": "Pomodoro, mozzarella, origano, grana",
+            "prezzo": 8.5
           }
         ]
       },
@@ -109,64 +139,127 @@
         "tipo": "cibo",
         "voci": [
           {
-            "nome": "Focaccia",
-            "descrizione": "Semplice, con olio e sale",
-            "prezzo": 3
+            "nome": "Fiori",
+            "descrizione": "Mozzarella, fiori di zucca, salsiccia",
+            "prezzo": 9.5
           },
           {
-            "nome": "Quattro formaggi",
-            "descrizione": "Mozzarella e formaggi misti",
-            "prezzo": 7
+            "nome": "Patate e salsiccia",
+            "descrizione": "Mozzarella, salsiccia e patate",
+            "prezzo": 11
           },
           {
-            "nome": "Bresaola",
-            "descrizione": "Mozzarella, bresaola, rucola, grana",
-            "prezzo": 7
+            "nome": "Patapizza",
+            "descrizione": "Mozzarella, patatine fritte e würstel",
+            "prezzo": 9
+          },
+          {
+            "nome": "Gustosa",
+            "descrizione": "Mozzarella, fiori di zucca, alici",
+            "prezzo": 9.5
+          },
+          {
+            "nome": "Fresca",
+            "descrizione": "Mozzarella, pachino, rucola",
+            "prezzo": 9
+          },
+          {
+            "nome": "4 formaggi",
+            "descrizione": "Mozzarella, crema formaggi, gorgonzola, grana",
+            "prezzo": 10
+          },
+          {
+            "nome": "Leggera",
+            "descrizione": "Mozzarella, gamberi, zucchine",
+            "prezzo": 10
           },
           {
             "nome": "Salmone",
-            "descrizione": "Mozzarella, salmone, rucola",
-            "prezzo": 7
+            "descrizione": "Mozzarella, salmone, rucola, grana",
+            "prezzo": 10
           },
           {
-            "nome": "Würstel e patate",
-            "descrizione": "Mozzarella, würstel, patate",
-            "prezzo": 6
+            "nome": "Saporita",
+            "descrizione": "Mozzarella, crema di olive, patate, salsiccia",
+            "prezzo": 10
           },
           {
-            "nome": "Prosciutto cotto",
-            "descrizione": "Mozzarella, prosciutto cotto",
-            "prezzo": 6
+            "nome": "Padana",
+            "descrizione": "Mozzarella, bresaola, rucola, grana",
+            "prezzo": 11
           },
           {
-            "nome": "Prosciutto crudo",
-            "descrizione": "Mozzarella, prosciutto crudo",
-            "prezzo": 7
-          },
-          {
-            "nome": "Boscaiola",
-            "descrizione": "Mozzarella, funghi, salsiccia",
-            "prezzo": 7
-          },
-          {
-            "nome": "Funghi champignon",
-            "descrizione": "Mozzarella, funghi champignon",
-            "prezzo": 7
-          },
-          {
-            "nome": "Funghi porcini",
-            "descrizione": "Mozzarella, funghi porcini",
-            "prezzo": 7
-          },
-          {
-            "nome": "Ortolana",
+            "nome": "Vegetariana",
             "descrizione": "Mozzarella, zucchine, melanzane, peperoni",
-            "prezzo": 6
+            "prezzo": 9
           },
           {
-            "nome": "Pizza Oasi",
-            "descrizione": "Mozzarella, bacon, salsiccia, funghi, cicoria, uovo alla bismarck — si può fare bianca o rossa",
-            "prezzo": 8
+            "nome": "Brigante",
+            "descrizione": "Mozzarella, zucchine, gorgonzola",
+            "prezzo": 9
+          },
+          {
+            "nome": "Pregiata",
+            "descrizione": "Bufala, crudo, rucola, grana",
+            "prezzo": 12
+          }
+        ]
+      },
+      {
+        "id": "fritti",
+        "nome": "Fritti",
+        "emoji": "🍟",
+        "tipo": "cibo",
+        "voci": [
+          {
+            "nome": "Supplì",
+            "descrizione": "Cadauno",
+            "prezzo": 2
+          },
+          {
+            "nome": "Fiori di zucca",
+            "descrizione": "Cadauno",
+            "prezzo": 2
+          },
+          {
+            "nome": "Mozzarella in carrozza",
+            "descrizione": "Cadauno",
+            "prezzo": 1.5
+          },
+          {
+            "nome": "Filetto di baccalà",
+            "descrizione": "Cadauno",
+            "prezzo": 2.5
+          },
+          {
+            "nome": "Olive ascolane",
+            "descrizione": "6 pezzi",
+            "prezzo": 5
+          },
+          {
+            "nome": "Crocchette di patate",
+            "descrizione": "5 pezzi",
+            "prezzo": 5
+          },
+          {
+            "nome": "Finger di pollo",
+            "descrizione": "",
+            "prezzo": 5
+          },
+          {
+            "nome": "Patatine fritte",
+            "descrizione": "",
+            "prezzo": 5
+          },
+          {
+            "nome": "Polpette di melanzane",
+            "descrizione": "",
+            "prezzo": 5
+          },
+          {
+            "nome": "Frittura di calamari e gamberi",
+            "descrizione": "Porzione",
+            "prezzo": 17
           }
         ]
       }
