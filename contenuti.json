@@ -24,7 +24,7 @@
   },
   "menu": {
     "descrizione": "Il listino della Pizzeria Il Tirreno di Montalto di Castro. Scegli quante pizze vuoi: il totale si calcola da solo.",
-    "avviso": "Si prenotano solo le pizze: bevande e dolce li porta ognuno da casa. Listino ripreso dal tabellone della Pizzeria Il Tirreno.",
+    "avviso": "Si prenotano solo le pizze e fritti: bevande e dolce li porta ognuno da casa. Listino ripreso dal tabellone della Pizzeria Il Tirreno.",
     "copertoPersona": 3,
     "copertoEtichetta": "Quota assistenza in piscina",
     "copertoEmoji": "🛟",
