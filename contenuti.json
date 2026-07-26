@@ -30,8 +30,8 @@
     "copertoEmoji": "🛟",
     "copertoNota": "Anche di sera la nostra bagnina Aurora resta in servizio, per la sicurezza dei grandi e soprattutto dei bambini. I 3 € a persona coprono la sua presenza per tutta la durata della festa: un piccolo contributo che ci permette di goderci la serata in tranquillità.",
     "speciali": {
-      "glutine": false,
-      "lattosio": false
+      "glutine": true,
+      "lattosio": true
     },
     "categorie": [
       {
