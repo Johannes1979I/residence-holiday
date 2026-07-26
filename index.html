@@ -346,22 +346,20 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
 .navigazione{ display:flex; gap:10px; justify-content:space-between; margin-top:22px; flex-wrap:wrap; }
 .navigazione .btn{ flex:1 1 auto; }
 
-/* contatore dei posti ancora liberi */
+/* contatore dei posti, nell'hero sotto il conto alla rovescia */
 .posti{
-  max-width:620px; margin:0 auto 16px; background:rgba(255,255,255,.94); color:var(--ink);
-  border-radius:16px; padding:14px 18px; box-shadow:var(--shadow-s);
-  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  display:inline-flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
+  margin:14px auto 0; padding:10px 20px; border-radius:999px;
+  background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.45);
+  backdrop-filter:blur(4px); color:#fff;
+  font-size:1rem; font-weight:bold; text-shadow:0 2px 8px rgba(0,0,0,.45);
 }
-.posti .numero{ font-size:2.1rem; font-weight:bold; line-height:1; color:var(--c2); }
-.posti .testo{ flex:1 1 180px; font-weight:bold; font-size:.98rem; }
-.posti .testo small{ display:block; font-weight:normal; color:var(--muted); font-size:.82rem; }
-.posti .barra{ flex:1 1 100%; height:9px; background:rgba(13,43,62,.12); border-radius:999px; overflow:hidden; }
-.posti .barra i{ display:block; height:100%; width:0; border-radius:999px;
-  background:linear-gradient(90deg,#25b878,var(--c2)); transition:width .5s ease; }
-.posti.pochi .numero{ color:#e8890c; }
-.posti.pochi .barra i{ background:linear-gradient(90deg,#ffb703,#e8890c); }
-.posti.esauriti .numero{ color:var(--c1); font-size:1.5rem; }
-.posti.esauriti .barra i{ background:var(--c1); }
+.posti .voce b{ font-size:1.3rem; color:var(--c3); }
+.posti .sep{ opacity:.65; }
+.posti.pochi{ background:rgba(255,183,3,.28); border-color:rgba(255,210,63,.75); }
+.posti.esauriti{ background:rgba(230,57,70,.35); border-color:rgba(255,150,160,.75); }
+.posti.esauriti .voce b{ color:#fff; }
+@media(max-width:420px){ .posti{ font-size:.92rem; padding:9px 14px; } }
 
 /* box "hai già una prenotazione" */
 .gia-prenotato{
@@ -497,6 +495,13 @@ footer .servizio a:hover{ opacity:1; }
       <div class="ora" id="heroDataOra"></div>
     </div>
     <div class="conto" id="conto"></div>
+
+    <!-- posti: si aggiorna da solo dopo ogni prenotazione -->
+    <div class="posti" id="postiBox" style="display:none">
+      <span class="voce">🎟️ Posti disponibili <b id="postiTotali">—</b></span>
+      <span class="sep">·</span>
+      <span class="voce">Prenotati <b id="postiPren">0</b></span>
+    </div>
     <div class="azioni">
       <a href="#prenota" class="btn btn-p">🎟️ Prenota il tuo posto</a>
       <a href="#menu" class="btn btn-fantasma">🍕 Vedi il menù</a>
@@ -578,13 +583,6 @@ footer .servizio a:hover{ opacity:1; }
     <div class="prenota-fascia">
       <h2 class="titolo-sez">Prenota il tuo <span style="color:var(--c3)">posto</span></h2>
       <p class="occhiello" style="color:#fff">Quattro passaggi veloci: alla fine ricevi il tuo voucher da stampare o mostrare all'ingresso.</p>
-
-      <!-- posti ancora liberi: si aggiorna dopo ogni prenotazione -->
-      <div class="posti" id="postiBox" style="display:none">
-        <span class="numero" id="postiNumero">—</span>
-        <span class="testo" id="postiTesto"></span>
-        <span class="barra"><i id="postiBarra"></i></span>
-      </div>
 
       <div class="gia-prenotato" id="giaPrenotato">
         <div>✅ Hai già una prenotazione: <span class="codice" id="giaCodice"></span></div>
@@ -1035,28 +1033,12 @@ function mostraPosti(){
 
   var occupati = Math.max(0, postiOccupati);
   var liberi = Math.max(0, totali - occupati);
-  var quota = totali ? Math.min(100, Math.round(occupati / totali * 100)) : 0;
 
   box.style.display = '';
   box.className = 'posti' + (liberi === 0 ? ' esauriti' : (liberi <= Math.max(5, totali * 0.15) ? ' pochi' : ''));
-  testo('postiNumero', liberi === 0 ? '⚠️' : String(liberi));
-
-  var t = $('postiTesto');
-  t.textContent = '';
-  var forte = document.createElement('span');
-  if(liberi === 0){
-    forte.textContent = 'Posti esauriti';
-  } else {
-    forte.textContent = (liberi === 1 ? 'posto ancora libero' : 'posti ancora liberi') + ' su ' + totali;
-  }
-  t.appendChild(forte);
-  var sotto = document.createElement('small');
-  sotto.textContent = (liberi === 0)
-    ? 'Hanno già prenotato in ' + occupati + '. Puoi comunque provare a scrivere agli organizzatori.'
-    : 'Hanno già prenotato in ' + occupati + ' — il numero si aggiorna a ogni prenotazione.';
-  t.appendChild(sotto);
-
-  $('postiBarra').style.width = quota + '%';
+  testo('postiTotali', String(totali));
+  testo('postiPren', String(occupati));
+  box.title = liberi === 0 ? 'Posti esauriti' : ('Restano ' + liberi + ' posti liberi');
 }
 
 /* Dopo una prenotazione confermata aggiorna il contatore condiviso. */
@@ -1073,6 +1055,36 @@ function aggiornaPostiDopoPrenotazione(p){
     }
     return ok;
   });
+}
+
+/* Conto alla rovescia per gli organizzatori: quanti posti restano dopo questa
+   prenotazione e quanti giorni mancano alla festa. */
+function righeContoAllaRovescia(){
+  var r = [];
+  var ev = V(DATI.evento, {});
+
+  /* posti rimasti (solo se il contatore è disponibile) */
+  var totali = Number(V(ev.postiTotali, 0)) || 0;
+  if(totali > 0 && postiOccupati !== null){
+    var occupati = Math.max(0, postiOccupati);
+    var liberi = Math.max(0, totali - occupati);
+    r.push('🎟️ Posti: ' + (liberi === 0
+      ? 'ESAURITI (' + occupati + '/' + totali + ')'
+      : 'restano ' + liberi + ' su ' + totali + ' — hanno prenotato in ' + occupati));
+  }
+
+  /* giorni che mancano alla festa */
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ev.data || ''));
+  if(m){
+    var festa = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    var oggi = new Date();
+    oggi = new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate());
+    var giorni = Math.round((festa - oggi) / 864e5);
+    if(giorni > 1)       r.push('⏳ Mancano ' + giorni + ' giorni alla festa');
+    else if(giorni === 1) r.push('⏳ La festa è domani!');
+    else if(giorni === 0) r.push('⏳ La festa è oggi!');
+  }
+  return r;
 }
 
 /* Costruisce l'oggetto-prenotazione completo (lo stesso formato che usa il
@@ -2106,6 +2118,12 @@ function componiMessaggio(p){
   }
   if(p.note) r.push('📝 Note: ' + p.note);
 
+  var conto = righeContoAllaRovescia();
+  if(conto.length){
+    r.push('');
+    conto.forEach(function(x){ r.push(x); });
+  }
+
   var link = linkRegistrazione(p);
   if(link){
     r.push('');
@@ -2248,10 +2266,14 @@ $('btnFine').addEventListener('click', function(){
 
   if(!p){ mostraFine(false); return; }
   /* in parallelo: avviso Telegram + salvataggio nel registro cloud */
-  Promise.all([ inviaPrenotazioneTelegram(p), salvaSuCloud(p),
-                aggiornaPostiDopoPrenotazione(p) ]).then(function(esiti){
-    mostraFine(esiti[0] || esiti[1]);
-  });
+  /* prima aggiorno il contatore dei posti, poi mando l'avviso: così il
+     messaggio agli organizzatori riporta i posti rimasti già aggiornati */
+  aggiornaPostiDopoPrenotazione(p)
+    .then(function(){
+      return Promise.all([ inviaPrenotazioneTelegram(p), salvaSuCloud(p) ]);
+    })
+    .then(function(esiti){ mostraFine(esiti[0] || esiti[1]); })
+    .catch(function(){ mostraFine(false); });
 });
 $('btnRiapri').addEventListener('click', function(){
   document.querySelector('#areaVoucher .azioni-voucher').style.display = '';
