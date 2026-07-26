@@ -125,9 +125,66 @@
     });
   }
 
+  /* ================== CONTATORE PUBBLICO DEI POSTI ==================
+     Documento "pubblico/contatore" con un solo campo numerico:
+       partecipanti = quante persone hanno gia' prenotato.
+     E' l'unico dato leggibile senza password: nessun nome, nessun telefono.
+     Serve al sito per mostrare quanti posti restano.                     */
+  var DOC_POSTI = 'pubblico/contatore';
+
+  function leggiPosti(){
+    return fetch(BASE + '/' + DOC_POSTI + '?key=' + API + '&_=' + Date.now(), { cache:'no-store' })
+      .then(jget).then(function(d){
+        if(d.error) return null;                       /* non esiste o non leggibile */
+        var f = (d.fields && d.fields.partecipanti) || {};
+        var n = Number(f.integerValue !== undefined ? f.integerValue : f.doubleValue);
+        return isFinite(n) ? n : 0;
+      })
+      .catch(function(){ return null; });
+  }
+
+  /* Incremento atomico: due persone che prenotano insieme non si sovrascrivono. */
+  function incrementaPosti(quante){
+    var n = Math.max(0, Math.round(Number(quante) || 0));
+    if(!n) return Promise.resolve(true);
+    var nomeDoc = 'projects/' + PROJ + '/databases/(default)/documents/' + DOC_POSTI;
+    var corpo = { writes: [{ transform: { document: nomeDoc,
+      fieldTransforms: [{ fieldPath:'partecipanti', increment:{ integerValue: String(n) } }] } }] };
+
+    function commit(){
+      return fetch('https://firestore.googleapis.com/v1/projects/' + PROJ +
+                   '/databases/(default)/documents:commit?key=' + API, {
+        method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(corpo)
+      }).then(jget);
+    }
+    return commit().then(function(d){
+      if(!d.error) return true;
+      /* la prima volta il documento non esiste: lo creo e riprovo una volta */
+      if(String(d.error.status || '') === 'NOT_FOUND'){
+        return scriviPosti(null, n).then(function(ok){ return ok; });
+      }
+      return false;
+    }).catch(function(){ return false; });
+  }
+
+  /* Scrive il valore esatto. Con idToken lo fa l'organizzatore (ricalcolo dal
+     registro, che resta la fonte di verita'); senza, serve alla prima creazione. */
+  function scriviPosti(idToken, valore){
+    var n = Math.max(0, Math.round(Number(valore) || 0));
+    var headers = { 'Content-Type':'application/json' };
+    if(idToken) headers['Authorization'] = 'Bearer ' + idToken;
+    return fetch(BASE + '/' + DOC_POSTI + '?key=' + API +
+                 '&updateMask.fieldPaths=partecipanti', {
+      method:'PATCH', headers: headers,
+      body: JSON.stringify({ fields: { partecipanti: { integerValue: String(n) } } })
+    }).then(jget).then(function(d){ return !d.error; })
+      .catch(function(){ return false; });
+  }
+
   window.FB = {
     cfg: cfg, attivo: attivo,
     signIn: signIn, refresh: refresh,
-    creaPrenotazione: creaPrenotazione, elenco: elenco, aggiorna: aggiorna, elimina: elimina
+    creaPrenotazione: creaPrenotazione, elenco: elenco, aggiorna: aggiorna, elimina: elimina,
+    leggiPosti: leggiPosti, incrementaPosti: incrementaPosti, scriviPosti: scriviPosti
   };
 })();

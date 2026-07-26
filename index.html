@@ -346,6 +346,23 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
 .navigazione{ display:flex; gap:10px; justify-content:space-between; margin-top:22px; flex-wrap:wrap; }
 .navigazione .btn{ flex:1 1 auto; }
 
+/* contatore dei posti ancora liberi */
+.posti{
+  max-width:620px; margin:0 auto 16px; background:rgba(255,255,255,.94); color:var(--ink);
+  border-radius:16px; padding:14px 18px; box-shadow:var(--shadow-s);
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+}
+.posti .numero{ font-size:2.1rem; font-weight:bold; line-height:1; color:var(--c2); }
+.posti .testo{ flex:1 1 180px; font-weight:bold; font-size:.98rem; }
+.posti .testo small{ display:block; font-weight:normal; color:var(--muted); font-size:.82rem; }
+.posti .barra{ flex:1 1 100%; height:9px; background:rgba(13,43,62,.12); border-radius:999px; overflow:hidden; }
+.posti .barra i{ display:block; height:100%; width:0; border-radius:999px;
+  background:linear-gradient(90deg,#25b878,var(--c2)); transition:width .5s ease; }
+.posti.pochi .numero{ color:#e8890c; }
+.posti.pochi .barra i{ background:linear-gradient(90deg,#ffb703,#e8890c); }
+.posti.esauriti .numero{ color:var(--c1); font-size:1.5rem; }
+.posti.esauriti .barra i{ background:var(--c1); }
+
 /* box "hai già una prenotazione" */
 .gia-prenotato{
   background:#fff; border-radius:16px; padding:16px 18px; max-width:620px; margin:0 auto 18px;
@@ -561,6 +578,13 @@ footer .servizio a:hover{ opacity:1; }
     <div class="prenota-fascia">
       <h2 class="titolo-sez">Prenota il tuo <span style="color:var(--c3)">posto</span></h2>
       <p class="occhiello" style="color:#fff">Quattro passaggi veloci: alla fine ricevi il tuo voucher da stampare o mostrare all'ingresso.</p>
+
+      <!-- posti ancora liberi: si aggiorna dopo ogni prenotazione -->
+      <div class="posti" id="postiBox" style="display:none">
+        <span class="numero" id="postiNumero">—</span>
+        <span class="testo" id="postiTesto"></span>
+        <span class="barra"><i id="postiBarra"></i></span>
+      </div>
 
       <div class="gia-prenotato" id="giaPrenotato">
         <div>✅ Hai già una prenotazione: <span class="codice" id="giaCodice"></span></div>
@@ -968,7 +992,8 @@ function disegna(){
   testo('sDress', V(ev.dressCode, '—'));
   testo('sTema', V(tema.nomeTema, '—'));
   var posti = Number(ev.postiTotali) || 0;
-  testo('sPosti', posti > 0 ? ' · posti disponibili: ' + posti : '');
+  testo('sPosti', posti > 0 ? ' · ' + posti + ' posti in tutto' : '');
+  caricaPosti();
 
   /* collega il database cloud, se configurato */
   var cloud = V(DATI.cloud, {});
@@ -987,6 +1012,67 @@ function disegna(){
   disegnaPiede();
   avviaConto(ev);
   controllaPrenotazioneSalvata();
+}
+
+/* ===================== POSTI ANCORA LIBERI =====================
+   Il numero di persone gia' prenotate sta in un contatore pubblico (solo un
+   numero: nessun dato personale). Il massimo arriva da evento.postiTotali. */
+var postiOccupati = null;
+
+function caricaPosti(){
+  var totali = Number(V((DATI.evento||{}).postiTotali, 0)) || 0;
+  if(!totali || !window.FB || !FB.attivo()){ $('postiBox').style.display = 'none'; return; }
+  FB.leggiPosti().then(function(n){
+    postiOccupati = (n === null) ? 0 : n;
+    mostraPosti();
+  });
+}
+
+function mostraPosti(){
+  var box = $('postiBox');
+  var totali = Number(V((DATI.evento||{}).postiTotali, 0)) || 0;
+  if(!totali || postiOccupati === null){ box.style.display = 'none'; return; }
+
+  var occupati = Math.max(0, postiOccupati);
+  var liberi = Math.max(0, totali - occupati);
+  var quota = totali ? Math.min(100, Math.round(occupati / totali * 100)) : 0;
+
+  box.style.display = '';
+  box.className = 'posti' + (liberi === 0 ? ' esauriti' : (liberi <= Math.max(5, totali * 0.15) ? ' pochi' : ''));
+  testo('postiNumero', liberi === 0 ? '⚠️' : String(liberi));
+
+  var t = $('postiTesto');
+  t.textContent = '';
+  var forte = document.createElement('span');
+  if(liberi === 0){
+    forte.textContent = 'Posti esauriti';
+  } else {
+    forte.textContent = (liberi === 1 ? 'posto ancora libero' : 'posti ancora liberi') + ' su ' + totali;
+  }
+  t.appendChild(forte);
+  var sotto = document.createElement('small');
+  sotto.textContent = (liberi === 0)
+    ? 'Hanno già prenotato in ' + occupati + '. Puoi comunque provare a scrivere agli organizzatori.'
+    : 'Hanno già prenotato in ' + occupati + ' — il numero si aggiorna a ogni prenotazione.';
+  t.appendChild(sotto);
+
+  $('postiBarra').style.width = quota + '%';
+}
+
+/* Dopo una prenotazione confermata aggiorna il contatore condiviso. */
+function aggiornaPostiDopoPrenotazione(p){
+  if(!window.FB || !FB.attivo() || p.postiContati) return Promise.resolve(false);
+  var persone = (Number(p.adulti)||0) + (Number(p.bambini)||0);
+  if(persone <= 0) return Promise.resolve(false);
+  return FB.incrementaPosti(persone).then(function(ok){
+    if(ok){
+      p.postiContati = true;
+      memScrivi(CHIAVE_MEM, JSON.stringify(p));
+      if(postiOccupati !== null) postiOccupati += persone;
+      mostraPosti();
+    }
+    return ok;
+  });
 }
 
 /* Costruisce l'oggetto-prenotazione completo (lo stesso formato che usa il
@@ -2162,7 +2248,8 @@ $('btnFine').addEventListener('click', function(){
 
   if(!p){ mostraFine(false); return; }
   /* in parallelo: avviso Telegram + salvataggio nel registro cloud */
-  Promise.all([ inviaPrenotazioneTelegram(p), salvaSuCloud(p) ]).then(function(esiti){
+  Promise.all([ inviaPrenotazioneTelegram(p), salvaSuCloud(p),
+                aggiornaPostiDopoPrenotazione(p) ]).then(function(esiti){
     mostraFine(esiti[0] || esiti[1]);
   });
 });

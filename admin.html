@@ -2061,6 +2061,22 @@ function cloudElimina(p){
   return fbToken().then(function(t){ return FB.elimina(t, p._id); });
 }
 
+/* ---- contatore pubblico dei posti ----
+   Il sito mostra quanti posti restano leggendo un contatore pubblico (solo un
+   numero). Qui lo riallineiamo al registro, che e' la fonte di verita': cosi'
+   se una prenotazione viene eliminata o modificata, il numero si corregge. */
+let postiScritti = null;
+
+function sincronizzaPosti(){
+  if(!regCloudAttivo() || !regLoggato()) return;
+  const persone = REGISTRO.reduce((s,p) => s + regPartecipanti(p), 0);
+  if(persone === postiScritti) return;          /* nulla da aggiornare */
+  postiScritti = persone;
+  fbToken()
+    .then(t => FB.scriviPosti(t, persone))
+    .catch(() => { postiScritti = null; });     /* riproverà al prossimo giro */
+}
+
 function regEuro(n){
   const v = Number(n)||0;
   return '€ ' + (Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ','));
@@ -2214,13 +2230,19 @@ function regDisegna(){
   const pizze = REGISTRO.reduce((s,p)=> s + (p.righe||[]).reduce((q,r)=> q + (Number(r.quantita)||0), 0), 0);
   const cru = $('reg_cruscotto');
   cru.textContent = '';
-  [
+  const postiTot = Number((DATA && DATA.evento && DATA.evento.postiTotali) || 0);
+  const kpi = [
     ['', REGISTRO.length, 'prenotazioni'],
     ['', persone, 'partecipanti'],
     ['', pizze, 'pizze'],
     ['ok', regEuro(incassato), 'incassato'],
     ['attesa', regEuro(previsto - incassato), 'da incassare']
-  ].forEach(([cls, val, et]) => {
+  ];
+  if(postiTot > 0){
+    const liberi = Math.max(0, postiTot - persone);
+    kpi.splice(2, 0, [liberi === 0 ? 'attesa' : 'ok', liberi, 'posti liberi su ' + postiTot]);
+  }
+  kpi.forEach(([cls, val, et]) => {
     const box = crea('div', 'reg-kpi' + (cls ? ' '+cls : ''));
     box.appendChild(crea('b', null, String(val)));
     box.appendChild(crea('span', null, et));
@@ -2341,6 +2363,7 @@ function regDisegna(){
 
   regDisegnaCestino();
   regDisegnaOrdine();
+  sincronizzaPosti();   /* riallinea il contatore pubblico dei posti */
 }
 
 /* ---------- cestino ---------- */
