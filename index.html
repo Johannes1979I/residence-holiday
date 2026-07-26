@@ -991,7 +991,6 @@ function disegna(){
   testo('sTema', V(tema.nomeTema, '—'));
   var posti = Number(ev.postiTotali) || 0;
   testo('sPosti', posti > 0 ? ' · ' + posti + ' posti in tutto' : '');
-  caricaPosti();
 
   /* collega il database cloud, se configurato */
   var cloud = V(DATI.cloud, {});
@@ -1009,6 +1008,7 @@ function disegna(){
   preparaCondivisione();
   disegnaPiede();
   avviaConto(ev);
+  caricaPosti();          /* dopo FB.cfg: serve il collegamento al database */
   controllaPrenotazioneSalvata();
 }
 
