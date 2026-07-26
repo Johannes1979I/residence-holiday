@@ -1751,8 +1751,10 @@ async function ghPut(path, contentB64, message){
   /* legge lo sha attuale del file, aggirando la cache (altrimenti si rischia
      uno sha vecchio -> errore 409 "does not match") */
   async function shaCorrente(){
+    /* niente intestazione Cache-Control: GitHub non la accetta nel CORS e la
+       chiamata fallirebbe con "Failed to fetch". Basta il parametro _=... */
     const cur = await fetch(api+'?ref='+encodeURIComponent(branch)+'&_='+Date.now(),
-      { headers: Object.assign({}, headers, {'Cache-Control':'no-cache'}), cache:'no-store' });
+      { headers: headers, cache:'no-store' });
     if(cur.ok){ return (await cur.json()).sha; }
     if(cur.status === 404){ return undefined; }   /* file non esiste ancora: si crea */
     throw new Error('GitHub '+cur.status+': '+(await cur.text()));
