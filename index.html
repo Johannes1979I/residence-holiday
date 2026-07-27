@@ -421,7 +421,13 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
 }
 .v-piede{ margin-top:14px; text-align:center; font-size:.8rem; color:var(--muted); }
 
-.invio-avviso{ text-align:center; margin-top:18px; font-size:.95rem; color:#fff; opacity:.95; }
+.invio-avviso{
+  max-width:620px; margin:16px auto 0; text-align:center; font-size:.95rem; font-weight:bold;
+  border-radius:14px; padding:12px 16px;
+}
+.invio-avviso.corso{ background:rgba(255,255,255,.9); color:var(--ink); }
+.invio-avviso.ok{ background:rgba(37,184,120,.95); color:#fff; }
+.invio-avviso.ko{ background:rgba(255,183,3,.96); color:#5a3d00; font-weight:normal; }
 
 .azioni-voucher{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px; }
 .azioni-voucher .btn{ flex:1 1 210px; }
@@ -734,7 +740,7 @@ footer .servizio a:hover{ opacity:1; }
           </div>
         </div>
 
-        <p class="invio-avviso" id="invioAvviso">Quando premi <b>«Ho finito, chiudi»</b> la prenotazione viene inviata agli organizzatori.</p>
+        <p class="invio-avviso" id="invioAvviso" style="display:none"></p>
 
         <div class="azioni-voucher">
           <button type="button" class="btn btn-scuro" id="btnStampaVoucher">🖨️ Stampa / salva il voucher</button>
@@ -1927,6 +1933,43 @@ function conferma(){
 
   memScrivi(CHIAVE_MEM, JSON.stringify(prenotazioneFatta));
   mostraVoucher();
+  /* La prenotazione parte SUBITO alla conferma: se la persona chiude la pagina
+     senza premere "Ho finito", la richiesta è comunque già arrivata. */
+  registraPrenotazione(prenotazioneFatta);
+}
+
+/* Invia la prenotazione agli organizzatori e la salva nel registro cloud.
+   Aggiorna l'avviso sotto il voucher con l'esito. */
+function registraPrenotazione(p){
+  if(!p) return Promise.resolve(false);
+  if(p.inviata || p.salvataCloud){ avvisoInvio('ok'); return Promise.resolve(true); }
+
+  avvisoInvio('corso');
+  /* prima il contatore dei posti, così il messaggio riporta i posti aggiornati */
+  return aggiornaPostiDopoPrenotazione(p)
+    .then(function(){
+      return Promise.all([ inviaPrenotazioneTelegram(p), salvaSuCloud(p) ]);
+    })
+    .then(function(esiti){
+      var ok = esiti[0] || esiti[1];
+      avvisoInvio(ok ? 'ok' : 'ko');
+      return ok;
+    })
+    .catch(function(){ avvisoInvio('ko'); return false; });
+}
+
+function avvisoInvio(stato){
+  var el = $('invioAvviso');
+  if(!el) return;
+  el.style.display = '';
+  el.className = 'invio-avviso ' + stato;
+  if(stato === 'corso'){
+    el.textContent = '⏳ Sto inviando la prenotazione agli organizzatori…';
+  } else if(stato === 'ok'){
+    el.textContent = '✅ Prenotazione inviata agli organizzatori: è tutto a posto!';
+  } else {
+    el.textContent = '⚠️ Non sono riuscito a inviarla. Fai uno screenshot del voucher e mandalo agli organizzatori, oppure riapri questa pagina più tardi: ci riproverà da solo.';
+  }
 }
 
 /* --------------------------------- voucher --------------------------------- */
@@ -1944,7 +1987,10 @@ function mostraVoucher(){
   $('voucher').style.display = '';
   var azV = document.querySelector('#areaVoucher .azioni-voucher');
   if(azV) azV.style.display = '';
-  if($('invioAvviso')) $('invioAvviso').style.display = p.inviata ? 'none' : '';
+  if($('invioAvviso')){
+    if(p.inviata || p.salvataCloud) avvisoInvio('ok');
+    else { $('invioAvviso').style.display = 'none'; $('invioAvviso').className = 'invio-avviso'; }
+  }
 
   testo('vCasa', (V(res.emoji, '🌴') + ' ' + V(res.nome, '')).trim());
   testo('vTitolo', V(tema.titoloFesta, 'Festa in piscina'));
@@ -2178,6 +2224,26 @@ function controllaPrenotazioneSalvata(){
   prenotazioneFatta = p;
   testo('giaCodice', p.codice);
   $('giaPrenotato').className = 'gia-prenotato visibile';
+
+  /* Recupero: se questa prenotazione non è mai arrivata agli organizzatori
+     (pagina chiusa troppo presto, rete assente…), riprova ora da sola. */
+  if(!p.inviata && !p.salvataCloud){
+    setTimeout(function(){
+      registraPrenotazione(p).then(function(ok){
+        if(ok) toastRecupero(p.codice);
+      });
+    }, 1200);
+  }
+}
+
+/* avviso discreto quando una prenotazione rimasta in sospeso viene recuperata */
+function toastRecupero(codice){
+  var box = $('giaPrenotato');
+  if(!box) return;
+  var p = document.createElement('div');
+  p.style.cssText = 'margin-top:8px;font-size:.88rem;color:#136c3b;font-weight:bold';
+  p.textContent = '✅ La tua prenotazione ' + codice + ' è stata inviata agli organizzatori.';
+  box.appendChild(p);
 }
 
 function nuovaPrenotazione(){
@@ -2266,15 +2332,10 @@ $('btnFine').addEventListener('click', function(){
   }
 
   if(!p){ mostraFine(false); return; }
-  /* in parallelo: avviso Telegram + salvataggio nel registro cloud */
-  /* prima aggiorno il contatore dei posti, poi mando l'avviso: così il
-     messaggio agli organizzatori riporta i posti rimasti già aggiornati */
-  aggiornaPostiDopoPrenotazione(p)
-    .then(function(){
-      return Promise.all([ inviaPrenotazioneTelegram(p), salvaSuCloud(p) ]);
-    })
-    .then(function(esiti){ mostraFine(esiti[0] || esiti[1]); })
-    .catch(function(){ mostraFine(false); });
+  /* l'invio è già partito alla conferma: qui al massimo si riprova, se allora
+     era andato storto (rete assente, ecc.) */
+  if(p.inviata || p.salvataCloud){ mostraFine(true); return; }
+  registraPrenotazione(p).then(mostraFine).catch(function(){ mostraFine(false); });
 });
 $('btnRiapri').addEventListener('click', function(){
   document.querySelector('#areaVoucher .azioni-voucher').style.display = '';
