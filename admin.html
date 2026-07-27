@@ -344,8 +344,12 @@
 
       <!-- barra "connesso come…" -->
       <div id="reg_sessione" class="reg-sessione" style="display:none">
-        <span>☁️ Prenotazioni sincronizzate · connesso come <b id="reg_chiEmail"></b></span>
-        <button class="btn btn-w reg-mini" id="reg_btnEsci">Esci</button>
+        <span>☁️ Prenotazioni sincronizzate · connesso come <b id="reg_chiEmail"></b>
+          <small id="reg_quando"></small></span>
+        <span class="reg-azioni" style="margin:0">
+          <button class="btn btn-w reg-mini" id="reg_btnAggiorna">🔄 Aggiorna</button>
+          <button class="btn btn-w reg-mini" id="reg_btnEsci">Esci</button>
+        </span>
       </div>
 
       <div id="reg_contenuto">
@@ -2009,7 +2013,49 @@ function regCaricaCloud(){
     REGISTRO.sort(function(a,b){ return String(a.ricevutoIl||'').localeCompare(String(b.ricevutoIl||'')); });
     try{ regSalva(); }catch(e){}   /* copia locale di comodo (offline) */
     regDisegna();
+    regSegnaOra();
   });
+}
+
+/* orario dell'ultimo aggiornamento, nella barra "connesso come…" */
+function regSegnaOra(){
+  const el = $('reg_quando');
+  if(!el) return;
+  const d = new Date();
+  const due = n => (n < 10 ? '0' : '') + n;
+  el.textContent = ' · aggiornato alle ' + due(d.getHours()) + ':' + due(d.getMinutes());
+}
+
+/* ---- aggiornamento automatico del registro ----
+   Si ricarica da solo, ma NON mentre stai lavorando: se hai aperto il modulo
+   (aggiunta o modifica) o il foglio dell'ordine, si aspetta, altrimenti
+   perderesti quello che stai scrivendo. */
+let timerRegistro = null, ascoltoRegistro = false;
+
+function regPuoAggiornare(){
+  if(!regCloudAttivo() || !regLoggato()) return false;
+  if(document.hidden) return false;
+  if(regModificaCodice) return false;                                  /* modifica in corso */
+  const form = $('reg_manuale');
+  if(form && form.style.display !== 'none') return false;              /* modulo aperto */
+  const foglio = $('reg_foglio');
+  if(foglio && foglio.classList.contains('aperto')) return false;      /* documento aperto */
+  return true;
+}
+
+function regAggiornaSePuoi(){
+  if(!regPuoAggiornare()) return;
+  regCaricaCloud().catch(function(){ /* rete assente: riprova al giro dopo */ });
+}
+
+function avviaAggiornamentoRegistro(){
+  if(timerRegistro) clearInterval(timerRegistro);
+  timerRegistro = setInterval(regAggiornaSePuoi, 60000);
+  if(!ascoltoRegistro){
+    ascoltoRegistro = true;
+    document.addEventListener('visibilitychange', function(){ regAggiornaSePuoi(); });
+    window.addEventListener('focus', regAggiornaSePuoi);
+  }
 }
 
 function regLogin(){
@@ -2023,6 +2069,7 @@ function regLogin(){
     return regCaricaCloud();
   }).then(function(){
     regMostraConnesso();
+    avviaAggiornamentoRegistro();
     toast('☁️ Connesso: prenotazioni sincronizzate.', 4000);
   }).catch(function(e){
     regLoginErrore(msgErroreFirebase(e && e.message));
@@ -2034,6 +2081,7 @@ function regLogin(){
 
 function regLogout(){
   FBSESS = null; try{ localStorage.removeItem('rh_fbsess'); }catch(e){}
+  if(timerRegistro){ clearInterval(timerRegistro); timerRegistro = null; }
   REGISTRO = []; CESTINO = [];
   regDisegna();
   regMostraLogin();
@@ -3027,6 +3075,14 @@ function registroCollega(){
   $('reg_btnEntra').addEventListener('click', regLogin);
   $('reg_pwd').addEventListener('keydown', e => { if(e.key === 'Enter') regLogin(); });
   $('reg_btnEsci').addEventListener('click', regLogout);
+  $('reg_btnAggiorna').addEventListener('click', () => {
+    const b = $('reg_btnAggiorna');
+    b.disabled = true; b.textContent = '⏳';
+    regCaricaCloud()
+      .then(() => toast('Elenco aggiornato.', 3000))
+      .catch(() => toast('⚠️ Non riesco ad aggiornare: controlla la connessione.', 6000))
+      .then(() => { b.disabled = false; b.textContent = '🔄 Aggiorna'; });
+  });
 }
 
 function registroAvvia(){
@@ -3041,6 +3097,7 @@ function registroAvvia(){
     FBSESS = fbSessLeggi();
     if(regLoggato()){
       regMostraConnesso();
+      avviaAggiornamentoRegistro();
       regCaricaCloud().catch(function(){
         /* sessione non più valida: torna al login */
         FBSESS = null; try{ localStorage.removeItem('rh_fbsess'); }catch(e){}
