@@ -2174,8 +2174,8 @@ function componiMessaggio(p){
 }
 
 /* Invia la prenotazione al Telegram degli organizzatori (bot). Ritorna una
-   Promise che si risolve a true/false. Viene chiamata quando la persona preme
-   "Ho finito, chiudi": in quel momento la richiesta parte da sola. */
+   Promise che si risolve a true/false. Viene chiamata alla conferma della
+   prenotazione (e, se allora era fallita, alla riapertura della pagina). */
 function inviaPrenotazioneTelegram(p){
   var n = V(DATI.notifiche, {});
   var token = String(V(n.telegramBotToken, '')).trim();
