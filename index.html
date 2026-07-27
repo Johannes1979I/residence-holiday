@@ -1019,6 +1019,7 @@ function disegna(){
   disegnaPiede();
   avviaConto(ev);
   caricaPosti();          /* dopo FB.cfg: serve il collegamento al database */
+  avviaAggiornamentoPosti();
   controllaPrenotazioneSalvata();
 }
 
@@ -1034,6 +1035,26 @@ function caricaPosti(){
     postiOccupati = (n === null) ? 0 : n;
     mostraPosti();
   });
+}
+
+/* Aggiornamento automatico del contatore: chi tiene la pagina aperta vede
+   salire i prenotati senza ricaricare. Si controlla ogni minuto, ma solo con
+   la pagina in primo piano, e subito appena si torna sulla scheda. */
+var timerPosti = null, ascoltoVisibilita = false;
+
+function avviaAggiornamentoPosti(){
+  if(timerPosti) clearInterval(timerPosti);
+  timerPosti = setInterval(function(){
+    if(!document.hidden) caricaPosti();
+  }, 60000);
+
+  if(!ascoltoVisibilita){
+    ascoltoVisibilita = true;
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden) caricaPosti();
+    });
+    window.addEventListener('focus', function(){ caricaPosti(); });
+  }
 }
 
 function mostraPosti(){
