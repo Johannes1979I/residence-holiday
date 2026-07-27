@@ -2111,6 +2111,50 @@ function cloudElimina(p){
   return fbToken().then(function(t){ return FB.elimina(t, p._id); });
 }
 
+/* Categoria di una voce ordinata. Le prenotazioni nuove la portano già con sé;
+   per quelle vecchie si risale dal menù cercando il nome (tenendo conto che,
+   se un nome esiste in due categorie, il sito lo scrive come "Nome (Categoria)"). */
+function regCategoriaDi(riga){
+  if(riga && riga.categoria) return String(riga.categoria);
+  const nome = String((riga && riga.nome) || '').trim();
+  if(!nome) return 'Altro';
+
+  const cats = (DATA && DATA.menu && DATA.menu.categorie) || [];
+  /* caso "Nome (Categoria)" */
+  const m = nome.match(/^(.*)\s\(([^()]+)\)$/);
+  if(m){
+    const dentro = m[2].trim().toLowerCase();
+    for(const c of cats) if(String(c.nome||'').trim().toLowerCase() === dentro) return c.nome;
+  }
+  /* ricerca per nome della voce */
+  const pulito = (m ? m[1] : nome).trim().toLowerCase();
+  for(const c of cats){
+    for(const v of (c.voci || [])){
+      if(String(v.nome||'').trim().toLowerCase() === pulito) return c.nome;
+    }
+  }
+  return 'Altro';
+}
+
+/* Quante porzioni per ogni categoria del menù, nell'ordine del menù. */
+function regConteggioPerCategoria(){
+  const cats = (DATA && DATA.menu && DATA.menu.categorie) || [];
+  const ordine = cats.map(c => c.nome);
+  const conta = {};
+  ordine.forEach(n => { conta[n] = 0; });
+
+  REGISTRO.forEach(p => (p.righe || []).forEach(r => {
+    const cat = regCategoriaDi(r);
+    conta[cat] = (conta[cat] || 0) + (Number(r.quantita) || 0);
+  }));
+
+  /* eventuali categorie non più nel menù vanno in coda */
+  Object.keys(conta).forEach(n => { if(ordine.indexOf(n) === -1) ordine.push(n); });
+  return ordine
+    .filter(n => conta[n] > 0 || cats.some(c => c.nome === n))
+    .map(n => ({ nome:n, quantita:conta[n] }));
+}
+
 /* ---- contatore pubblico dei posti ----
    Il sito mostra quanti posti restano leggendo un contatore pubblico (solo un
    numero). Qui lo riallineiamo al registro, che e' la fonte di verita': cosi'
@@ -2277,14 +2321,14 @@ function regDisegna(){
   const persone = REGISTRO.reduce((s,p)=> s + regPartecipanti(p), 0);
   const previsto = REGISTRO.reduce((s,p)=> s + (Number(p.totale)||0), 0);
   const incassato = REGISTRO.filter(p=>p.pagato).reduce((s,p)=> s + (Number(p.totale)||0), 0);
-  const pizze = REGISTRO.reduce((s,p)=> s + (p.righe||[]).reduce((q,r)=> q + (Number(r.quantita)||0), 0), 0);
   const cru = $('reg_cruscotto');
   cru.textContent = '';
   const postiTot = Number((DATA && DATA.evento && DATA.evento.postiTotali) || 0);
   const kpi = [
     ['', REGISTRO.length, 'prenotazioni'],
     ['', persone, 'partecipanti'],
-    ['', pizze, 'pizze'],
+    /* una voce per ogni categoria del menù: pizze e fritti restano distinti */
+    ...regConteggioPerCategoria().map(c => ['', c.quantita, String(c.nome).toLowerCase()]),
     ['ok', regEuro(incassato), 'incassato'],
     ['attesa', regEuro(previsto - incassato), 'da incassare']
   ];
@@ -2548,7 +2592,7 @@ function regDisegnaOrdine(){
   box.textContent = '';
   const rp = regRiepilogoPizze();
   if(!rp.normali.length && !rp.speciali.length){
-    box.appendChild(crea('div','vuoto','Nessuna pizza prenotata per ora.'));
+    box.appendChild(crea('div','vuoto','Nessun ordine per ora.'));
     return;
   }
 
@@ -2574,7 +2618,7 @@ function regDisegnaOrdine(){
   });
 
   const tot = crea('div','r');
-  tot.appendChild(crea('span', null, 'Totale pizze (' + rp.totaleQuantita + ')'));
+  tot.appendChild(crea('span', null, 'Totale porzioni (' + rp.totaleQuantita + ')'));
   tot.appendChild(crea('b', null, regEuro(rp.totaleImporto)));
   box.appendChild(tot);
 
@@ -2610,7 +2654,7 @@ function regTestoOrdine(){
       ' ' + regEtichettaSpeciale(s.tipo) + ' — ' + regEuro(s.importo)));
   }
   r.push('');
-  r.push('TOTALE PIZZE: ' + rp.totaleQuantita + ' pizze — ' + regEuro(rp.totaleImporto));
+  r.push('TOTALE: ' + rp.totaleQuantita + ' porzioni — ' + regEuro(rp.totaleImporto));
   return r.join('\n');
 }
 
@@ -2915,7 +2959,7 @@ function regDocumentoOrdine(){
     <tbody>${righePizze}</tbody>
     <tfoot><tr>
       <td class="c">${rp.totaleQuantita}</td>
-      <td>Totale pizze</td><td></td>
+      <td>Totale porzioni</td><td></td>
       <td class="r">${escHtml(regEuro(sommaPizze))}</td>
     </tr></tfoot>
   </table>

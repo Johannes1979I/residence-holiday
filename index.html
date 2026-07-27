@@ -1133,7 +1133,9 @@ function oggettoPrenotazione(p){
     codice: p.codice, nome: p.nome, telefono: p.telefono,
     appartamento: p.appartamento || '',
     adulti: p.adulti, bambini: p.bambini,
-    righe: (c.righe || []).map(function(r){ return { quantita:r.quantita, nome:r.nome, importo:r.importo }; }),
+    righe: (c.righe || []).map(function(r){
+      return { quantita:r.quantita, nome:r.nome, importo:r.importo, categoria:r.categoria || '' };
+    }),
     speciali: speciali,
     coperto: c.coperto, totale: c.totale,
     note: p.note || '', pagato: false,
@@ -1619,6 +1621,7 @@ function calcola(){
       var sp = speciali[ic + ':' + iv] || { celiaci:0, lattosio:0, entrambi:0 };
       righe.push({
         nome: nome, quantita:q, prezzo:prezzo, importo:importo, tipo:cat.tipo,
+        categoria: V(cat.nome, ''),
         celiaci: Math.min(sp.celiaci || 0, q),
         lattosio: Math.min(sp.lattosio || 0, q),
         entrambi: Math.min(sp.entrambi || 0, q)
