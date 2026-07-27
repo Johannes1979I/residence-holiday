@@ -360,6 +360,17 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
 }
 .posti .voce b{ font-size:1.3rem; color:var(--c3); }
 .posti .sep{ opacity:.65; }
+/* "Posti rimanenti" è il numero che interessa davvero: risalta di più */
+.posti .voce.rimasti b{ font-size:1.55rem; color:#7dffb4; }
+.posti.pochi .voce.rimasti b{ color:#fff; }
+.posti.esauriti .voce.rimasti b{ color:#fff; font-size:1.25rem; text-transform:uppercase; }
+/* su schermi stretti: tre righe ordinate (etichetta a sinistra, numero a destra)
+   invece di una fila che va a capo lasciando i separatori orfani */
+@media(max-width:700px){
+  .posti{ border-radius:20px; flex-direction:column; align-items:stretch; gap:5px; padding:13px 18px; }
+  .posti .sep{ display:none; }
+  .posti .voce{ display:flex; justify-content:space-between; align-items:center; gap:14px; }
+}
 .posti.pochi{ background:rgba(255,183,3,.28); border-color:rgba(255,210,63,.75); }
 .posti.esauriti{ background:rgba(230,57,70,.35); border-color:rgba(255,150,160,.75); }
 .posti.esauriti .voce b{ color:#fff; }
@@ -505,6 +516,8 @@ footer .servizio a:hover{ opacity:1; }
       <span class="voce">🎟️ Posti disponibili <b id="postiTotali">—</b></span>
       <span class="sep">·</span>
       <span class="voce">Prenotati <b id="postiPren">0</b></span>
+      <span class="sep">·</span>
+      <span class="voce rimasti">Posti rimanenti <b id="postiRimasti">—</b></span>
     </div>
     <div class="azioni">
       <a href="#prenota" class="btn btn-p">🎟️ Prenota il tuo posto</a>
@@ -1035,6 +1048,7 @@ function mostraPosti(){
   box.className = 'posti' + (liberi === 0 ? ' esauriti' : (liberi <= Math.max(5, totali * 0.15) ? ' pochi' : ''));
   testo('postiTotali', String(totali));
   testo('postiPren', String(occupati));
+  testo('postiRimasti', liberi === 0 ? 'esauriti' : String(liberi));
   box.title = liberi === 0 ? 'Posti esauriti' : ('Restano ' + liberi + ' posti liberi');
 }
 
