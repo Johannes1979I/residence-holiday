@@ -342,6 +342,10 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
 
 .consenso{ display:flex; gap:10px; align-items:flex-start; margin-top:16px; font-size:.92rem; }
 .consenso input{ width:22px; height:22px; margin-top:2px; flex:0 0 auto; accent-color:var(--c2); }
+.nota-invio{
+  margin-top:14px; background:rgba(18,182,201,.1); border:1px solid rgba(18,182,201,.4);
+  border-radius:12px; padding:11px 14px; font-size:.9rem; color:var(--ink);
+}
 
 .navigazione{ display:flex; gap:10px; justify-content:space-between; margin-top:22px; flex-wrap:wrap; }
 .navigazione .btn{ flex:1 1 auto; }
@@ -421,27 +425,21 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
 }
 .v-piede{ margin-top:14px; text-align:center; font-size:.8rem; color:var(--muted); }
 
+/* Esito dell'invio: sta SOPRA il voucher perché è la risposta alla domanda
+   che si fa chi prenota — "sono a posto o devo fare altro?" */
 .invio-avviso{
-  max-width:620px; margin:16px auto 0; text-align:center; font-size:.95rem; font-weight:bold;
-  border-radius:14px; padding:12px 16px;
+  max-width:620px; margin:0 auto 16px; text-align:center;
+  border-radius:16px; padding:18px 20px; box-shadow:var(--shadow-s);
 }
-.invio-avviso.corso{ background:rgba(255,255,255,.9); color:var(--ink); }
-.invio-avviso.ok{ background:rgba(37,184,120,.95); color:#fff; }
-.invio-avviso.ko{ background:rgba(255,183,3,.96); color:#5a3d00; font-weight:normal; }
+.invio-avviso .titolone{ display:block; font-size:1.3rem; font-weight:bold; line-height:1.25; }
+.invio-avviso .sotto{ display:block; font-size:.95rem; margin-top:5px; opacity:.95; }
+.invio-avviso.corso{ background:rgba(255,255,255,.95); color:var(--ink); }
+.invio-avviso.ok{ background:#1e9e63; color:#fff; }
+.invio-avviso.ko{ background:#ffb703; color:#4a3200; }
+@media(max-width:420px){ .invio-avviso .titolone{ font-size:1.12rem; } }
 
-.azioni-voucher{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px; }
+.azioni-voucher{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:16px; }
 .azioni-voucher .btn{ flex:1 1 210px; }
-
-/* schermata di chiusura dopo "Ho finito" */
-.fatto{
-  display:none; text-align:center; background:#fff; color:var(--ink);
-  border-radius:var(--radius); max-width:620px; margin:0 auto; padding:34px 26px; box-shadow:var(--shadow);
-}
-.fatto.visibile{ display:block; }
-.fatto .faccia{ font-size:3rem; }
-.fatto h3{ font-size:1.5rem; margin:8px 0 6px; }
-.fatto p{ color:var(--muted); margin-bottom:8px; }
-.fatto .codice-grande{ font-weight:bold; color:var(--c1); letter-spacing:2px; font-size:1.2rem; font-family:"Courier New",monospace; }
 
 /* --------------------------- condividi --------------------------- */
 .condividi{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; align-items:center; margin-top:26px; }
@@ -686,6 +684,7 @@ footer .servizio a:hover{ opacity:1; }
             <span id="testoConsenso"></span>
           </label>
           <p class="errore" id="eConsenso"></p>
+          <p class="nota-invio">📨 Premendo <b>«Invia la prenotazione»</b> la richiesta arriva subito agli organizzatori e ricevi il tuo voucher.</p>
         </div>
 
         <div class="navigazione">
@@ -696,6 +695,13 @@ footer .servizio a:hover{ opacity:1; }
 
       <!-- --------------------------- il voucher --------------------------- -->
       <div id="areaVoucher">
+
+        <!-- esito dell'invio: è la prima cosa che si deve vedere -->
+        <div class="invio-avviso" id="invioAvviso" style="display:none">
+          <span class="titolone" id="invioTitolo"></span>
+          <span class="sotto" id="invioSotto"></span>
+        </div>
+
         <div class="voucher" id="voucher">
           <div class="v-testata">
             <div class="casa" id="vCasa"></div>
@@ -740,24 +746,9 @@ footer .servizio a:hover{ opacity:1; }
           </div>
         </div>
 
-        <p class="invio-avviso" id="invioAvviso" style="display:none"></p>
-
         <div class="azioni-voucher">
-          <button type="button" class="btn btn-scuro" id="btnStampaVoucher">🖨️ Stampa / salva il voucher</button>
-          <button type="button" class="btn btn-p" id="btnFine">✅ Ho finito, chiudi</button>
-          <button type="button" class="btn btn-chiaro" id="btnNuova">➕ Nuova prenotazione</button>
-        </div>
-      </div>
-
-      <!-- schermata finale: chiarisce che la prenotazione è già stata inviata -->
-      <div class="fatto" id="schermataFine">
-        <div class="faccia">🎉</div>
-        <h3>Prenotazione completata!</h3>
-        <p id="fineEsito">La tua richiesta è stata inviata agli organizzatori. Non devi fare altro: puoi chiudere questa pagina.</p>
-        <p>Il tuo codice è <span class="codice-grande" id="fineCodice"></span> — ricordati di consegnare la quota in tempo.</p>
-        <div class="azioni-voucher">
-          <button type="button" class="btn btn-scuro" id="btnRiapri">👈 Rivedi il voucher</button>
-          <button type="button" class="btn btn-chiaro" id="btnNuova2">➕ Nuova prenotazione</button>
+          <button type="button" class="btn btn-scuro" id="btnStampaVoucher">🖨️ Salva il voucher</button>
+          <button type="button" class="btn btn-chiaro" id="btnNuova">➕ Prenota anche per un altro</button>
         </div>
       </div>
     </div>
@@ -1760,7 +1751,7 @@ function vaiA(n, senzaScorrimento){
 
   var avanti = $('btnAvanti');
   if(passoCorrente === 4){
-    avanti.textContent = '✅ Conferma e genera il voucher';
+    avanti.textContent = '✅ Invia la prenotazione';
   } else if(passoCorrente === 3){
     var c = calcola();
     avanti.textContent = (c.subBev === 0) ? 'Nessuna bevanda, avanti →' : 'Avanti →';
@@ -1964,11 +1955,14 @@ function avvisoInvio(stato){
   el.style.display = '';
   el.className = 'invio-avviso ' + stato;
   if(stato === 'corso'){
-    el.textContent = '⏳ Sto inviando la prenotazione agli organizzatori…';
+    testo('invioTitolo', '⏳ Sto inviando la prenotazione…');
+    testo('invioSotto', 'Un secondo, non chiudere la pagina.');
   } else if(stato === 'ok'){
-    el.textContent = '✅ Prenotazione inviata agli organizzatori: è tutto a posto!';
+    testo('invioTitolo', '✅ Prenotazione inviata agli organizzatori!');
+    testo('invioSotto', 'Non devi fare altro: puoi chiudere la pagina. Conserva il voucher qui sotto e ricordati della quota.');
   } else {
-    el.textContent = '⚠️ Non sono riuscito a inviarla. Fai uno screenshot del voucher e mandalo agli organizzatori, oppure riapri questa pagina più tardi: ci riproverà da solo.';
+    testo('invioTitolo', '⚠️ Non sono riuscito a inviarla');
+    testo('invioSotto', 'Fai uno screenshot del voucher e mandalo agli organizzatori, oppure riapri questa pagina più tardi: ci riproverà da solo.');
   }
 }
 
@@ -1983,7 +1977,6 @@ function mostraVoucher(){
   $('pannelloPassi').style.display = 'none';
   $('areaVoucher').className = 'visibile';
   $('giaPrenotato').className = 'gia-prenotato';
-  $('schermataFine').className = 'fatto';           /* nascondi l'eventuale schermata di chiusura */
   $('voucher').style.display = '';
   var azV = document.querySelector('#areaVoucher .azioni-voucher');
   if(azV) azV.style.display = '';
@@ -2260,8 +2253,8 @@ function nuovaPrenotazione(){
   $('avvisoPizze').className = 'avvisino';
   $('giaPrenotato').className = 'gia-prenotato';
   $('areaVoucher').className = '';
-  $('schermataFine').className = 'fatto';
   $('voucher').style.display = '';
+  if($('invioAvviso')){ $('invioAvviso').style.display = 'none'; $('invioAvviso').className = 'invio-avviso'; }
   var azN = document.querySelector('#areaVoucher .azioni-voucher');
   if(azN) azN.style.display = '';
   $('pannelloPassi').style.display = '';
@@ -2308,39 +2301,8 @@ $('fNote').addEventListener('input', function(){ testo('contaNote', String($('fN
 
 $('btnStampaVoucher').addEventListener('click', function(){ window.print(); });
 $('btnNuova').addEventListener('click', nuovaPrenotazione);
-$('btnNuova2').addEventListener('click', nuovaPrenotazione);
 $('btnCancella').addEventListener('click', nuovaPrenotazione);
 $('btnRivedi').addEventListener('click', function(){ mostraVoucher(); });
-
-/* "Ho finito, chiudi": è il momento in cui la prenotazione viene inviata agli
-   organizzatori (Telegram del bot). Poi si mostra la schermata di chiusura. */
-$('btnFine').addEventListener('click', function(){
-  var btn = this;
-  btn.disabled = true;
-  var p = prenotazioneFatta;
-
-  function mostraFine(inviata){
-    $('voucher').style.display = 'none';
-    document.querySelector('#areaVoucher .azioni-voucher').style.display = 'none';
-    testo('fineCodice', p ? p.codice : '');
-    testo('fineEsito', inviata
-      ? 'La tua richiesta è stata inviata agli organizzatori. Non devi fare altro: puoi chiudere questa pagina.'
-      : 'La tua prenotazione è registrata. Mostra il codice qui sotto all\'ingresso della festa.');
-    $('schermataFine').className = 'fatto visibile';
-    $('schermataFine').scrollIntoView({ behavior:'smooth', block:'center' });
-    btn.disabled = false;
-  }
-
-  if(!p){ mostraFine(false); return; }
-  /* l'invio è già partito alla conferma: qui al massimo si riprova, se allora
-     era andato storto (rete assente, ecc.) */
-  if(p.inviata || p.salvataCloud){ mostraFine(true); return; }
-  registraPrenotazione(p).then(mostraFine).catch(function(){ mostraFine(false); });
-});
-$('btnRiapri').addEventListener('click', function(){
-  document.querySelector('#areaVoucher .azioni-voucher').style.display = '';
-  mostraVoucher();
-});
 
 /* Invio da tastiera nei campi del passo 1: passa al passo successivo. */
 ['fNome','fTel','fApp'].forEach(function(id){
