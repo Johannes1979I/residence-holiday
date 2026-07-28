@@ -913,8 +913,9 @@
         <summary>Apri le impostazioni GitHub</summary>
         <div class="gh-box">
           <p class="hint" style="margin-top:0">
-            Questi dati restano salvati <b>solo in questo browser</b>, non finiscono online.
-            Se non li imposti, usa il bottone <b>💾 Scarica file</b>.
+            Utente e repository sono già impostati: <b>serve solo il token</b>. Si salva da solo
+            appena lo incolli, non devi premere nulla. Resta <b>solo in questo browser</b> e non
+            finisce online: su un altro telefono o computer va incollato di nuovo.
           </p>
           <div class="grid2">
             <div>
@@ -1695,14 +1696,39 @@ function caricaJsonLocale(ev){
 /* =========================================================
    GITHUB
    ========================================================= */
+/* Salvataggio silenzioso: i dati GitHub si memorizzano da soli appena li
+   scrivi, senza dover premere nulla. */
+function salvaGhSilenzioso(){
+  try{
+    localStorage.setItem('rh_gh', JSON.stringify({
+      owner:  $('gh_owner').value.trim(),
+      repo:   $('gh_repo').value.trim(),
+      branch: $('gh_branch').value.trim() || 'main',
+      token:  $('gh_token').value.trim()
+    }));
+  }catch(e){ /* navigazione privata: restano validi i campi del modulo */ }
+}
 function saveGh(){
-  localStorage.setItem('rh_gh', JSON.stringify({
-    owner:  $('gh_owner').value.trim(),
-    repo:   $('gh_repo').value.trim(),
-    branch: $('gh_branch').value.trim() || 'main',
-    token:  $('gh_token').value.trim()
-  }));
+  salvaGhSilenzioso();
   toast('Impostazioni GitHub salvate in questo browser.');
+}
+
+/* Il collegamento è pronto? (owner e repo hanno un valore predefinito: in
+   pratica manca sempre e solo il token) */
+function ghPronto(){
+  const s = gh();
+  return !!(s.owner && s.repo && s.token);
+}
+
+/* Porta l'utente esattamente dove deve incollare il token. */
+function chiediGh(){
+  const card = $('sec-github');
+  const det = card ? card.querySelector('details') : null;
+  if(det) det.open = true;
+  if(card) card.scrollIntoView({ behavior:'smooth', block:'start' });
+  const t = $('gh_token');
+  if(t) setTimeout(() => { try{ t.focus(); }catch(e){} }, 450);
+  toast('⚠️ Manca il token di GitHub: incollalo qui sotto (basta una volta) e ripremi “Pubblica online”.', 10000);
 }
 function loadGh(){
   try{
@@ -1715,7 +1741,21 @@ function loadGh(){
     if(s.token)  $('gh_token').value  = s.token;
   }catch(e){}
 }
-function gh(){ try{ return JSON.parse(localStorage.getItem('rh_gh')||'{}'); }catch(e){ return {}; } }
+/* Valori del collegamento GitHub. Si leggono PRIMA dai campi del modulo (così
+   funziona anche se non hai premuto "Salva"), poi da quelli memorizzati, e
+   infine dai valori predefiniti di questo progetto: in pratica l'unica cosa
+   che può mancare è il token. */
+function gh(){
+  let s = {};
+  try{ s = JSON.parse(localStorage.getItem('rh_gh')||'{}'); }catch(e){ s = {}; }
+  const campo = id => { const e = $(id); return e ? String(e.value||'').trim() : ''; };
+  return {
+    owner:  campo('gh_owner')  || s.owner  || 'Johannes1979I',
+    repo:   campo('gh_repo')   || s.repo   || 'residence-holiday',
+    branch: campo('gh_branch') || s.branch || 'main',
+    token:  campo('gh_token')  || s.token  || ''
+  };
+}
 
 function b64(str){
   const bytes = new TextEncoder().encode(str);
@@ -1797,6 +1837,8 @@ async function pubblica(){
     toast('⚠️ Non ho letto i contenuti attuali: non pubblico, perché sovrascriverei il sito con una scheda vuota.', 9000);
     return;
   }
+  /* niente token: invece del messaggio generico, apro la sezione giusta */
+  if(!ghPronto()){ chiediGh(); return; }
   try{
     const d = collect();
     toast('Pubblicazione in corso…', 60000);
@@ -1813,11 +1855,7 @@ async function pubblica(){
 
 /* Carica un file immagine su GitHub e passa il percorso a "onDone". */
 async function caricaImmagineGitHub(file, onDone){
-  const s = gh();
-  if(!s.owner || !s.repo || !s.token){
-    toast('Per caricare una foto configura prima GitHub (in fondo), oppure scrivi a mano il nome del file.', 8000);
-    return;
-  }
+  if(!ghPronto()){ chiediGh(); return; }
   const reader = new FileReader();
   reader.onload = async () => {
     try{
@@ -1887,6 +1925,12 @@ function collegaEventi(){
   $('btnAddRegola').addEventListener('click', ()=>{ addRegola(''); tocca(); });
   $('btnAddFoto').addEventListener('click', ()=>{ addFoto(''); tocca(); });
   $('btnSaveGh').addEventListener('click', saveGh);
+  /* i dati GitHub si salvano da soli: niente più "configura prima GitHub"
+     solo perché non si è premuto Salva */
+  ['gh_owner','gh_repo','gh_branch','gh_token'].forEach(id => {
+    const e = $(id);
+    if(e){ e.addEventListener('change', salvaGhSilenzioso); e.addEventListener('blur', salvaGhSilenzioso); }
+  });
   $('nt_prova').addEventListener('click', provaTelegram);
   $('fileFoto').addEventListener('change', caricaFoto);
   $('fileJson').addEventListener('change', caricaJsonLocale);
