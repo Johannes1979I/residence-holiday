@@ -127,6 +127,11 @@
   .reg-pizze .r .pr{color:#cfe9f2;font-size:.9em}
   .reg-pizze .r.grande{margin-top:8px;padding-top:9px;border-top:2px solid var(--c3);font-size:1.1rem}
   .reg-pizze .r.grande b{font-size:1.35rem}
+  .reg-pizze .cat{margin:10px 0 4px;font-size:.78rem;font-weight:bold;text-transform:uppercase;
+                  letter-spacing:.7px;color:var(--c3);border-bottom:1px solid rgba(255,255,255,.25);padding-bottom:3px}
+  .reg-pizze .cat:first-child{margin-top:0}
+  .reg-pizze .cat.rossa{color:#ff9aa4;border-bottom-color:rgba(255,154,164,.5)}
+  .reg-pizze .r.subtot{font-size:.85rem;opacity:.75;border-bottom:none;padding-top:1px}
   .reg-pizze .r.speciale{color:#ff9aa4}
   .reg-pizze .r.speciale .tag{color:#ff9aa4;font-weight:bold}
   .reg-pizze .r.speciale .pr{color:#ff9aa4}
@@ -208,6 +213,9 @@
   /* righe delle pizze speciali dentro l'elenco unico */
   .foglio-corpo tr.sep td{background:#fdf0f1;color:#c1121f;font-weight:bold;font-size:9pt;
                           text-transform:uppercase;letter-spacing:.4px;border-bottom:none;padding-top:11px}
+  .foglio-corpo tr.catrow td{background:#eaf6f9;color:var(--ink);font-weight:bold;font-size:9.5pt;
+                             text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #b9dde6}
+  .foglio-corpo tr.subtot td{font-size:9.5pt;color:#5a7583;border-bottom:1px solid #dce7ec}
   .foglio-corpo tr.spr td{background:#fdf0f1;color:#c1121f}
   .foglio-corpo tr.spr td small{color:#a83842}
   .foglio-corpo tr.spr .forte{font-weight:bold;color:#c1121f}
@@ -233,6 +241,7 @@
     body.stampa-foglio .foglio-corpo{box-shadow:none;margin:0;padding:0;max-width:100%;border-radius:0}
     body.stampa-foglio .foglio-corpo th,
     body.stampa-foglio .foglio-corpo tr.sep td,
+    body.stampa-foglio .foglio-corpo tr.catrow td,
     body.stampa-foglio .foglio-corpo tr.spr td,
     body.stampa-foglio .foglio-corpo .totale,
     body.stampa-foglio .foglio-corpo .quota,
@@ -2530,7 +2539,7 @@ function regRiepilogoPizze(){
     const nome = String(r.nome||'').trim();
     if(!nome) return;
     const q = Number(r.quantita)||0;
-    if(!perNome[nome]) perNome[nome] = { quantita:0, importo:0 };
+    if(!perNome[nome]) perNome[nome] = { quantita:0, importo:0, categoria:regCategoriaDi(r) };
     perNome[nome].quantita += q;
     perNome[nome].importo  += Number(r.importo)||0;
   }));
@@ -2559,9 +2568,25 @@ function regRiepilogoPizze(){
   Object.keys(perNome).forEach(nome => {
     const v = perNome[nome];
     const qNorm = Math.max(0, v.quantita - (specialiPerNome[nome]||0));
-    if(qNorm > 0) normali.push({ nome, quantita:qNorm, prezzo:v.prezzo, importo:qNorm * v.prezzo });
+    if(qNorm > 0) normali.push({ nome, quantita:qNorm, prezzo:v.prezzo, importo:qNorm * v.prezzo,
+                                 categoria:v.categoria });
   });
   normali.sort((a,b) => b.quantita-a.quantita || a.nome.localeCompare(b.nome,'it'));
+
+  /* Raggruppa per categoria del menù (pizze insieme, fritti insieme): così la
+     pizzeria legge l'ordine per reparto invece di un elenco mescolato. */
+  const ordineCat = ((DATA && DATA.menu && DATA.menu.categorie) || []).map(c => c.nome);
+  const perCat = {};
+  normali.forEach(v => {
+    const cat = v.categoria || 'Altro';
+    if(!perCat[cat]) perCat[cat] = { nome:cat, voci:[], quantita:0, importo:0 };
+    perCat[cat].voci.push(v);
+    perCat[cat].quantita += v.quantita;
+    perCat[cat].importo  += v.importo;
+  });
+  const posto = n => { const i = ordineCat.indexOf(n); return i === -1 ? 999 : i; };
+  const gruppi = Object.keys(perCat).map(k => perCat[k])
+    .sort((a,b) => posto(a.nome) - posto(b.nome) || a.nome.localeCompare(b.nome,'it'));
 
   const speciali = Object.keys(perSpec).map(k => {
     const s = perSpec[k];
@@ -2575,7 +2600,7 @@ function regRiepilogoPizze(){
   const totaleQuantita = Object.keys(perNome).reduce((s,n)=> s + perNome[n].quantita, 0);
   const totaleImporto  = Object.keys(perNome).reduce((s,n)=> s + perNome[n].importo, 0);
 
-  return { normali, speciali, totaleQuantita, totaleImporto };
+  return { normali, gruppi, speciali, totaleQuantita, totaleImporto };
 }
 
 /* totale delle quote a persona (la bagnina) su tutte le prenotazioni */
@@ -2596,17 +2621,27 @@ function regDisegnaOrdine(){
     return;
   }
 
-  /* prima le normali */
-  rp.normali.forEach(v => {
-    const r = crea('div','r');
-    r.appendChild(crea('span', null, v.quantita + ' × ' + v.nome));
-    const d = crea('span');
-    d.appendChild(crea('span','pr', regEuro(v.importo)));
-    r.appendChild(d);
-    box.appendChild(r);
+  /* le voci normali, raggruppate per categoria con subtotale */
+  rp.gruppi.forEach(g => {
+    box.appendChild(crea('div','cat', g.nome));
+    g.voci.forEach(v => {
+      const r = crea('div','r');
+      r.appendChild(crea('span', null, v.quantita + ' × ' + v.nome));
+      const d = crea('span');
+      d.appendChild(crea('span','pr', regEuro(v.importo)));
+      r.appendChild(d);
+      box.appendChild(r);
+    });
+    if(rp.gruppi.length > 1){
+      const sub = crea('div','r subtot');
+      sub.appendChild(crea('span', null, 'totale ' + String(g.nome).toLowerCase() + ': ' + g.quantita));
+      sub.appendChild(crea('b', null, regEuro(g.importo)));
+      box.appendChild(sub);
+    }
   });
 
   /* poi, raggruppate e in rosso, le speciali */
+  if(rp.speciali.length) box.appendChild(crea('div','cat rossa','⚠️ Da preparare separatamente'));
   rp.speciali.forEach(s => {
     const r = crea('div','r speciale');
     const sx = crea('span');
@@ -2644,9 +2679,13 @@ function regTestoOrdine(){
   const r = [];
   r.push('Ordine pizze — ' + ((DATA.tema && DATA.tema.titoloFesta) || 'festa') +
          (ev ? ' del ' + dataItaliana(ev) : ''));
-  r.push('');
-  rp.normali.forEach(v => r.push('• ' + v.quantita + ' × ' + v.nome +
-    ' — ' + regEuro(v.prezzo) + ' cad. — ' + regEuro(v.importo)));
+  /* un blocco per categoria: pizze insieme, fritti insieme */
+  rp.gruppi.forEach(g => {
+    r.push('');
+    r.push(String(g.nome).toUpperCase() + ' (' + g.quantita + ') — ' + regEuro(g.importo));
+    g.voci.forEach(v => r.push('• ' + v.quantita + ' × ' + v.nome +
+      ' — ' + regEuro(v.prezzo) + ' cad. — ' + regEuro(v.importo)));
+  });
   if(rp.speciali.length){
     r.push('');
     r.push('⚠️ SPECIALI (allergie e intolleranze) — da preparare separatamente:');
@@ -2920,12 +2959,22 @@ function regDocumentoOrdine(){
 
   /* Un solo elenco: prima le pizze normali, poi le speciali raggruppate e in
      rosso, con la richiesta in grassetto e il nome di chi le ha chieste. */
-  const righeNormali = rp.normali.map(v => `<tr>
-      <td class="c"><b>${v.quantita}</b></td>
-      <td>${escHtml(v.nome)}</td>
-      <td class="r">${escHtml(regEuro(v.prezzo))}</td>
-      <td class="r">${escHtml(regEuro(v.importo))}</td>
-    </tr>`).join('');
+  /* un blocco per categoria, con intestazione e subtotale: la pizzeria legge
+     l'ordine per reparto (prima le pizze, poi i fritti) */
+  const righeNormali = rp.gruppi.map(g => `
+      <tr class="catrow"><td colspan="4">${escHtml(g.nome)}</td></tr>
+      ${g.voci.map(v => `<tr>
+        <td class="c"><b>${v.quantita}</b></td>
+        <td>${escHtml(v.nome)}</td>
+        <td class="r">${escHtml(regEuro(v.prezzo))}</td>
+        <td class="r">${escHtml(regEuro(v.importo))}</td>
+      </tr>`).join('')}
+      ${rp.gruppi.length > 1 ? `<tr class="subtot">
+        <td class="c">${g.quantita}</td>
+        <td>totale ${escHtml(String(g.nome).toLowerCase())}</td>
+        <td></td>
+        <td class="r">${escHtml(regEuro(g.importo))}</td>
+      </tr>` : ''}`).join('');
 
   const righeSpeciali = rp.speciali.length ? `
       <tr class="sep"><td colspan="4">⚠️ Da preparare separatamente, evitando la contaminazione — verificare con la pizzeria</td></tr>
@@ -2953,7 +3002,7 @@ function regDocumentoOrdine(){
   <h1>🍕 Ordine per la pizzeria</h1>
   <p class="sub">${escHtml(titolo)}${ev ? ' · ' + escHtml(dataItaliana(ev)) : ''} · ${REGISTRO.length} prenotazioni · ${REGISTRO.reduce((s,p)=>s+regPartecipanti(p),0)} partecipanti</p>
 
-  <h2>Pizze da preparare</h2>
+  <h2>Da preparare</h2>
   <table>
     <thead><tr><th style="width:12%">Q.tà</th><th>Pizza</th><th style="width:20%" class="r">Prezzo</th><th style="width:20%" class="r">Totale</th></tr></thead>
     <tbody>${righePizze}</tbody>
