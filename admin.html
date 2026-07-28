@@ -1796,7 +1796,12 @@ async function provaTelegram(){
 
 async function ghPut(path, contentB64, message){
   const s = gh();
-  if(!s.owner || !s.repo || !s.token) throw new Error('Configura prima GitHub (utente, repository, token).');
+  /* rete di sicurezza: se si arriva qui senza token, invece del messaggio
+     generico si apre la sezione giusta e si spiega cosa manca */
+  if(!s.owner || !s.repo || !s.token){
+    chiediGh();
+    throw new Error('Manca il token di GitHub: incollalo nella sezione “Collegamento a GitHub”.');
+  }
   const branch = s.branch || 'main';
   const api = 'https://api.github.com/repos/'+s.owner+'/'+s.repo+'/contents/'+path;
   const headers = {'Authorization':'Bearer '+s.token, 'Accept':'application/vnd.github+json'};
