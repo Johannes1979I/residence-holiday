@@ -120,6 +120,7 @@
             font-size:.8rem;font-weight:bold;cursor:pointer}
   .reg-mini:hover{background:#dfeaef}
   .reg-mini.rossa{background:#ffe3e5;color:#a3121e}
+  .reg-mini.verde{background:#d9f5e4;color:#136c3b;font-weight:bold}
   .reg-pizze{background:#0d2b3e;color:#fff;border-radius:12px;padding:14px 16px;font-size:.95rem}
   .reg-pizze .r{display:flex;justify-content:space-between;gap:12px;padding:3px 0;border-bottom:1px dashed rgba(255,255,255,.18)}
   .reg-pizze .r:last-child{border-bottom:none}
@@ -186,6 +187,10 @@
   .reg-cestino-riga{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
                     background:#f6f8f9;border:1px dashed #c3d4da;border-radius:10px;padding:10px 12px;margin-bottom:7px;font-size:.88rem}
   .reg-riga.in-modifica{border-color:var(--c2);box-shadow:0 0 0 3px rgba(18,182,201,.18)}
+  .reg-riga.da-approvare{border-left:6px solid #ffb703;background:#fffaf0}
+  .reg-extra{font-size:.76rem;font-weight:bold;border-radius:999px;padding:3px 9px;
+             background:#fff3d6;color:#7a4d00;border:1px solid #ffcf6b}
+  .reg-extra.attesa{background:#ffe8e8;color:#a01722;border-color:#f3a9b0}
 
   /* ---------- foglio stampabile (ordine pizzeria / lista ingresso) ----------
      E' dentro la pagina invece che in una finestra nuova: i browser bloccano
@@ -436,6 +441,23 @@
         «Genera l’ordine» apre un foglio completo da stampare o salvare in PDF: pizze per
         tipologia con quantità e prezzi, pizze speciali in evidenza, totale finale e
         l’elenco di chi ha già versato la quota.
+      </p>
+
+      <h3 class="sub-h">📣 Avviso a tutti gli iscritti</h3>
+      <p class="hint" style="margin-bottom:8px">
+        WhatsApp non permette invii automatici, ma con una <b>lista broadcast</b> scrivi una volta
+        sola e il messaggio arriva a tutti come se fosse personale.
+        <b>Attenzione:</b> lo ricevono solo quelli che hanno il tuo numero in rubrica.
+      </p>
+      <div class="reg-azioni">
+        <button class="btn btn-w" id="reg_btnNumeri">📋 Copia i numeri (<span id="reg_quantiNumeri">0</span>)</button>
+        <button class="btn btn-w" id="reg_btnMsgPromemoria">✍️ Riscrivi il promemoria</button>
+        <button class="btn btn-p" id="reg_btnCopiaMsg">📄 Copia il messaggio</button>
+      </div>
+      <textarea id="reg_msgAvviso" rows="9" style="margin-top:10px"></textarea>
+      <p class="hint">
+        Su WhatsApp: <b>Nuovo → Nuova lista broadcast</b>, incolla i numeri, poi incolla qui il messaggio.
+        Puoi modificarlo prima di copiarlo.
       </p>
 
       <h3 class="sub-h">🗑️ Cestino <span class="conta" id="reg_contaCestino"></span></h3>
@@ -2315,6 +2337,12 @@ function regInterpreta(testo){
     });
   }
 
+  /* posto oltre i posti disponibili */
+  const ecc = t.match(/Persone in eccedenza:\s*(\d+)/i);
+  p.postiExtra = ecc ? (Number(ecc[1]) || 0) : 0;
+  if(/PORTA TAVOLO E SEDIE/i.test(t)){ p.portaTavolo = true;  p.stato = 'confermata'; }
+  else if(/NON HA TAVOLO E SEDIE|RICHIESTA DA APPROVARE/i.test(t)){ p.portaTavolo = false; p.stato = 'da approvare'; }
+
   p.totale = leggiNumero(cerca(/TOTALE:\s*€\s*([\d.,]+)/));
   const note = t.match(/📝\s*Note:\s*([\s\S]+)/);
   p.note = note ? note[1].split('\n')[0].trim() : '';
@@ -2359,6 +2387,11 @@ function regAggiungi(p){
     righe, speciali:(Array.isArray(p.speciali) ? p.speciali : []),
     coperto:Number(p.coperto)||0, totale,
     note:(p.note||''), pagato:(p.pagato===true), pagatoIl:(p.pagatoIl||null),
+    /* posto oltre il limite: quante persone in eccedenza, se porta tavolo e
+       sedie, e se la richiesta è ancora da approvare */
+    postiExtra:Number(p.postiExtra)||0,
+    portaTavolo:(p.portaTavolo === true || p.portaTavolo === false) ? p.portaTavolo : null,
+    stato:(p.stato === 'da approvare') ? 'da approvare' : 'confermata',
     ricevutoIl:(p.ricevutoIl || new Date().toISOString())
   };
   REGISTRO.push(rec);
@@ -2420,12 +2453,21 @@ function regDisegna(){
   }
 
   visibili.forEach(p => {
+    const daApprovare = (p.stato === 'da approvare');
     const riga = crea('div', 'reg-riga' + (p.pagato ? ' pagata' : '') +
+                              (daApprovare ? ' da-approvare' : '') +
                               (regModificaCodice === p.codice ? ' in-modifica' : ''));
 
     const testa = crea('div','reg-testa');
     testa.appendChild(crea('span','reg-codice', p.codice));
     testa.appendChild(crea('span','reg-nome', p.nome));
+    if(p.postiExtra > 0){
+      let etichetta;
+      if(daApprovare)               etichetta = '⏳ da approvare · +' + p.postiExtra + ' oltre i posti';
+      else if(p.portaTavolo === true) etichetta = '🪑 posto extra · porta tavolo e sedie';
+      else                          etichetta = '✅ posto extra approvato · SENZA tavolo e sedie';
+      testa.appendChild(crea('span','reg-extra' + (daApprovare ? ' attesa' : ''), etichetta));
+    }
     testa.appendChild(crea('span','reg-bollo ' + (p.pagato?'si':'no'), p.pagato ? '✅ pagato' : '⏳ da pagare'));
     testa.appendChild(crea('span','reg-tot', regEuro(p.totale)));
     riga.appendChild(testa);
@@ -2489,6 +2531,19 @@ function regDisegna(){
       azioni.appendChild(bWa);
     }
 
+    if(daApprovare){
+      const bOk = crea('button','reg-mini verde','👍 Approva');
+      bOk.type = 'button';
+      bOk.addEventListener('click', () => {
+        p.stato = 'confermata';
+        p.approvatoIl = new Date().toISOString();
+        regSalva(); regDisegna();
+        cloudPatch(p, { json: jsonPulito(p) });
+        toast('Richiesta approvata. Ricordati di avvisarlo/a: usa “💬 Scrivi su WhatsApp”.', 7000);
+      });
+      azioni.appendChild(bOk);
+    }
+
     const bMod = crea('button','reg-mini','✏️ Modifica');
     bMod.type = 'button';
     bMod.addEventListener('click', () => regApriModifica(p));
@@ -2513,9 +2568,85 @@ function regDisegna(){
     cont.appendChild(riga);
   });
 
+  /* avviso a tutti: aggiorno il conteggio dei numeri e, se non l'hai ancora
+     toccato, il testo del promemoria */
+  const cn = $('reg_quantiNumeri');
+  if(cn) cn.textContent = String(regNumeriIscritti().length);
+  const ta = $('reg_msgAvviso');
+  if(ta && !ta.dataset.toccato) ta.value = regMessaggioPromemoria();
+
   regDisegnaCestino();
   regDisegnaOrdine();
   sincronizzaPosti();   /* riallinea il contatore pubblico dei posti */
+}
+
+/* ---------- avviso a tutti gli iscritti ---------- */
+
+/* numeri di cellulare, uno per riga, in formato internazionale */
+function regNumeriIscritti(){
+  const visti = {};
+  const out = [];
+  REGISTRO.forEach(p => {
+    const solo = String(p.telefono || '').replace(/\D/g, '');
+    if(!solo) return;
+    const completo = solo.length <= 10 ? ('+39' + solo) : ('+' + solo);
+    if(visti[completo]) return;
+    visti[completo] = 1;
+    out.push(completo);
+  });
+  return out;
+}
+
+/* promemoria costruito dai contenuti del sito, così è sempre aggiornato */
+function regMessaggioPromemoria(){
+  const ev = (DATA && DATA.evento) || {}, tema = (DATA && DATA.tema) || {};
+  const pag = (DATA && DATA.pagamento) || {}, menu = (DATA && DATA.menu) || {};
+  const quando = dataItaliana(ev.data);
+  const r = [];
+  r.push('Ciao! Promemoria per ' + (tema.titoloFesta || 'la festa') + '.');
+  r.push('');
+  if(quando) r.push('Quando: ' + quando + (ev.orario ? ', dalle ' + ev.orario : '') +
+                    (ev.orarioFine ? ' alle ' + ev.orarioFine : ''));
+  if(ev.luogo) r.push('Dove: ' + ev.luogo);
+  r.push('');
+  r.push('COSA PORTARE');
+  r.push('- Le SEDIE: sono la cosa più importante, ne abbiamo pochissime.');
+  r.push('- Se avete anche un TAVOLO portatelo: fa sempre comodo e ci sistemiamo tutti.');
+  r.push('- Le bevande: ognuno le proprie.');
+  r.push('- Il dolce, per chi lo desidera.');
+  r.push('');
+  const perTesta = Number(menu.copertoPersona) || 0;
+  if(perTesta > 0 && pag.referente){
+    r.push('LA QUOTA');
+    /* se il referente è già scritto con la preposizione ("Alla bagnina…") basta
+       la minuscola iniziale, altrimenti si aggiunge "a" — senza rovinare i nomi */
+    const ref = String(pag.referente).trim();
+    const conPrep = /^(al|allo|alla|ai|agli|alle|all')\s*/i.test(ref);
+    r.push('Ricordatevi di consegnare la quota ' +
+      (conPrep ? ref.charAt(0).toLowerCase() + ref.slice(1) : 'a ' + ref) + '.');
+    r.push('');
+  }
+  r.push('Portate il voucher (stampato o sul telefono) e presentatelo all\'ingresso.');
+  r.push('Ci vediamo in piscina!');
+  return r.join('\n');
+}
+
+function regCopiaTesto(testo, messaggioOk){
+  const fine = () => toast(messaggioOk, 5000);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(testo).then(fine).catch(() => regCopiaRipiego(testo, fine));
+  } else {
+    regCopiaRipiego(testo, fine);
+  }
+}
+function regCopiaRipiego(testo, fine){
+  const t = document.createElement('textarea');
+  t.value = testo;
+  t.style.position = 'fixed'; t.style.opacity = '0';
+  document.body.appendChild(t); t.select();
+  try{ document.execCommand('copy'); fine(); }
+  catch(e){ toast('⚠️ Non riesco a copiare: seleziona il testo a mano.', 6000); }
+  document.body.removeChild(t);
 }
 
 /* ---------- cestino ---------- */
@@ -2937,7 +3068,11 @@ function regImportaDaLink(){
     adulti: carico.ad, bambini: carico.ba, coperto: carico.q, totale: carico.tot,
     note: carico.no,
     righe: (carico.r||[]).map(x => ({ quantita:x[0], nome:x[1], importo:x[2] })),
-    speciali: (carico.s||[]).map(x => ({ quantita:x[0], nome:x[1], tipo:x[2] }))
+    speciali: (carico.s||[]).map(x => ({ quantita:x[0], nome:x[1], tipo:x[2] })),
+    postiExtra: Number(carico.x) || 0,
+    portaTavolo: (carico.tv === 1 || carico.tv === '1') ? true
+               : ((carico.tv === 0 || carico.tv === '0') ? false : null),
+    stato: carico.st || 'confermata'
   });
   toast('✅ Registrata la prenotazione di ' + carico.n + '.', 6000);
 }
@@ -3213,6 +3348,24 @@ function registroCollega(){
     try{ localStorage.removeItem('rh_prenotazione'); }catch(e){}   /* eventuale prova fatta da questo browser */
     toast('✅ Fatto: tutte le prenotazioni sono state cancellate. Pagina pulita per le prenotazioni vere.', 6000);
   });
+
+  /* avviso a tutti gli iscritti */
+  $('reg_btnNumeri').addEventListener('click', () => {
+    const n = regNumeriIscritti();
+    if(!n.length){ toast('Non ci sono ancora numeri di cellulare nel registro.', 5000); return; }
+    regCopiaTesto(n.join('\n'), '📋 Copiati ' + n.length + ' numeri: incollali nella lista broadcast di WhatsApp.');
+  });
+  $('reg_btnCopiaMsg').addEventListener('click', () => {
+    const t = $('reg_msgAvviso').value.trim();
+    if(!t){ toast('Il messaggio è vuoto.', 4000); return; }
+    regCopiaTesto(t, '📄 Messaggio copiato: incollalo nella lista broadcast.');
+  });
+  $('reg_btnMsgPromemoria').addEventListener('click', () => {
+    $('reg_msgAvviso').value = regMessaggioPromemoria();
+    delete $('reg_msgAvviso').dataset.toccato;
+    toast('Promemoria riscritto con i dati aggiornati del sito.', 4000);
+  });
+  $('reg_msgAvviso').addEventListener('input', function(){ this.dataset.toccato = '1'; });
 
   $('reg_btnEntra').addEventListener('click', regLogin);
   $('reg_pwd').addEventListener('keydown', e => { if(e.key === 'Enter') regLogin(); });

@@ -342,6 +342,24 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
 
 .consenso{ display:flex; gap:10px; align-items:flex-start; margin-top:16px; font-size:.92rem; }
 .consenso input{ width:22px; height:22px; margin-top:2px; flex:0 0 auto; accent-color:var(--c2); }
+/* posti esauriti: riquadro della richiesta con tavolo e sedie */
+.posti-extra{
+  margin-top:18px; background:rgba(255,183,3,.14); border:2px solid #ffb703;
+  border-radius:16px; padding:16px 18px;
+}
+.posti-extra .titolo{ display:block; font-size:1.05rem; color:#7a4d00; margin-bottom:6px; }
+.posti-extra p{ font-size:.95rem; color:var(--ink); margin-bottom:10px; }
+.extra-scelta{
+  display:flex; align-items:flex-start; gap:11px; background:#fff; border:2px solid rgba(13,43,62,.12);
+  border-radius:12px; padding:12px 14px; margin-bottom:9px; cursor:pointer; font-weight:normal;
+}
+.extra-scelta:hover{ border-color:var(--c2); }
+.extra-scelta input{ width:22px; height:22px; margin-top:2px; flex:0 0 auto; accent-color:var(--c2); }
+.extra-scelta small{ display:block; color:var(--muted); font-size:.83rem; margin-top:2px; }
+.extra-nota{ font-size:.9rem; font-weight:bold; margin-top:4px; color:var(--muted); }
+.extra-nota.ok{ color:#136c3b; }
+.extra-nota.attesa{ color:#7a4d00; }
+
 .nota-invio{
   margin-top:14px; background:rgba(18,182,201,.1); border:1px solid rgba(18,182,201,.4);
   border-radius:12px; padding:11px 14px; font-size:.9rem; color:var(--ink);
@@ -430,6 +448,14 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
 .v-paga h4{ color:var(--c1); font-size:1rem; margin-bottom:7px; }
 .v-paga p{ font-size:.93rem; margin-bottom:5px; }
 .v-paga .forte{ font-weight:bold; }
+.v-extra{
+  margin-top:16px; border:2px solid #ffb703; background:rgba(255,183,3,.12);
+  border-radius:12px; padding:12px 14px; font-size:.93rem;
+}
+.v-extra b{ display:block; color:#7a4d00; margin-bottom:3px; }
+.v-extra.attesa{ border-color:var(--c1); background:rgba(230,57,70,.08); }
+.v-extra.attesa b{ color:var(--c1); }
+
 .v-esibire{
   margin-top:16px; text-align:center; font-weight:bold; background:var(--c3); color:var(--ink);
   border-radius:12px; padding:11px;
@@ -688,6 +714,22 @@ footer .servizio a:hover{ opacity:1; }
           <p class="guida">Se qualcosa non va, usa «Modifica» per tornare indietro.</p>
           <div class="riepilogo" id="riepilogo"></div>
 
+          <!-- compare solo se questa prenotazione supera i posti disponibili -->
+          <div class="posti-extra" id="postiExtra" style="display:none">
+            <b class="titolo" id="extraTitolo"></b>
+            <p id="extraTesto"></p>
+            <label class="extra-scelta">
+              <input type="radio" name="extraTavolo" value="si" />
+              <span><b>Porto tavolo e sedie da casa</b><small>La prenotazione viene confermata subito come posto extra.</small></span>
+            </label>
+            <label class="extra-scelta">
+              <input type="radio" name="extraTavolo" value="no" />
+              <span><b>Non ho tavolo e sedie</b><small>La prenotazione arriva agli organizzatori come richiesta: decidono loro e ti scrivono.</small></span>
+            </label>
+            <p class="extra-nota" id="extraNota"></p>
+            <p class="errore" id="eExtra"></p>
+          </div>
+
           <label for="fNote" style="margin-top:18px">Note per gli organizzatori <span style="font-weight:normal;color:var(--muted)">(allergie, richieste…)</span></label>
           <textarea id="fNote" rows="2" maxlength="300" placeholder="Facoltativo"></textarea>
           <p class="suggerimento"><span id="contaNote">0</span>/300 caratteri</p>
@@ -754,7 +796,11 @@ footer .servizio a:hover{ opacity:1; }
               <p id="vNote" style="font-size:.94rem"></p>
             </div>
 
-            <div class="v-esibire">🎟️ Da esibire all'ingresso della festa</div>
+            <div class="v-extra" id="vExtra" style="display:none">
+              <b id="vExtraTitolo"></b>
+              <span id="vExtraTesto"></span>
+            </div>
+            <div class="v-esibire" id="vEsibire">🎟️ Da esibire all'ingresso della festa</div>
             <p class="v-piede" id="vPiede"></p>
           </div>
         </div>
@@ -1139,6 +1185,9 @@ function oggettoPrenotazione(p){
     speciali: speciali,
     coperto: c.coperto, totale: c.totale,
     note: p.note || '', pagato: false,
+    postiExtra: p.postiExtra || 0,
+    portaTavolo: (p.portaTavolo === true || p.portaTavolo === false) ? p.portaTavolo : null,
+    stato: p.stato || 'confermata',
     ricevutoIl: new Date().toISOString()
   };
 }
@@ -1909,6 +1958,77 @@ function disegnaRiepilogo(){
     'Ho letto il regolamento e so che devo consegnare ' + eur(c.totale) +
     (pag.referente ? ' ' + aChi(pag.referente) : '') +
     (scad ? ' entro ' + scad : '') + '.');
+
+  disegnaPostiExtra(c.persone);
+}
+
+/* Quante persone di questa prenotazione eccedono i posti disponibili.
+   0 se i posti bastano (o se non è stato impostato un massimo). */
+function personeInEccesso(persone){
+  var totali = Number(V((DATI.evento||{}).postiTotali, 0)) || 0;
+  if(!totali || postiOccupati === null) return 0;
+  var giaMiei = (prenotazioneFatta && prenotazioneFatta.postiContati)
+    ? ((Number(prenotazioneFatta.adulti)||0) + (Number(prenotazioneFatta.bambini)||0)) : 0;
+  var occupati = Math.max(0, postiOccupati - giaMiei);   /* non conto due volte la mia */
+  return Math.max(0, (occupati + persone) - totali);
+}
+
+/* Riquadro dei posti esauriti: compare solo quando questa prenotazione sfora.
+   Chi porta tavolo e sedie viene confermato; gli altri restano in attesa. */
+function disegnaPostiExtra(persone){
+  var box = $('postiExtra');
+  if(!box) return;
+  var extra = personeInEccesso(persone);
+
+  if(extra <= 0){
+    box.style.display = 'none';
+    box.className = 'posti-extra';
+    return;
+  }
+
+  box.style.display = '';
+  var totali = Number(V((DATI.evento||{}).postiTotali, 0)) || 0;
+  var liberi = Math.max(0, totali - Math.max(0, postiOccupati));
+
+  testo('extraTitolo', liberi === 0
+    ? '⚠️ I ' + totali + ' posti sono esauriti'
+    : '⚠️ Restano solo ' + liberi + (liberi === 1 ? ' posto' : ' posti') + ' su ' + totali);
+  testo('extraTesto',
+    (extra === persone
+      ? 'Siete ' + persone + (persone === 1 ? ' persona e non c\'è più posto' : ' persone e non c\'è più posto')
+      : 'Siete ' + persone + ' persone: ' + extra + (extra === 1 ? ' resta' : ' restano') + ' oltre i posti disponibili') +
+    '. Possiamo comunque accogliervi, ma serve una cosa: tavoli e sedie del condominio sono finiti, ' +
+    'quindi chi si aggiunge deve portarseli da casa.');
+  aggiornaTestoConsensoExtra();
+}
+
+/* il testo del pulsante e della scelta cambia in base alla risposta */
+function aggiornaTestoConsensoExtra(){
+  var scelta = document.querySelector('input[name="extraTavolo"]:checked');
+  var nota = $('extraNota');
+  if(!nota) return;
+  if(!scelta){
+    nota.textContent = 'Scegli una delle due voci per continuare.';
+    nota.className = 'extra-nota';
+  } else if(scelta.value === 'si'){
+    nota.textContent = '✅ Bene: la tua prenotazione viene confermata subito come posto extra, con tavolo e sedie tuoi.';
+    nota.className = 'extra-nota ok';
+  } else {
+    nota.textContent = '⏳ La tua prenotazione arriverà agli organizzatori come richiesta da approvare: ti scriveranno sul cellulare che hai indicato.';
+    nota.className = 'extra-nota attesa';
+  }
+  if(passoCorrente === 4) vaiAggiornaPulsante();
+}
+
+/* etichetta del pulsante finale: "invia la prenotazione" o "invia la richiesta" */
+function vaiAggiornaPulsante(){
+  var b = $('btnAvanti');
+  if(!b) return;
+  var scelta = document.querySelector('input[name="extraTavolo"]:checked');
+  var extraVisibile = $('postiExtra') && $('postiExtra').style.display !== 'none';
+  b.textContent = (extraVisibile && scelta && scelta.value === 'no')
+    ? '📨 Invia la richiesta agli organizzatori'
+    : '✅ Invia la prenotazione';
 }
 
 /* ---------------------------- codice prenotazione -------------------------- */
@@ -1947,6 +2067,21 @@ function conferma(){
 
   var c = calcola();
   var pren = V(DATI.prenotazione, {});
+
+  /* posti esauriti: serve la risposta su tavolo e sedie */
+  var extra = personeInEccesso(c.persone);
+  var portaTavolo = null;
+  if(extra > 0){
+    var scelta = document.querySelector('input[name="extraTavolo"]:checked');
+    if(!scelta){
+      mostraErrore('eExtra', 'Dicci se porti tavolo e sedie: i posti sono esauriti.');
+      $('postiExtra').scrollIntoView({ behavior:'smooth', block:'center' });
+      return;
+    }
+    nascondiErrore('eExtra');
+    portaTavolo = (scelta.value === 'si');
+  }
+
   prenotazioneFatta = {
     codice: codicePrenotazione($('fNome').value.trim(), $('fTel').value.trim()),
     nome: $('fNome').value.trim(),
@@ -1956,6 +2091,11 @@ function conferma(){
     bambini: bambini,
     note: $('fNote').value.trim(),
     conto: c,
+    /* posto extra oltre il limite: confermato se porta tavolo e sedie,
+       altrimenti in attesa che l'organizzatore decida */
+    postiExtra: extra,
+    portaTavolo: portaTavolo,
+    stato: (extra > 0 && portaTavolo === false) ? 'da approvare' : 'confermata',
     dataEvento: V((DATI.evento || {}).data, ''),
     creatoIl: new Date().toISOString()
   };
@@ -1996,8 +2136,16 @@ function avvisoInvio(stato){
     testo('invioTitolo', '⏳ Sto inviando la prenotazione…');
     testo('invioSotto', 'Un secondo, non chiudere la pagina.');
   } else if(stato === 'ok'){
-    testo('invioTitolo', '✅ Prenotazione inviata agli organizzatori!');
-    testo('invioSotto', 'Non devi fare altro: puoi chiudere la pagina. Conserva il voucher qui sotto e ricordati della quota.');
+    var inAttesa = prenotazioneFatta && prenotazioneFatta.stato === 'da approvare';
+    if(inAttesa){
+      el.className = 'invio-avviso ko';   /* giallo: non è ancora confermata */
+      testo('invioTitolo', '📨 Richiesta inviata agli organizzatori');
+      testo('invioSotto', 'I posti erano esauriti: la tua richiesta è arrivata e verrà valutata. ' +
+        'Ti scriveranno sul cellulare che hai indicato. Non è ancora una prenotazione confermata.');
+    } else {
+      testo('invioTitolo', '✅ Prenotazione inviata agli organizzatori!');
+      testo('invioSotto', 'Non devi fare altro: puoi chiudere la pagina. Conserva il voucher qui sotto e ricordati della quota.');
+    }
   } else {
     testo('invioTitolo', '⚠️ Non sono riuscito a inviarla');
     testo('invioSotto', 'Fai uno screenshot del voucher e mandalo agli organizzatori, oppure riapri questa pagina più tardi: ci riproverà da solo.');
@@ -2021,6 +2169,28 @@ function mostraVoucher(){
   if($('invioAvviso')){
     if(p.inviata || p.salvataCloud) avvisoInvio('ok');
     else { $('invioAvviso').style.display = 'none'; $('invioAvviso').className = 'invio-avviso'; }
+  }
+
+  /* banda del posto extra (oltre i posti disponibili) */
+  var vx = $('vExtra');
+  if(vx){
+    if(!p.postiExtra){
+      vx.style.display = 'none';
+      testo('vEsibire', '🎟️ Da esibire all\'ingresso della festa');
+    } else if(p.portaTavolo){
+      vx.style.display = ''; vx.className = 'v-extra';
+      testo('vExtraTitolo', '🪑 Posto extra con tavolo e sedie tue');
+      testo('vExtraTesto', 'I posti erano esauriti: sei stato accolto in più, con l\'impegno di portare ' +
+        'tavolo e sedie da casa. Non dimenticarli, altrimenti non c\'è dove sedersi.');
+      testo('vEsibire', '🎟️ Da esibire all\'ingresso della festa');
+    } else {
+      vx.style.display = ''; vx.className = 'v-extra attesa';
+      testo('vExtraTitolo', '⏳ Richiesta in attesa di conferma');
+      testo('vExtraTesto', 'I posti erano esauriti e non hai tavolo e sedie: gli organizzatori valutano ' +
+        'se è possibile aggiungerti e ti scrivono al ' + (p.telefono || 'numero che hai indicato') +
+        '. Questo foglio vale solo dopo la loro conferma.');
+      testo('vEsibire', '⏳ Attendi la conferma degli organizzatori');
+    }
   }
 
   testo('vCasa', (V(res.emoji, '🌴') + ' ' + V(res.nome, '')).trim());
@@ -2140,6 +2310,8 @@ function linkRegistrazione(p){
     var carico = {
       c:p.codice, n:p.nome, t:p.telefono, a:p.appartamento,
       ad:p.adulti, ba:p.bambini, q:c.coperto, tot:c.totale, no:p.note,
+      x:p.postiExtra || 0, tv:(p.portaTavolo === true ? 1 : (p.portaTavolo === false ? 0 : '')),
+      st:p.stato || 'confermata',
       r: c.righe.map(function(r){ return [r.quantita, r.nome, r.importo]; }),
       s: []
     };
@@ -2161,6 +2333,19 @@ function componiMessaggio(p){
   var pag = V(DATI.pagamento, {}), menu = V(DATI.menu, {});
   var c = p.conto;
   var r = [];
+
+  /* posto extra: dev'essere la prima cosa che si legge */
+  if(p.postiExtra > 0){
+    if(p.portaTavolo){
+      r.push('🪑 POSTO EXTRA — oltre i ' + V((DATI.evento||{}).postiTotali, '') + ' posti');
+      r.push('PORTA TAVOLO E SEDIE DI PROPRIETÀ (confermato)');
+    } else {
+      r.push('⏳ RICHIESTA DA APPROVARE — oltre i ' + V((DATI.evento||{}).postiTotali, '') + ' posti');
+      r.push('NON HA TAVOLO E SEDIE: decidi tu se accettarla e scrivigli al ' + p.telefono);
+    }
+    r.push('Persone in eccedenza: ' + p.postiExtra);
+    r.push('');
+  }
 
   r.push(V(pren.messaggioBase, 'Ecco la mia prenotazione per la festa.'));
   r.push('');
@@ -2335,6 +2520,13 @@ $('menoBambini').addEventListener('click', function(){ if(bambini > 0){ bambini-
 $('fNome').addEventListener('input', function(){ nascondiErrore('eNome','fNome'); });
 $('fTel').addEventListener('input', function(){ nascondiErrore('eTel','fTel'); });
 $('fConsenso').addEventListener('change', function(){ nascondiErrore('eConsenso'); });
+/* scelta su tavolo e sedie quando i posti sono esauriti */
+[].forEach.call(document.querySelectorAll('input[name="extraTavolo"]'), function(r){
+  r.addEventListener('change', function(){
+    nascondiErrore('eExtra');
+    aggiornaTestoConsensoExtra();
+  });
+});
 $('fNote').addEventListener('input', function(){ testo('contaNote', String($('fNote').value.length)); });
 
 $('btnStampaVoucher').addEventListener('click', function(){ window.print(); });
