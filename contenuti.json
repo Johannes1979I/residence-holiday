@@ -374,6 +374,13 @@
     "images/dettaglio-residence.jpg",
     "images/dettaglio-vasca.jpg"
   ],
+  "album": {
+    "attivo": false,
+    "titolo": "L'album della serata",
+    "sottotitolo": "Le foto della Serata Pizza in Piscina.",
+    "nota": "Se in una foto non ti ci vedi bene o preferisci non comparire, dillo agli organizzatori: la togliamo subito.",
+    "foto": []
+  },
   "condivisione": {
     "urlSito": "https://johannes1979i.github.io/residence-holiday/",
     "linkGruppoTelegram": "",

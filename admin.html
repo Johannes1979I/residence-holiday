@@ -331,6 +331,7 @@
       <a href="#sec-notifiche">🔔 Avvisi</a>
       <a href="#sec-regolamento">📋 Regolamento</a>
       <a href="#sec-foto">📷 Foto</a>
+      <a href="#sec-album">📸 Album</a>
       <a href="#sec-condivisione">📣 Condivisione</a>
       <a href="#sec-contatti">📞 Contatti</a>
       <a href="#sec-locandina">🖨️ Locandina</a>
@@ -798,6 +799,67 @@
       <p class="hint">La foto viene caricata su GitHub nella cartella <code>images/</code> e aggiunta in fondo all’elenco. Serve il collegamento a GitHub configurato più in basso.</p>
     </div>
 
+    <!-- ---------- ALBUM DELLA SERATA ---------- -->
+    <div class="card" id="sec-album">
+      <h2>📸 Album della serata</h2>
+      <p class="intro">
+        Premi <b>Scatta</b>: si apre la fotocamera del telefono, fai la foto e quella
+        <b>compare subito nell’album del sito</b>, senza dover pubblicare niente.
+        La didascalia se la scrive da sola con l’ora — poi la correggi come vuoi.
+      </p>
+      <div class="toolbar" style="justify-content:flex-start;margin-bottom:12px">
+        <button class="btn btn-p" id="btnScatta">📸 Scatta una foto</button>
+        <input type="file" id="fileScatto" accept="image/*" capture="environment" style="display:none" />
+        <button class="btn btn-s" id="btnScegliFoto">🖼️ Scegli dalla galleria</button>
+        <input type="file" id="fileAlbum" accept="image/*" multiple style="display:none" />
+        <a class="btn btn-w" href="index.html#album" target="_blank" rel="noopener">👀 Vedi l’album</a>
+      </div>
+      <p class="hint" id="statoFoto"></p>
+      <label class="reg-check" style="margin-top:6px">
+        <input type="checkbox" id="al_attivo" />
+        Mostra l’album sul sito <span class="hint" style="font-weight:normal">(vale subito; si accende da solo alla prima foto)</span>
+      </label>
+
+      <div class="grid2" style="margin-top:14px">
+        <div>
+          <label for="al_titolo">Titolo della sezione</label>
+          <input id="al_titolo" placeholder="L’album della serata" />
+        </div>
+        <div>
+          <label for="al_sotto">Sottotitolo</label>
+          <input id="al_sotto" placeholder="Le foto della Serata Pizza in Piscina." />
+        </div>
+      </div>
+      <label for="al_nota" style="margin-top:10px">Nota sotto le foto</label>
+      <input id="al_nota" placeholder="Se preferisci non comparire, dillo agli organizzatori…" />
+
+      <div class="gh-box" style="margin-top:14px">
+        <b>⚠️ Attenzione alle persone nelle foto.</b> Pubblica solo quelle che vanno bene a tutti, e se
+        qualcuno chiede di togliere una foto, toglila subito — c’è il cestino accanto a ognuna.
+      </div>
+
+      <h3 class="sub-h">🖼️ Le foto già nell’album <span class="conta" id="al_conta"></span></h3>
+      <p class="hint" style="margin-bottom:8px">
+        Scrivi sopra la didascalia per cambiarla: si salva da sola. Il cestino toglie la foto dal sito.
+      </p>
+      <div id="al_elenco"></div>
+
+      <details style="margin-top:18px">
+        <summary style="cursor:pointer;font-weight:bold;padding:6px 0">Modificare l’elenco a mano</summary>
+        <p class="hint" style="margin-top:8px">
+          Una riga per foto: indirizzo, poi la didascalia dopo una barra verticale.<br>
+          <code>images/album/foto1.jpg | Il tavolo dei Marchionni</code>
+        </p>
+        <textarea id="al_foto" rows="6"></textarea>
+        <p class="hint">
+          Queste sono le foto messe nei contenuti del sito, che restano anche dopo la festa.
+          Quelle scattate durante la serata vivono nel database e si vedono subito: con il
+          pulsante qui sotto le si travasa qui, per conservarle.
+        </p>
+        <button class="btn btn-w" id="btnConsolidaAlbum">📥 Porta le foto della serata nei contenuti</button>
+      </details>
+    </div>
+
     <!-- ---------- CONDIVISIONE ---------- -->
     <div class="card" id="sec-condivisione">
       <h2>📣 Condivisione</h2>
@@ -1068,6 +1130,8 @@ function toast(msg, ms){
 function apri(url){ window.open(url,'_blank'); }
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function tocca(){ sporco = true; }
+/* scrive un testo dentro un elemento, senza rischiare di iniettare HTML */
+function testo(id, s){ const e = $(id); if(e) e.textContent = (s == null ? '' : String(s)); return e; }
 
 /* prezzi: si scrivono con la virgola, si salvano come numero */
 function leggiNumero(v){
@@ -1203,7 +1267,7 @@ function riempi(){
   const d = DATA;
   const res = d.residence||{}, tem = d.tema||{}, ev = d.evento||{}, me = d.menu||{},
         pg = d.pagamento||{}, pr = d.prenotazione||{}, co = d.condivisione||{},
-        ct = d.contatti||{}, lo = d.locandina||{}, nt = d.notifiche||{};
+        ct = d.contatti||{}, lo = d.locandina||{}, nt = d.notifiche||{}, al = d.album||{};
 
   $('r_nome').value  = res.nome||"";
   $('r_loc').value   = res.localita||"";
@@ -1249,6 +1313,14 @@ function riempi(){
 
   $('nt_token').value = nt.telegramBotToken||"";
   $('nt_chat').value  = nt.telegramChatId||"";
+
+  $('al_attivo').checked = (al.attivo === true);
+  $('al_titolo').value = al.titolo||"";
+  $('al_sotto').value  = al.sottotitolo||"";
+  $('al_nota').value   = al.nota||"";
+  $('al_foto').value   = (Array.isArray(al.foto) ? al.foto : []).map(f =>
+    (f && typeof f === 'object') ? (f.url + (f.didascalia ? ' | ' + f.didascalia : '')) : String(f)
+  ).join('\n');
 
   $('c_url').value = co.urlSito||"";
   $('c_tg').value  = co.linkGruppoTelegram||"";
@@ -1629,6 +1701,14 @@ function collect(){
   d.foto = [...document.querySelectorAll('#foto .foto-val')]
                     .map(x => x.value.trim()).filter(v => v !== '');
 
+  d.album = Object.assign({}, d.album, {
+    attivo:      $('al_attivo').checked,
+    titolo:      $('al_titolo').value.trim(),
+    sottotitolo: $('al_sotto').value.trim(),
+    nota:        $('al_nota').value.trim(),
+    foto:        ($('al_foto').value || '').split('\n').map(r => r.trim()).filter(Boolean)
+  });
+
   d.condivisione = Object.assign({}, d.condivisione, {
     urlSito:            $('c_url').value.trim(),
     linkGruppoTelegram: $('c_tg').value.trim(),
@@ -1914,6 +1994,197 @@ async function caricaImmagineGitHub(file, onDone){
   reader.readAsDataURL(file);
 }
 
+/* ====================== ALBUM DELLA SERATA ==========================
+   Il file della foto va su GitHub (cartella images/album/); l'elenco con le
+   didascalie va nel database, in un documento pubblico. Chi guarda il sito
+   vede la foto in pochi secondi, senza che si debba ripubblicare niente. */
+let ALBUM = [], ALBUM_ACCESO = false;
+
+function due(n){ return (Number(n) < 10 ? '0' : '') + Number(n); }
+
+function didascaliaAutomatica(){
+  const ora = new Date();
+  const orario = due(ora.getHours()) + ':' + due(ora.getMinutes());
+  const titolo = (DATA && DATA.tema && DATA.tema.titoloFesta) || 'la festa';
+  return orario + ' — ' + titolo;
+}
+
+/* Le foto dal telefono sono enormi: si rimpiccioliscono prima di mandarle,
+   altrimenti si riempie il sito e il caricamento non finisce mai. */
+function rimpicciolisci(file, latoMax){
+  return new Promise((ok, ko) => {
+    const lettore = new FileReader();
+    lettore.onerror = () => ko(new Error('non riesco a leggere la foto'));
+    lettore.onload = () => {
+      const img = new Image();
+      img.onerror = () => ko(new Error('la foto non si apre'));
+      img.onload = () => {
+        const s = Math.min(1, latoMax / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement('canvas');
+        c.width  = Math.round(img.naturalWidth  * s);
+        c.height = Math.round(img.naturalHeight * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        ok(c.toDataURL('image/jpeg', 0.82).split(',')[1]);
+      };
+      img.src = String(lettore.result);
+    };
+    lettore.readAsDataURL(file);
+  });
+}
+
+function nomeFotoAlbum(){
+  const d = new Date();
+  return 'foto_' + d.getFullYear() + due(d.getMonth()+1) + due(d.getDate()) + '_' +
+         due(d.getHours()) + due(d.getMinutes()) + due(d.getSeconds()) +
+         Math.floor(Math.random()*90+10) + '.jpg';
+}
+
+async function aggiungiFotoAlbum(file){
+  /* si dice sempre cosa sta succedendo: un pulsante che non fa niente e non
+     spiega perche' e' la cosa piu' fastidiosa che ci sia */
+  if(!regCloudAttivo() || !regLoggato()){
+    testo('statoFoto', '⚠️ Prima entra nel database: lo trovi in cima a «📒 Prenotazioni».');
+    toast('Prima entra nel database, in «📒 Prenotazioni».', 7000);
+    return false;
+  }
+  if(!ghPronto()){
+    testo('statoFoto', '⚠️ Manca il token di GitHub in questo dispositivo: serve per caricare le foto. ' +
+                       'Ti porto dove si incolla — poi torna qui e riscatta.');
+    chiediGh();
+    return false;
+  }
+  if(!file || !/^image\//.test(file.type || '')){
+    testo('statoFoto', '⚠️ Questo non è un file di immagine.');
+    return false;
+  }
+  try{
+    testo('statoFoto', '⏳ Preparo la foto…');
+    const b64 = await rimpicciolisci(file, 1600);
+    const nome = nomeFotoAlbum();
+    testo('statoFoto', '📤 Sto caricando ' + nome + '…');
+    const risposta = await ghPut('images/album/' + nome, b64, 'Foto dell’album: ' + nome);
+    /* l'indirizzo diretto funziona subito, senza aspettare che il sito si
+       ricostruisca: e' quello che rende l'album istantaneo */
+    const url = (risposta && risposta.content && risposta.content.download_url) ||
+                ('images/album/' + nome);
+    ALBUM.unshift({
+      url: url,
+      file: 'images/album/' + nome,
+      didascalia: didascaliaAutomatica(),
+      quando: new Date().toISOString(),
+      chi: (FBSESS && FBSESS.email) || ''
+    });
+    /* chi scatta vuole che si veda: l'album si accende da solo, senza dover
+       ricordarsi anche di ripubblicare il sito */
+    ALBUM_ACCESO = true;
+    if($('al_attivo') && !$('al_attivo').checked){ $('al_attivo').checked = true; tocca(); }
+    await salvaAlbum();
+    testo('statoFoto', '✅ Foto nell’album: già visibile a tutti.');
+    disegnaAlbum();
+    return true;
+  }catch(e){
+    testo('statoFoto', msgAlbumErrore(e));
+    return false;
+  }
+}
+
+/* L'errore piu' probabile la prima volta e' che manchino le regole del
+   database: e' inutile mostrare "Missing or insufficient permissions". */
+function msgAlbumErrore(e){
+  const t = String((e && e.message) || e || '');
+  if(/PERMISSION_DENIED|insufficient permissions/i.test(t)){
+    return '⚠️ Il database non lascia ancora scrivere l’album: mancano le regole. ' +
+           'Vai su Firebase → Firestore → Regole e aggiungi il blocco «pubblico/album» ' +
+           '(il testo esatto è nella GUIDA). La foto è già caricata: non l’hai persa.';
+  }
+  return '⚠️ ' + t;
+}
+
+function salvaAlbum(){
+  return fbToken().then(t => FB.scriviAlbum(t, { attivo: ALBUM_ACCESO, foto: ALBUM }));
+}
+
+function caricaAlbum(){
+  if(!regCloudAttivo()) return Promise.resolve();
+  return FB.leggiAlbum().then(a => {
+    ALBUM = (a && Array.isArray(a.foto)) ? a.foto : [];
+    ALBUM_ACCESO = !!(a && a.attivo);
+    /* comanda il database: e' quello che vedono i visitatori adesso */
+    if(ALBUM_ACCESO && $('al_attivo')) $('al_attivo').checked = true;
+    disegnaAlbum();
+  }).catch(() => {});
+}
+
+function disegnaAlbum(){
+  const el = $('al_elenco');
+  if(!el) return;
+  el.textContent = '';
+  const conta = $('al_conta');
+  if(conta) conta.textContent = ALBUM.length ? String(ALBUM.length) : '';
+  if(!ALBUM.length){
+    el.appendChild(crea('p', 'hint', 'Nessuna foto ancora. Premi «📸 Scatta una foto».'));
+    return;
+  }
+  ALBUM.forEach((f, i) => {
+    const r = crea('div', 'reg-riga');
+    r.style.cssText = 'display:flex;gap:12px;align-items:center;flex-wrap:wrap';
+
+    const img = document.createElement('img');
+    img.src = f.url; img.alt = f.didascalia || ''; img.loading = 'lazy';
+    img.style.cssText = 'width:82px;height:82px;object-fit:cover;border-radius:12px;flex:0 0 82px';
+    r.appendChild(img);
+
+    const c = crea('div');
+    c.style.cssText = 'flex:1 1 220px;min-width:0';
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.value = f.didascalia || ''; inp.placeholder = 'Didascalia';
+    inp.addEventListener('change', () => {
+      f.didascalia = inp.value.trim();
+      salvaAlbum().then(() => toast('✏️ Didascalia aggiornata.', 3500))
+                  .catch(e => toast(msgAlbumErrore(e), 11000));
+    });
+    c.appendChild(inp);
+    const q = new Date(f.quando);
+    c.appendChild(crea('p', 'hint',
+      (isNaN(q.getTime()) ? '' : ('scattata alle ' + due(q.getHours()) + ':' + due(q.getMinutes()))) +
+      (f.chi ? ' da ' + f.chi : '')));
+    r.appendChild(c);
+
+    const via = crea('button', 'btn btn-w');
+    via.type = 'button'; via.textContent = '🗑️ Togli';
+    via.addEventListener('click', () => {
+      if(!confirm('Tolgo questa foto dall’album?')) return;
+      ALBUM.splice(i, 1);
+      salvaAlbum().then(() => { disegnaAlbum(); toast('Foto tolta dall’album.', 4000); })
+                  .catch(e => toast(msgAlbumErrore(e), 11000));
+    });
+    r.appendChild(via);
+    el.appendChild(r);
+  });
+}
+
+/* Travasa le foto della serata (che vivono nel database) nell'elenco dei
+   contenuti, cosi' restano nell'album anche quando il database si svuota. */
+function consolidaAlbum(){
+  if(!ALBUM.length){ toast('Non c’è nessuna foto della serata da portare nei contenuti.', 6000); return; }
+  const righe = ($('al_foto').value || '').split('\n').map(r => r.trim()).filter(Boolean);
+  const gia = {};
+  righe.forEach(r => { gia[r.split('|')[0].trim()] = 1; });
+  let aggiunte = 0;
+  ALBUM.forEach(f => {
+    const percorso = f.file || f.url;
+    if(!percorso || gia[percorso]) return;
+    gia[percorso] = 1; aggiunte++;
+    righe.push(percorso + (f.didascalia ? ' | ' + f.didascalia : ''));
+  });
+  $('al_foto').value = righe.join('\n');
+  tocca();
+  toast(aggiunte
+    ? '📥 ' + aggiunte + (aggiunte === 1 ? ' foto portata' : ' foto portate') +
+      ' nei contenuti. Premi «Pubblica online» per fissarle.'
+    : 'Erano già tutte nei contenuti.', 8000);
+}
+
 async function caricaFoto(ev){
   const file = ev.target.files && ev.target.files[0];
   if(!file){ return; }
@@ -1974,6 +2245,28 @@ function collegaEventi(){
   $('nt_prova').addEventListener('click', provaTelegram);
   $('fileFoto').addEventListener('change', caricaFoto);
   $('fileJson').addEventListener('change', caricaJsonLocale);
+
+  /* album della serata */
+  $('btnScatta').addEventListener('click', () => $('fileScatto').click());
+  $('btnScegliFoto').addEventListener('click', () => $('fileAlbum').click());
+  const daiFile = async ev => {
+    const files = [...(ev.target.files || [])];
+    ev.target.value = '';
+    for(const f of files){ await aggiungiFotoAlbum(f); }   /* una alla volta: GitHub non ama le raffiche */
+  };
+  $('fileScatto').addEventListener('change', daiFile);
+  $('fileAlbum').addEventListener('change', daiFile);
+  $('al_attivo').addEventListener('change', () => {
+    ALBUM_ACCESO = $('al_attivo').checked;
+    tocca();
+    if(regLoggato()){
+      salvaAlbum().then(() => toast(ALBUM_ACCESO
+        ? '✅ Album acceso: si vede subito sul sito.'
+        : '🙈 Album nascosto dal sito.', 5000))
+        .catch(e => toast(msgAlbumErrore(e), 11000));
+    }
+  });
+  $('btnConsolidaAlbum').addEventListener('click', consolidaAlbum);
 
   legaAnteprimaData('e_data','e_data_hint','Scegli il giorno dal calendario');
   legaAnteprimaData('pg_scad','pg_scad_hint','Entro questo giorno va consegnata la quota');
@@ -2163,6 +2456,7 @@ function regLogin(){
   }).then(function(){
     regMostraConnesso();
     avviaAggiornamentoRegistro();
+    caricaAlbum();
     toast('☁️ Connesso: prenotazioni sincronizzate.', 4000);
   }).catch(function(e){
     regLoginErrore(msgErroreFirebase(e && e.message));
@@ -3419,6 +3713,7 @@ function registroAvvia(){
     if(regLoggato()){
       regMostraConnesso();
       avviaAggiornamentoRegistro();
+      caricaAlbum();
       regCaricaCloud().catch(function(){
         /* sessione non più valida: torna al login */
         FBSESS = null; try{ localStorage.removeItem('rh_fbsess'); }catch(e){}

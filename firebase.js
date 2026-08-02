@@ -181,10 +181,66 @@
       .catch(function(){ return false; });
   }
 
+  /* ============================== ALBUM =================================
+     Le foto della serata. Il file dell'immagine sta su GitHub; qui viaggiano
+     solo l'elenco degli indirizzi e le didascalie, in un documento pubblico:
+     lo legge chiunque apra il sito, lo scrive solo l'organizzatore collegato.
+     Cosi' una foto scattata durante la festa si vede subito, senza dover
+     ripubblicare il sito. */
+  var DOC_ALBUM = 'pubblico/album';
+
+  function leggiAlbum(){
+    return fetch(BASE + '/' + DOC_ALBUM + '?key=' + API + '&_=' + Date.now(),
+                 { cache:'no-store' })
+      .then(jget).then(function(d){
+        if(d.error) return null;                 /* non esiste ancora, o bloccato */
+        var f = d.fields || {};
+        var testo = (f.json && f.json.stringValue) || '';
+        if(!testo) return null;
+        try{
+          var o = JSON.parse(testo);
+          if(Array.isArray(o)) return { attivo: o.length > 0, foto: o };   /* formato vecchio */
+          return { attivo: o.attivo !== false, foto: Array.isArray(o.foto) ? o.foto : [] };
+        }catch(e){ return null; }
+      })
+      .catch(function(){ return null; });
+  }
+
+  /* Serve alla diagnosi: dice se l'album e' bloccato dalle regole, cosa che
+     leggiAlbum() nasconde apposta per non disturbare chi guarda il sito. */
+  function provaAlbum(){
+    return fetch(BASE + '/' + DOC_ALBUM + '?key=' + API + '&_=' + Date.now(),
+                 { cache:'no-store' })
+      .then(jget).then(function(d){
+        if(d.error && /PERMISSION_DENIED/i.test(String(d.error.status || d.error.message || ''))) return 'bloccato';
+        if(d.error && String(d.error.status || '') === 'NOT_FOUND') return 'vuoto';
+        if(d.error) return 'errore';
+        return 'ok';
+      }).catch(function(){ return 'errore'; });
+  }
+
+  function scriviAlbum(idToken, album){
+    if(!idToken) return Promise.resolve(false);
+    var o = Array.isArray(album) ? { attivo: album.length > 0, foto: album } : (album || {});
+    return fetch(BASE + '/' + DOC_ALBUM + '?key=' + API +
+                 '&updateMask.fieldPaths=json&updateMask.fieldPaths=aggiornatoIl', {
+      method:'PATCH',
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + idToken },
+      body: JSON.stringify({ fields: {
+        json:         { stringValue: JSON.stringify({ attivo: o.attivo !== false, foto: o.foto || [] }) },
+        aggiornatoIl: { stringValue: new Date().toISOString() }
+      }})
+    }).then(jget).then(function(d){
+      if(d.error) throw new Error(d.error.message || 'salvataggio album fallito');
+      return true;
+    });
+  }
+
   window.FB = {
     cfg: cfg, attivo: attivo,
     signIn: signIn, refresh: refresh,
     creaPrenotazione: creaPrenotazione, elenco: elenco, aggiorna: aggiorna, elimina: elimina,
-    leggiPosti: leggiPosti, incrementaPosti: incrementaPosti, scriviPosti: scriviPosti
+    leggiPosti: leggiPosti, incrementaPosti: incrementaPosti, scriviPosti: scriviPosti,
+    leggiAlbum: leggiAlbum, scriviAlbum: scriviAlbum, provaAlbum: provaAlbum
   };
 })();

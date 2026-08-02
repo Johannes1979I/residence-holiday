@@ -389,6 +389,32 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
   .posti .sep{ display:none; }
   .posti .voce{ display:flex; justify-content:space-between; align-items:center; gap:14px; }
 }
+/* ---- album della serata: muro di foto + lente per guardarle grandi ---- */
+.muro{ column-count:1; column-gap:14px; }
+@media(min-width:620px){ .muro{ column-count:2; } }
+@media(min-width:1000px){ .muro{ column-count:3; } }
+@media(min-width:1500px){ .muro{ column-count:4; } }
+.muro figure{
+  break-inside:avoid; margin:0 0 14px; border-radius:18px; overflow:hidden;
+  box-shadow:var(--shadow-s); background:#fff; cursor:zoom-in;
+}
+.muro img{ width:100%; height:auto; display:block; }
+.muro figcaption{ padding:9px 13px; font-size:.88rem; color:var(--muted); }
+.album-nota{
+  text-align:center; margin:26px auto 0; max-width:700px;
+  color:var(--muted); font-size:.92rem;
+}
+.lente{
+  position:fixed; inset:0; background:rgba(13,43,62,.94); display:none;
+  align-items:center; justify-content:center; z-index:200; padding:16px; cursor:zoom-out;
+}
+.lente.aperta{ display:flex; }
+.lente img{ max-width:100%; max-height:88vh; border-radius:12px; }
+.lente .chiudi{
+  position:absolute; top:14px; right:18px; background:#fff; color:var(--ink);
+  border:none; border-radius:999px; width:46px; height:46px; font-size:1.2rem; cursor:pointer;
+}
+
 /* spiegazione sotto il contatore quando i posti sono finiti */
 .posti-nota{
   max-width:640px; margin:10px auto 0; padding:14px 18px; border-radius:18px;
@@ -570,6 +596,7 @@ footer .servizio a:hover{ opacity:1; }
     <div class="azioni">
       <a href="#prenota" class="btn btn-p">🎟️ Prenota il tuo posto</a>
       <a href="#menu" class="btn btn-fantasma">🍕 Vedi il menù</a>
+      <a href="#album" class="btn btn-fantasma" id="btnAlbumHero" style="display:none">📷 L'album della serata</a>
     </div>
   </div>
   <svg class="onde" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
@@ -599,6 +626,16 @@ footer .servizio a:hover{ opacity:1; }
     <p class="occhiello">Il posto perfetto per una serata d'estate tutti insieme.</p>
     <img class="collage-festa" id="collageFesta" alt="La festa in piscina al Residence Holiday" loading="lazy" style="display:none" />
     <div class="galleria" id="galleria"></div>
+  </div>
+</section>
+
+<!-- =============================== ALBUM ================================ -->
+<section id="album" style="display:none">
+  <div class="wrap">
+    <h2 class="titolo-sez" id="albumTitolo">L'album della <span class="em">serata</span></h2>
+    <p class="occhiello" id="albumSotto"></p>
+    <div class="muro" id="muro"></div>
+    <p class="album-nota" id="albumNota"></p>
   </div>
 </section>
 
@@ -856,6 +893,12 @@ footer .servizio a:hover{ opacity:1; }
 
 <a href="#prenota" class="flottante" id="flottante">🎟️ Prenota</a>
 
+<!-- lente: apre la foto grande sopra alla pagina -->
+<div class="lente" id="lente">
+  <button class="chiudi" id="chiudiLente" aria-label="Chiudi">✕</button>
+  <img id="lenteImg" alt="" />
+</div>
+
 <script>
 /* =========================================================================
    VALORI DI RISERVA — usati solo se contenuti.json non e' raggiungibile
@@ -1088,7 +1131,101 @@ function disegna(){
   avviaConto(ev);
   caricaPosti();          /* dopo FB.cfg: serve il collegamento al database */
   avviaAggiornamentoPosti();
+  avviaAlbum();
   controllaPrenotazioneSalvata();
+}
+
+/* ========================= ALBUM DELLA SERATA =========================
+   Le foto stanno su GitHub; l'elenco con le didascalie vive in un documento
+   pubblico del database. Cosi' una foto scattata durante la festa compare
+   qui in pochi secondi, senza ripubblicare il sito. Alle foto del database
+   si aggiungono quelle messe nei contenuti, che restano anche dopo. */
+var albumFisse = [], albumNeiContenuti = false, albumImpronta = '', albumTimer = null;
+
+function avviaAlbum(){
+  var a = V(DATI.album, {});
+  testo('albumSotto', V(a.sottotitolo, ''));
+  testo('albumNota', V(a.nota, ''));
+  if(a.titolo) testo('albumTitolo', a.titolo);
+
+  albumNeiContenuti = (a.attivo === true);
+  albumFisse = V(a.foto, []).filter(Boolean).map(function(riga){
+    if(riga && typeof riga === 'object') return { url:riga.url, didascalia:V(riga.didascalia, '') };
+    var p = String(riga).split('|');
+    return { url: p[0].trim(), didascalia: (p[1] || '').trim() };
+  }).filter(function(x){ return x.url; });
+
+  aggiornaAlbum();
+  if(albumTimer) clearInterval(albumTimer);
+  albumTimer = setInterval(function(){ if(!document.hidden) aggiornaAlbum(); }, 15000);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) aggiornaAlbum(); });
+  window.addEventListener('focus', aggiornaAlbum);
+}
+
+function aggiornaAlbum(){
+  var dalVivo = (window.FB && FB.attivo()) ? FB.leggiAlbum() : Promise.resolve(null);
+  return dalVivo.then(function(vive){
+    vive = vive || {};
+    /* l'album si accende da solo alla prima foto scattata: l'interruttore
+       viaggia insieme alle foto, senza bisogno di ripubblicare il sito */
+    var acceso = albumNeiContenuti || (vive.attivo === true);
+    var tutte = (Array.isArray(vive.foto) ? vive.foto : []).concat(albumFisse);
+
+    /* niente doppioni se una foto della serata e' finita anche nei contenuti */
+    var viste = {}, pulite = [];
+    tutte.forEach(function(f){
+      var chiave = String(f.file || f.url).split('/').pop();
+      if(viste[chiave]) return;
+      viste[chiave] = true;
+      pulite.push(f);
+    });
+
+    var impronta = acceso + '|' + JSON.stringify(pulite);
+    if(impronta === albumImpronta) return;      /* niente di nuovo: non ridisegno */
+    albumImpronta = impronta;
+
+    var sez = $('album'), bottone = $('btnAlbumHero');
+    if(!acceso || !pulite.length){
+      sez.style.display = 'none';
+      if(bottone) bottone.style.display = 'none';
+      return;
+    }
+    sez.style.display = '';
+    if(bottone) bottone.style.display = '';
+    disegnaMuro(pulite);
+  }).catch(function(){ /* rete assente: si riprova al giro dopo */ });
+}
+
+function disegnaMuro(foto){
+  var el = $('muro');
+  el.textContent = '';
+  foto.forEach(function(v, i){
+    if(!v.url) return;
+    var didascalia = v.didascalia || '';
+    var f = document.createElement('figure');
+    var img = document.createElement('img');
+    img.src = v.url;
+    img.alt = didascalia || ('Foto ' + (i + 1) + ' della serata');
+    img.loading = 'lazy';
+    f.appendChild(img);
+    if(didascalia){
+      var cap = document.createElement('figcaption');
+      cap.textContent = didascalia;
+      f.appendChild(cap);
+    }
+    f.addEventListener('click', function(){ apriLente(v.url, img.alt); });
+    el.appendChild(f);
+  });
+}
+
+function apriLente(src, alt){
+  $('lenteImg').src = src;
+  $('lenteImg').alt = alt || '';
+  $('lente').classList.add('aperta');
+}
+function chiudiLente(){
+  $('lente').classList.remove('aperta');
+  $('lenteImg').removeAttribute('src');
 }
 
 /* ===================== POSTI ANCORA LIBERI =====================
@@ -2580,6 +2717,11 @@ $('fConsenso').addEventListener('change', function(){ nascondiErrore('eConsenso'
   });
 });
 $('fNote').addEventListener('input', function(){ testo('contaNote', String($('fNote').value.length)); });
+
+/* lente dell'album: si chiude cliccando fuori, sulla X o con Esc */
+$('lente').addEventListener('click', chiudiLente);
+$('chiudiLente').addEventListener('click', function(e){ e.stopPropagation(); chiudiLente(); });
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape') chiudiLente(); });
 
 $('btnStampaVoucher').addEventListener('click', function(){ window.print(); });
 $('btnNuova').addEventListener('click', nuovaPrenotazione);

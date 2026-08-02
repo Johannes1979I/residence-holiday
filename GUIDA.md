@@ -231,6 +231,45 @@ prenotazioni, usa i *secrets* di GitHub e, se non lo configuri, semplicemente no
 
 ---
 
+## 7-bis. L'album della serata
+
+Nell'admin c'è la scheda **📸 Album**. Premi **Scatta una foto**: si apre la fotocamera del
+telefono, fai la foto e quella **compare sul sito in pochi secondi**, senza dover premere
+«Pubblica online». La didascalia se la scrive da sola con l'ora, poi la correggi.
+
+L'album sul sito resta invisibile finché non c'è la prima foto: si accende da solo. Se
+vuoi spegnerlo, togli la spunta *«Mostra l'album sul sito»*.
+
+Accanto a ogni foto c'è il cestino: **se qualcuno ti chiede di togliere una sua foto,
+toglila subito** — sparisce dal sito nel giro di quindici secondi.
+
+Le foto scattate vivono nel database. Per conservarle anche dopo, apri *«Modificare
+l'elenco a mano»* e premi **📥 Porta le foto della serata nei contenuti**, poi «Pubblica
+online».
+
+### Le regole del database (una volta sola)
+
+Perché l'album funzioni serve una riga in più nelle regole di Firestore. Vai su
+[console.firebase.google.com](https://console.firebase.google.com) → progetto
+**residence-holiday** → **Firestore Database** → scheda **Regole**, e **aggiungi** questo
+blocco insieme a quelli che ci sono già (dentro `match /databases/{database}/documents`):
+
+```
+    // Album della serata: lo leggono tutti, lo scrive solo l'organizzatore.
+    match /pubblico/album {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+```
+
+⚠️ **Non cancellare le altre regole**: nello stesso progetto vivono anche le prenotazioni e
+il sito del Certamen Aquaticum. Aggiungi soltanto queste righe, poi premi **Pubblica**.
+
+Finché non lo fai, quando scatti una foto l'admin te lo dice chiaramente: la foto viene
+comunque caricata su GitHub, non si perde.
+
+---
+
 ## 8. Cambiare la password dell'admin
 
 Apri `admin.html`, cerca all'inizio della parte `<script>` la riga:
