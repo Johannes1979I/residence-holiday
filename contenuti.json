@@ -405,5 +405,12 @@
       "istruzioniQr": "Inquadra il QR con la fotocamera del telefono per vedere il menù e prenotare",
       "nota": "Prenotazioni entro domenica 2 agosto — quota da consegnare alla bagnina"
     }
+  },
+  "album": {
+    "attivo": true,
+    "titolo": "",
+    "sottotitolo": "",
+    "nota": "",
+    "foto": []
   }
 }
