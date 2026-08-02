@@ -2090,14 +2090,24 @@ async function aggiungiFotoAlbum(file){
 
 /* L'errore piu' probabile la prima volta e' che manchino le regole del
    database: e' inutile mostrare "Missing or insufficient permissions". */
-function msgAlbumErrore(e){
+function msgAlbumErrore(e, conFoto){
   const t = String((e && e.message) || e || '');
   if(/PERMISSION_DENIED|insufficient permissions/i.test(t)){
     return '⚠️ Il database non lascia ancora scrivere l’album: mancano le regole. ' +
            'Vai su Firebase → Firestore → Regole e aggiungi il blocco «pubblico/album» ' +
-           '(il testo esatto è nella GUIDA). La foto è già caricata: non l’hai persa.';
+           '(il testo esatto è nella GUIDA)' +
+           (conFoto ? '. La foto è già caricata su GitHub: non l’hai persa.' : '.');
   }
   return '⚠️ ' + t;
+}
+
+/* Meglio scoprire adesso che le regole mancano, non la sera della festa con
+   il telefono in mano: alla prima apertura si prova a creare il documento. */
+function provaScritturaAlbum(){
+  if(!regLoggato()) return;
+  salvaAlbum()
+    .then(() => testo('statoFoto', '✅ Album pronto: il database accetta le foto.'))
+    .catch(e => testo('statoFoto', msgAlbumErrore(e, false)));
 }
 
 function salvaAlbum(){
@@ -2112,6 +2122,7 @@ function caricaAlbum(){
     /* comanda il database: e' quello che vedono i visitatori adesso */
     if(ALBUM_ACCESO && $('al_attivo')) $('al_attivo').checked = true;
     disegnaAlbum();
+    if(!a) provaScritturaAlbum();     /* documento assente: controllo le regole */
   }).catch(() => {});
 }
 
