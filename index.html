@@ -389,6 +389,19 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
   .posti .sep{ display:none; }
   .posti .voce{ display:flex; justify-content:space-between; align-items:center; gap:14px; }
 }
+/* spiegazione sotto il contatore quando i posti sono finiti */
+.posti-nota{
+  max-width:640px; margin:10px auto 0; padding:14px 18px; border-radius:18px;
+  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.45);
+  backdrop-filter:blur(4px); color:#fff; text-align:center;
+  font-size:.97rem; line-height:1.5; text-shadow:0 1px 6px rgba(0,0,0,.45);
+  display:flex; flex-direction:column; gap:5px;
+}
+.posti-nota b{ color:#ffe9a8; }
+.posti-nota #postiNotaTitolo{ font-size:1.06rem; color:#fff; }
+.posti-nota #postiNotaOver{ font-weight:bold; color:#7dffb4; }
+.posti-nota #postiNotaOver:empty{ display:none; }
+@media(max-width:420px){ .posti-nota{ font-size:.9rem; padding:12px 14px; } }
 .posti.pochi{ background:rgba(255,183,3,.28); border-color:rgba(255,210,63,.75); }
 .posti.esauriti{ background:rgba(230,57,70,.35); border-color:rgba(255,150,160,.75); }
 .posti.esauriti .voce b{ color:#fff; }
@@ -544,6 +557,15 @@ footer .servizio a:hover{ opacity:1; }
       <span class="voce">Prenotati <b id="postiPren">0</b></span>
       <span class="sep">·</span>
       <span class="voce rimasti">Posti rimanenti <b id="postiRimasti">—</b></span>
+    </div>
+    <!-- compare solo a posti esauriti: spiega che si può ancora provare -->
+    <div class="posti-nota" id="postiNota" style="display:none">
+      <b id="postiNotaTitolo">🎟️ Posti esauriti — ma puoi ancora provare</b>
+      <span id="postiNotaOver"></span>
+      <span>Prenota lo stesso: alla fine ti chiediamo una cosa sola.</span>
+      <span><b>Se porti tavolo e sedie tuoi</b> la prenotazione si chiude subito e il posto è tuo.</span>
+      <span><b>Se non li hai</b> diventa una richiesta: gli organizzatori la valutano e ti
+        rispondono sul numero che lasci.</span>
     </div>
     <div class="azioni">
       <a href="#prenota" class="btn btn-p">🎟️ Prenota il tuo posto</a>
@@ -1105,23 +1127,50 @@ function avviaAggiornamentoPosti(){
 
 function mostraPosti(){
   var box = $('postiBox');
+  var nota = $('postiNota');
   var totali = Number(V((DATI.evento||{}).postiTotali, 0)) || 0;
-  if(!totali || postiOccupati === null){ box.style.display = 'none'; return; }
+  if(!totali || postiOccupati === null){
+    box.style.display = 'none';
+    if(nota) nota.style.display = 'none';
+    return;
+  }
 
   var occupati = Math.max(0, postiOccupati);
   var liberi = Math.max(0, totali - occupati);
+  var oltre = Math.max(0, occupati - totali);   /* accolti in più dei posti previsti */
 
   box.style.display = '';
   box.className = 'posti' + (liberi === 0 ? ' esauriti' : (liberi <= Math.max(5, totali * 0.15) ? ' pochi' : ''));
   testo('postiTotali', String(totali));
-  testo('postiPren', String(occupati));
+  /* oltre i posti previsti il conteggio continua a salire: "73 (3 in più)" */
+  testo('postiPren', occupati + (oltre > 0 ? ' (+' + oltre + ')' : ''));
   testo('postiRimasti', liberi === 0 ? 'esauriti' : String(liberi));
-  box.title = liberi === 0 ? 'Posti esauriti' : ('Restano ' + liberi + ' posti liberi');
+  box.title = liberi === 0
+    ? (oltre > 0 ? 'Posti esauriti, ' + oltre + ' in più già accolti' : 'Posti esauriti')
+    : ('Restano ' + liberi + ' posti liberi');
+
+  /* la spiegazione delle due strade compare solo quando i posti sono finiti */
+  if(nota){
+    nota.style.display = (liberi === 0) ? '' : 'none';
+    testo('postiNotaOver', oltre === 0 ? '' : (oltre === 1
+      ? 'Una persona è già stata accolta oltre i ' + totali + ' posti, con tavolo e sedie sue.'
+      : oltre + ' persone sono già state accolte oltre i ' + totali + ' posti, con tavolo e sedie loro.'));
+  }
+
+  /* se qualcuno è fermo sul riepilogo mentre il contatore si aggiorna, il
+     riquadro «porti tavolo e sedie?» deve comparire senza ricaricare la pagina */
+  if(passoCorrente === 4){
+    try{ disegnaPostiExtra(calcola().persone); }catch(e){}
+  }
 }
 
 /* Dopo una prenotazione confermata aggiorna il contatore condiviso. */
 function aggiornaPostiDopoPrenotazione(p){
   if(!window.FB || !FB.attivo() || p.postiContati) return Promise.resolve(false);
+  /* Una richiesta ancora da approvare non occupa posti: li conterà l'organizzatore
+     nel momento in cui la accetta dall'area amministratore. Altrimenti chi viene
+     dopo verrebbe respinto per colpa di una richiesta che magari sarà rifiutata. */
+  if(p.stato === 'da approvare') return Promise.resolve(false);
   var persone = (Number(p.adulti)||0) + (Number(p.bambini)||0);
   if(persone <= 0) return Promise.resolve(false);
   return FB.incrementaPosti(persone).then(function(ok){
@@ -2068,7 +2117,10 @@ function conferma(){
   var c = calcola();
   var pren = V(DATI.prenotazione, {});
 
-  /* posti esauriti: serve la risposta su tavolo e sedie */
+  /* posti esauriti: serve la risposta su tavolo e sedie.
+     Ridisegno prima il riquadro: i posti possono essersi esauriti mentre
+     l'utente compilava, e senza questo la scelta resterebbe invisibile. */
+  disegnaPostiExtra(c.persone);
   var extra = personeInEccesso(c.persone);
   var portaTavolo = null;
   if(extra > 0){

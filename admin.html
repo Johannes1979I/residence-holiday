@@ -94,6 +94,11 @@
   /* ---------- registro prenotazioni ---------- */
   .btn-x{background:var(--c1);color:#fff}
   .reg-cruscotto{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0 4px}
+  /* scorciatoie alle sezioni: il registro è lungo e senza queste ci si perde */
+  .reg-scorciatoie{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 6px}
+  .reg-scorciatoie a{background:#eef4fb;border:1px solid #cfe0f2;border-radius:999px;
+    padding:7px 14px;font-size:.92rem;font-weight:bold;color:#1d3557;text-decoration:none}
+  .reg-scorciatoie a:hover{background:#dceaf8}
   .reg-kpi{background:#f3f9fb;border:1px solid #d7e8ee;border-radius:12px;padding:12px;text-align:center}
   .reg-kpi b{display:block;font-size:1.5rem;line-height:1.15;color:var(--ink)}
   .reg-kpi span{font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
@@ -369,7 +374,32 @@
       <div id="reg_contenuto">
       <div class="reg-cruscotto" id="reg_cruscotto"></div>
 
+      <!-- scorciatoie: il registro è lungo, così le sezioni si raggiungono subito -->
+      <nav class="reg-scorciatoie" aria-label="Sezioni del registro">
+        <a href="#reg_secElenco">📋 Elenco</a>
+        <a href="#reg_secPizzeria">🍕 Ordine pizzeria</a>
+        <a href="#reg_secAvviso">📣 Avviso a tutti</a>
+        <a href="#reg_secCestino">🗑️ Cestino</a>
+      </nav>
+
       <div id="reg_proposta" class="reg-proposta" style="display:none"></div>
+
+      <h3 class="sub-h" id="reg_secAvviso">📣 Avviso a tutti gli iscritti</h3>
+      <p class="hint" style="margin-bottom:8px">
+        WhatsApp non permette invii automatici, ma con una <b>lista broadcast</b> scrivi una volta
+        sola e il messaggio arriva a tutti come se fosse personale.
+        <b>Attenzione:</b> lo ricevono solo quelli che hanno il tuo numero in rubrica.
+      </p>
+      <div class="reg-azioni">
+        <button class="btn btn-w" id="reg_btnNumeri">📋 Copia i numeri (<span id="reg_quantiNumeri">0</span>)</button>
+        <button class="btn btn-w" id="reg_btnMsgPromemoria">✍️ Riscrivi il promemoria</button>
+        <button class="btn btn-p" id="reg_btnCopiaMsg">📄 Copia il messaggio</button>
+      </div>
+      <textarea id="reg_msgAvviso" rows="9" style="margin-top:10px"></textarea>
+      <p class="hint">
+        Su WhatsApp: <b>Nuovo → Nuova lista broadcast</b>, incolla i numeri, poi incolla qui il messaggio.
+        Puoi modificarlo prima di copiarlo.
+      </p>
 
       <h3 class="sub-h" id="reg_titoloForm">Aggiungi una prenotazione</h3>
       <p class="hint" style="margin-bottom:8px">
@@ -422,14 +452,14 @@
         </div>
       </div>
 
-      <h3 class="sub-h">Elenco</h3>
+      <h3 class="sub-h" id="reg_secElenco">Elenco</h3>
       <div class="reg-filtri">
         <input id="reg_cerca" placeholder="🔎 Cerca per nome, codice o appartamento" />
         <label class="reg-check"><input type="checkbox" id="reg_soloNonPagati" /> Solo chi non ha ancora pagato</label>
       </div>
       <div id="reg_elenco"></div>
 
-      <h3 class="sub-h">🍕 Ordine complessivo per la pizzeria</h3>
+      <h3 class="sub-h" id="reg_secPizzeria">🍕 Ordine complessivo per la pizzeria</h3>
       <p class="hint" style="margin-bottom:8px">Somma di tutte le prenotazioni: è la lista da dare alla Pizzeria Oasi.</p>
       <div id="reg_totalePizze" class="reg-pizze"></div>
       <div class="reg-azioni">
@@ -443,24 +473,7 @@
         l’elenco di chi ha già versato la quota.
       </p>
 
-      <h3 class="sub-h">📣 Avviso a tutti gli iscritti</h3>
-      <p class="hint" style="margin-bottom:8px">
-        WhatsApp non permette invii automatici, ma con una <b>lista broadcast</b> scrivi una volta
-        sola e il messaggio arriva a tutti come se fosse personale.
-        <b>Attenzione:</b> lo ricevono solo quelli che hanno il tuo numero in rubrica.
-      </p>
-      <div class="reg-azioni">
-        <button class="btn btn-w" id="reg_btnNumeri">📋 Copia i numeri (<span id="reg_quantiNumeri">0</span>)</button>
-        <button class="btn btn-w" id="reg_btnMsgPromemoria">✍️ Riscrivi il promemoria</button>
-        <button class="btn btn-p" id="reg_btnCopiaMsg">📄 Copia il messaggio</button>
-      </div>
-      <textarea id="reg_msgAvviso" rows="9" style="margin-top:10px"></textarea>
-      <p class="hint">
-        Su WhatsApp: <b>Nuovo → Nuova lista broadcast</b>, incolla i numeri, poi incolla qui il messaggio.
-        Puoi modificarlo prima di copiarlo.
-      </p>
-
-      <h3 class="sub-h">🗑️ Cestino <span class="conta" id="reg_contaCestino"></span></h3>
+      <h3 class="sub-h" id="reg_secCestino">🗑️ Cestino <span class="conta" id="reg_contaCestino"></span></h3>
       <p class="hint" style="margin-bottom:8px">
         Le prenotazioni eliminate finiscono qui e si possono recuperare. Si svuota solo
         quando lo decidi tu.
@@ -2243,7 +2256,8 @@ let postiScritti = null;
 
 function sincronizzaPosti(){
   if(!regCloudAttivo() || !regLoggato()) return;
-  const persone = REGISTRO.reduce((s,p) => s + regPartecipanti(p), 0);
+  /* le richieste ancora da approvare non occupano posti finché non le accetti */
+  const persone = REGISTRO.reduce((s,p) => s + (regDaApprovare(p) ? 0 : regPartecipanti(p)), 0);
   if(persone === postiScritti) return;          /* nulla da aggiornare */
   postiScritti = persone;
   fbToken()
@@ -2261,6 +2275,8 @@ function escHtml(s){
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 function regPartecipanti(p){ return (Number(p.adulti)||0) + (Number(p.bambini)||0); }
+/* richiesta oltre i posti, senza tavolo e sedie: vale solo se la approvi tu */
+function regDaApprovare(p){ return (p||{}).stato === 'da approvare'; }
 function regTestoPersone(p){
   const a = Number(p.adulti)||0, b = Number(p.bambini)||0;
   const pezzi = [];
@@ -2423,10 +2439,18 @@ function regDisegna(){
     ['ok', regEuro(incassato), 'incassato'],
     ['attesa', regEuro(previsto - incassato), 'da incassare']
   ];
+  /* le richieste da approvare non occupano posti finché non le accetti */
+  const inAttesa = REGISTRO.filter(regDaApprovare).reduce((s,p)=> s + regPartecipanti(p), 0);
+  const confermati = persone - inAttesa;
   if(postiTot > 0){
-    const liberi = Math.max(0, postiTot - persone);
-    kpi.splice(2, 0, [liberi === 0 ? 'attesa' : 'ok', liberi, 'posti liberi su ' + postiTot]);
+    const liberi = postiTot - confermati;
+    kpi.splice(2, 0, liberi > 0
+      ? ['ok', liberi, 'posti liberi su ' + postiTot]
+      : (liberi === 0
+          ? ['attesa', 0, 'posti liberi su ' + postiTot]
+          : ['attesa', '+' + (-liberi), 'oltre i ' + postiTot + ' posti']));
   }
+  if(inAttesa > 0) kpi.splice(3, 0, ['attesa', inAttesa, 'da approvare']);
   kpi.forEach(([cls, val, et]) => {
     const box = crea('div', 'reg-kpi' + (cls ? ' '+cls : ''));
     box.appendChild(crea('b', null, String(val)));
@@ -2587,6 +2611,8 @@ function regNumeriIscritti(){
   const visti = {};
   const out = [];
   REGISTRO.forEach(p => {
+    /* chi è ancora in attesa di risposta non deve ricevere il "ci vediamo lì" */
+    if(regDaApprovare(p)) return;
     const solo = String(p.telefono || '').replace(/\D/g, '');
     if(!solo) return;
     const completo = solo.length <= 10 ? ('+39' + solo) : ('+' + solo);
