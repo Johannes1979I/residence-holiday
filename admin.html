@@ -66,13 +66,27 @@
      monitor grandi. I contenuti restano dentro le card, leggibili. */
   .wrap{width:100%;max-width:100%;margin:0 auto;padding:20px clamp(14px,3vw,56px) 90px}
   .card{background:#fff;border-radius:var(--radius);padding:20px 18px;margin-bottom:18px;
-        box-shadow:0 12px 32px -22px rgba(13,43,62,.55);scroll-margin-top:150px}
+        box-shadow:0 12px 32px -22px rgba(13,43,62,.55);
+        scroll-margin-top:calc(var(--altezzaTop,132px) + 84px)}
   .card h2{font-size:1rem;color:var(--c1);text-transform:uppercase;letter-spacing:.6px;
            margin-bottom:6px;border-bottom:2px solid #eef4f7;padding-bottom:8px}
   .card .intro{font-size:.86rem;color:var(--muted);margin-bottom:8px}
   h3.sub-h{font-size:.95rem;margin:22px 0 4px;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .conta{font-size:.78rem;font-weight:normal;color:var(--muted);background:#eef7fa;border-radius:999px;padding:3px 10px}
 
+  /* ---------- linguette (una scheda alla volta) ---------- */
+  .linguette{display:flex;gap:6px;overflow-x:auto;padding:12px 0;margin-bottom:8px;
+             background:#f4f9fb;position:sticky;top:var(--altezzaTop,132px);z-index:9;
+             -webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  .linguette button{flex:0 0 auto;background:#fff;color:var(--ink);border:1px solid var(--linea);
+             border-radius:999px;padding:11px 18px;font:inherit;font-weight:bold;font-size:.9rem;
+             cursor:pointer;min-height:46px;white-space:nowrap}
+  .linguette button:hover{border-color:var(--c2);color:#0b7c8a}
+  .linguette button.attiva{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .vista{display:none}
+  .vista.attiva{display:block}
+
+  /* scorciatoie alle schede dentro «Contenuti del sito» */
   .sommario{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
   .sommario a{text-decoration:none;background:#fff;color:var(--ink);border:1px solid var(--linea);
               border-radius:999px;padding:8px 13px;font-size:.82rem;font-weight:bold}
@@ -319,27 +333,16 @@
       dalla sezione <b>File e backup</b>.
     </div>
 
-    <nav class="sommario" aria-label="Sezioni del pannello">
-      <a href="#sec-registro">📒 Prenotazioni</a>
-      <a href="#sec-residence">🏠 Residence</a>
-      <a href="#sec-tema">🎨 Tema</a>
-      <a href="#sec-aspetto">🖌️ Aspetto</a>
-      <a href="#sec-evento">📅 Evento</a>
-      <a href="#sec-menu">🍽️ Menù</a>
-      <a href="#sec-pagamento">💶 Pagamento</a>
-      <a href="#sec-prenotazione">🎟️ Prenotazione</a>
-      <a href="#sec-notifiche">🔔 Avvisi</a>
-      <a href="#sec-regolamento">📋 Regolamento</a>
-      <a href="#sec-foto">📷 Foto</a>
-      <a href="#sec-album">📸 Album</a>
-      <a href="#sec-condivisione">📣 Condivisione</a>
-      <a href="#sec-contatti">📞 Contatti</a>
-      <a href="#sec-locandina">🖨️ Locandina</a>
-      <a href="#sec-file">🗂️ File e backup</a>
-      <a href="#sec-github">🔗 GitHub</a>
+    <nav class="linguette" aria-label="Sezioni del pannello">
+      <button type="button" data-vista="prenotazioni" class="attiva">📒 Prenotazioni</button>
+      <button type="button" data-vista="contenuti">⚙️ Contenuti del sito</button>
+      <button type="button" data-vista="album">📸 Album</button>
+      <button type="button" data-vista="locandina">🖨️ Locandina</button>
+      <button type="button" data-vista="pubblica">📣 Pubblica e backup</button>
     </nav>
 
-    <!-- ---------- RESIDENCE ---------- -->
+
+    <section class="vista attiva" id="v-prenotazioni">
     <!-- ---------- REGISTRO PRENOTAZIONI ---------- -->
     <div class="card" id="sec-registro">
       <h2>📒 Prenotazioni ricevute <span class="conta" id="reg_conta"></span></h2>
@@ -498,6 +501,27 @@
       </div><!-- /reg_contenuto -->
     </div>
 
+
+    </section>
+
+    <section class="vista" id="v-contenuti">
+
+    <nav class="sommario" aria-label="Schede dei contenuti">
+      <a href="#sec-residence">🏠 Residence</a>
+      <a href="#sec-tema">🎨 Tema</a>
+      <a href="#sec-aspetto">🖌️ Aspetto</a>
+      <a href="#sec-evento">📅 Evento</a>
+      <a href="#sec-menu">🍽️ Menù</a>
+      <a href="#sec-pagamento">💶 Pagamento</a>
+      <a href="#sec-prenotazione">🎟️ Prenotazione</a>
+      <a href="#sec-notifiche">🔔 Avvisi</a>
+      <a href="#sec-regolamento">📋 Regolamento</a>
+      <a href="#sec-foto">📷 Foto</a>
+      <a href="#sec-condivisione">📣 Condivisione</a>
+      <a href="#sec-contatti">📞 Contatti</a>
+    </nav>
+
+    <!-- ---------- RESIDENCE ---------- -->
     <div class="card" id="sec-residence">
       <h2>🏠 Residence</h2>
       <p class="intro">Il nome che compare in alto nel sito, sulla locandina e sul voucher.</p>
@@ -799,6 +823,54 @@
       <p class="hint">La foto viene caricata su GitHub nella cartella <code>images/</code> e aggiunta in fondo all’elenco. Serve il collegamento a GitHub configurato più in basso.</p>
     </div>
 
+    <!-- ---------- CONDIVISIONE ---------- -->
+    <div class="card" id="sec-condivisione">
+      <h2>📣 Condivisione</h2>
+      <p class="intro">Serve per i bottoni “Condividi” e per il QR code della locandina.</p>
+      <label for="c_url">Indirizzo pubblico del sito</label>
+      <input id="c_url" placeholder="https://tuonome.github.io/residence-holiday/" />
+      <p class="hint">È l’indirizzo dentro al QR code della locandina: controlla che sia giusto prima di stampare.</p>
+      <div class="grid2" style="margin-top:12px">
+        <div>
+          <label for="c_tg">Link al gruppo Telegram (facoltativo)</label>
+          <input id="c_tg" placeholder="https://t.me/..." />
+          <p class="hint">Se lo metti, il bottone Telegram del voucher porta al gruppo.</p>
+        </div>
+        <div>
+          <label for="c_wa">Link al gruppo WhatsApp (facoltativo)</label>
+          <input id="c_wa" placeholder="https://chat.whatsapp.com/..." />
+          <p class="hint">Lascia vuoto se non c’è un gruppo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- CONTATTI ---------- -->
+    <div class="card" id="sec-contatti">
+      <h2>📞 Contatti</h2>
+      <p class="intro">Compaiono in fondo al sito. I campi vuoti non vengono mostrati.</p>
+      <div class="grid3">
+        <div>
+          <label for="k_org">Organizzatore</label>
+          <input id="k_org" />
+          <p class="hint">Es. Organizzazione festa — Residence Holiday.</p>
+        </div>
+        <div>
+          <label for="k_tel">Telefono</label>
+          <input id="k_tel" inputmode="tel" />
+          <p class="hint">Facoltativo.</p>
+        </div>
+        <div>
+          <label for="k_email">Email</label>
+          <input id="k_email" inputmode="email" />
+          <p class="hint">Facoltativa.</p>
+        </div>
+      </div>
+    </div>
+
+
+    </section>
+
+    <section class="vista" id="v-album">
     <!-- ---------- ALBUM DELLA SERATA ---------- -->
     <div class="card" id="sec-album">
       <h2>📸 Album della serata</h2>
@@ -860,50 +932,10 @@
       </details>
     </div>
 
-    <!-- ---------- CONDIVISIONE ---------- -->
-    <div class="card" id="sec-condivisione">
-      <h2>📣 Condivisione</h2>
-      <p class="intro">Serve per i bottoni “Condividi” e per il QR code della locandina.</p>
-      <label for="c_url">Indirizzo pubblico del sito</label>
-      <input id="c_url" placeholder="https://tuonome.github.io/residence-holiday/" />
-      <p class="hint">È l’indirizzo dentro al QR code della locandina: controlla che sia giusto prima di stampare.</p>
-      <div class="grid2" style="margin-top:12px">
-        <div>
-          <label for="c_tg">Link al gruppo Telegram (facoltativo)</label>
-          <input id="c_tg" placeholder="https://t.me/..." />
-          <p class="hint">Se lo metti, il bottone Telegram del voucher porta al gruppo.</p>
-        </div>
-        <div>
-          <label for="c_wa">Link al gruppo WhatsApp (facoltativo)</label>
-          <input id="c_wa" placeholder="https://chat.whatsapp.com/..." />
-          <p class="hint">Lascia vuoto se non c’è un gruppo.</p>
-        </div>
-      </div>
-    </div>
 
-    <!-- ---------- CONTATTI ---------- -->
-    <div class="card" id="sec-contatti">
-      <h2>📞 Contatti</h2>
-      <p class="intro">Compaiono in fondo al sito. I campi vuoti non vengono mostrati.</p>
-      <div class="grid3">
-        <div>
-          <label for="k_org">Organizzatore</label>
-          <input id="k_org" />
-          <p class="hint">Es. Organizzazione festa — Residence Holiday.</p>
-        </div>
-        <div>
-          <label for="k_tel">Telefono</label>
-          <input id="k_tel" inputmode="tel" />
-          <p class="hint">Facoltativo.</p>
-        </div>
-        <div>
-          <label for="k_email">Email</label>
-          <input id="k_email" inputmode="email" />
-          <p class="hint">Facoltativa.</p>
-        </div>
-      </div>
-    </div>
+    </section>
 
+    <section class="vista" id="v-locandina">
     <!-- ---------- LOCANDINA ---------- -->
     <div class="card" id="sec-locandina">
       <h2>🖨️ Locandina</h2>
@@ -988,6 +1020,10 @@
       <p class="hint">Si aprono in una nuova scheda: da lì stampi o salvi in PDF. Pubblica prima le modifiche.</p>
     </div>
 
+
+    </section>
+
+    <section class="vista" id="v-pubblica">
     <!-- ---------- FILE E BACKUP ---------- -->
     <div class="card" id="sec-file">
       <h2>🗂️ File e backup</h2>
@@ -1041,6 +1077,8 @@
         </div>
       </details>
     </div>
+
+    </section>
 
   </div>
 </div>
@@ -1132,6 +1170,32 @@ function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function tocca(){ sporco = true; }
 /* scrive un testo dentro un elemento, senza rischiare di iniettare HTML */
 function testo(id, s){ const e = $(id); if(e) e.textContent = (s == null ? '' : String(s)); return e; }
+
+/* ---------------------- LINGUETTE ----------------------
+   Una scheda alla volta. Il pannello e' lungo: sul telefono era una pagina
+   interminabile in cui si scorreva a vuoto. */
+function vaiAllaVista(nome, dove){
+  const bottone = document.querySelector('[data-vista="' + nome + '"]');
+  if(!bottone) return;
+  document.querySelectorAll('[data-vista]').forEach(b => b.classList.remove('attiva'));
+  bottone.classList.add('attiva');
+  document.querySelectorAll('.vista').forEach(v => v.classList.remove('attiva'));
+  const vista = $('v-' + nome);
+  if(vista) vista.classList.add('attiva');
+  /* la linguetta scelta deve restare in vista anche se la barra e' scorsa */
+  try{ bottone.scrollIntoView({ block:'nearest', inline:'nearest' }); }catch(e){}
+  if(dove && $(dove)) setTimeout(() => $(dove).scrollIntoView({ behavior:'smooth', block:'start' }), 60);
+  else window.scrollTo(0, 0);
+}
+
+/* La barra delle linguette si incolla sotto l'intestazione, che cambia
+   altezza a seconda della larghezza dello schermo: gliela misuro. */
+function misuraTop(){
+  const top = document.querySelector('.top');
+  if(top && top.offsetHeight){
+    document.documentElement.style.setProperty('--altezzaTop', top.offsetHeight + 'px');
+  }
+}
 
 /* prezzi: si scrivono con la virgola, si salvano come numero */
 function leggiNumero(v){
@@ -1840,7 +1904,9 @@ function chiediGh(){
   const card = $('sec-github');
   const det = card ? card.querySelector('details') : null;
   if(det) det.open = true;
-  if(card) card.scrollIntoView({ behavior:'smooth', block:'start' });
+  /* la scheda GitHub sta in un'altra linguetta: prima ci si sposta, altrimenti
+     l'utente legge "incollalo qui sotto" davanti a una pagina che non lo mostra */
+  vaiAllaVista('pubblica', 'sec-github');
   const t = $('gh_token');
   if(t) setTimeout(() => { try{ t.focus(); }catch(e){} }, 450);
   toast('⚠️ Manca il token di GitHub: incollalo qui sotto (basta una volta) e ripremi “Pubblica online”.', 10000);
@@ -2256,6 +2322,14 @@ function collegaEventi(){
   $('nt_prova').addEventListener('click', provaTelegram);
   $('fileFoto').addEventListener('change', caricaFoto);
   $('fileJson').addEventListener('change', caricaJsonLocale);
+
+  /* linguette: una scheda alla volta */
+  document.querySelectorAll('[data-vista]').forEach(b => {
+    b.addEventListener('click', () => vaiAllaVista(b.getAttribute('data-vista')));
+  });
+  misuraTop();
+  window.addEventListener('resize', misuraTop);
+  setTimeout(misuraTop, 400);   /* dopo il caricamento dei caratteri l'altezza cambia */
 
   /* album della serata */
   $('btnScatta').addEventListener('click', () => $('fileScatto').click());
