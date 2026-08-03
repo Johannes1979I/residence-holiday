@@ -47,6 +47,9 @@
        font-size:.92rem;font-family:inherit;min-height:44px;transition:transform .1s}
   .btn:hover{transform:translateY(-1px)}
   .btn:active{transform:translateY(0)}
+  /* un pulsante spento deve sembrare spento, non invitare a premerlo */
+  .btn:disabled{opacity:.4;filter:grayscale(.7);cursor:not-allowed}
+  .btn:disabled:hover{transform:none}
   .btn-p{background:var(--ink);color:#fff}
   .btn-g{background:#25D366;color:#fff}
   .btn-s{background:var(--c3);color:var(--ink)}
@@ -214,6 +217,31 @@
   /* ---------- foglio stampabile (ordine pizzeria / lista ingresso) ----------
      E' dentro la pagina invece che in una finestra nuova: i browser bloccano
      spesso i popup, e cosi' il documento si apre sempre. */
+  /* ---------- modal della libreria dei listini ---------- */
+  .modale{display:none;position:fixed;inset:0;z-index:210;background:rgba(13,43,62,.6);
+          overflow:auto;padding:20px 14px 40px}
+  .modale.aperto{display:block}
+  .modale-scatola{background:#fff;max-width:720px;margin:0 auto;border-radius:var(--radius);
+                  box-shadow:0 24px 70px -22px rgba(0,0,0,.6);overflow:hidden}
+  .modale-testa{background:var(--ink);color:#fff;padding:14px 18px;display:flex;gap:10px;
+                align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:2}
+  .modale-testa h3{flex:1 1 auto;font-size:1.05rem}
+  .modale-corpo{padding:18px}
+  .listino{border:1px solid var(--linea);border-radius:16px;padding:14px 16px;margin-bottom:12px;
+           display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+  .listino.attivo{border-color:var(--c2);background:#f0fbfc;box-shadow:inset 0 0 0 1px var(--c2)}
+  .listino .cuore{flex:1 1 220px;min-width:0}
+  .listino .nome{font-weight:bold;font-size:1rem}
+  .listino .dettagli{color:var(--muted);font-size:.86rem;margin-top:3px}
+  .listino .distintivo{background:var(--c2);color:#fff;border-radius:999px;padding:2px 10px;
+                       font-size:.74rem;font-weight:bold;text-transform:uppercase;letter-spacing:.4px}
+  .listino .azioni-l{display:flex;gap:6px;flex-wrap:wrap}
+  .lucchetto{background:#fff3cd;border:2px solid #e0a800;border-radius:14px;padding:13px 15px;
+             color:#5a4500;font-size:.9rem;margin-bottom:14px}
+  .listino-attuale{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#f0fbfc;
+                   border:1px solid var(--c2);border-radius:16px;padding:12px 15px;margin-bottom:8px}
+  .listino-attuale span{flex:1 1 200px}
+
   .foglio-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(13,43,62,.55);
                   overflow:auto;padding:0 0 40px}
   .foglio-overlay.aperto{display:block}
@@ -511,6 +539,15 @@
     <div class="card" id="sec-menu">
       <h2>🍽️ Menù</h2>
       <p class="intro">Le categorie e le voci che i condomini scelgono durante la prenotazione.</p>
+
+      <div class="listino-attuale">
+        <span>In uso adesso: <b id="m_nomeListino">—</b></span>
+        <button class="btn btn-s" type="button" id="btnListini">🔄 Cambia listino</button>
+      </div>
+      <p class="hint" style="margin-bottom:16px">
+        Puoi tenere più listini pronti — pizzeria, ristorante, quello che vuoi — e passare
+        dall’uno all’altro per la festa successiva senza perdere niente.
+      </p>
 
       <label for="m_desc">Descrizione del menù</label>
       <textarea id="m_desc" rows="2"></textarea>
@@ -1087,6 +1124,28 @@
   </div>
 </div>
 
+<!-- libreria dei listini: si cambia menù senza buttare via il precedente -->
+<div class="modale" id="modListini">
+  <div class="modale-scatola" role="dialog" aria-modal="true" aria-labelledby="ml_titolo">
+    <div class="modale-testa">
+      <h3 id="ml_titolo">🔄 Cambia listino</h3>
+      <button class="btn btn-w" type="button" id="ml_chiudi">✕ Chiudi</button>
+    </div>
+    <div class="modale-corpo">
+      <div class="lucchetto" id="ml_lucchetto" style="display:none"></div>
+      <div id="ml_elenco"></div>
+      <div class="reg-azioni" style="margin-top:16px">
+        <button class="btn btn-s" type="button" id="ml_btnSalva">💾 Metti da parte quello di adesso</button>
+        <button class="btn btn-w" type="button" id="ml_btnVuoto">➕ Crea un listino vuoto</button>
+      </div>
+      <p class="hint" style="margin-top:10px">
+        Dopo aver cambiato listino ricordati di premere <b>«Pubblica online»</b>: fino ad allora
+        il sito continua a mostrare quello vecchio.
+      </p>
+    </div>
+  </div>
+</div>
+
 <div class="foglio-overlay" id="reg_foglio">
   <div class="foglio-barra">
     <span class="tit" id="reg_foglioTitolo">Documento</span>
@@ -1331,6 +1390,25 @@ async function init(){
 /* =========================================================
    RIEMPIMENTO DEL MODULO
    ========================================================= */
+/* Riempie la sola scheda del menu'. Sta a parte perche' serve due volte:
+   all'apertura del pannello e quando si cambia listino. */
+function riempiMenu(me){
+  me = me || {};
+  $('m_desc').value    = me.descrizione||"";
+  $('m_avviso').value  = me.avviso||"";
+  $('m_coperto').value = scriviNumero(me.copertoPersona===undefined ? 0 : me.copertoPersona);
+  $('m_copertoEtichetta').value = me.copertoEtichetta||"";
+  $('m_copertoEmoji').value     = me.copertoEmoji||"";
+  $('m_copertoNota').value      = me.copertoNota||"";
+  const sp = me.speciali || {};
+  $('m_sp_glutine').checked  = (sp.glutine  === undefined) ? true : !!sp.glutine;
+  $('m_sp_lattosio').checked = (sp.lattosio === undefined) ? true : !!sp.lattosio;
+
+  $('categorie').textContent = "";
+  (me.categorie||[]).forEach(c => $('categorie').appendChild(creaCategoria(c)));
+  aggiornaConteggi();
+}
+
 function riempi(){
   const d = DATA;
   const res = d.residence||{}, tem = d.tema||{}, ev = d.evento||{}, me = d.menu||{},
@@ -1356,15 +1434,8 @@ function riempi(){
   $('e_posti').value   = (ev.postiTotali===null||ev.postiTotali===undefined) ? "" : String(ev.postiTotali);
   $('e_desc').value    = ev.descrizione||"";
 
-  $('m_desc').value    = me.descrizione||"";
-  $('m_avviso').value  = me.avviso||"";
-  $('m_coperto').value = scriviNumero(me.copertoPersona===undefined ? 0 : me.copertoPersona);
-  $('m_copertoEtichetta').value = me.copertoEtichetta||"";
-  $('m_copertoEmoji').value     = me.copertoEmoji||"";
-  $('m_copertoNota').value      = me.copertoNota||"";
-  var sp = me.speciali || {};
-  $('m_sp_glutine').checked  = (sp.glutine  === undefined) ? true : !!sp.glutine;
-  $('m_sp_lattosio').checked = (sp.lattosio === undefined) ? true : !!sp.lattosio;
+  riempiMenu(me);
+  aggiornaNomeListino();
 
   $('pg_attivo').value = (pg.attivo===false) ? "no" : "si";
   $('pg_titolo').value = pg.titolo||"";
@@ -1410,10 +1481,6 @@ function riempi(){
   $('lt_claim').value  = ltr.claim||"";  $('lt_titolo').value = ltr.titolo||"";
   $('lt_sub').value    = ltr.sottotitolo||"";  $('lt_qr').value = ltr.istruzioniQr||"";  $('lt_nota').value = ltr.nota||"";
   aggiornaAntepLoc();
-
-  $('categorie').textContent = "";
-  (me.categorie||[]).forEach(c => $('categorie').appendChild(creaCategoria(c)));
-  aggiornaConteggi();
 
   $('regole').textContent = "";
   (d.regolamento||[]).forEach(r => addRegola(r));
@@ -1738,6 +1805,7 @@ function collect(){
     copertoEmoji:     $('m_copertoEmoji').value.trim(),
     copertoNota:      $('m_copertoNota').value.trim(),
     speciali:       { glutine: $('m_sp_glutine').checked, lattosio: $('m_sp_lattosio').checked },
+    /* (il listino attivo viene riallineato subito dopo, vedi in fondo) */
     categorie:      raccogliCategorie()
   });
 
@@ -1807,6 +1875,13 @@ function collect(){
   });
 
   d.stile = raccogliAspetto();
+
+  /* Il listino attivo e' lo specchio del menu' in uso: lo riallineo qui,
+     cosi' non possono divergere qualunque strada si sia presa. */
+  if(Array.isArray(d.listini) && d.menuAttivoId){
+    const att = d.listini.filter(l => l && l.id === d.menuAttivoId)[0];
+    if(att) att.menu = JSON.parse(JSON.stringify(d.menu));
+  }
 
   DATA = d;
   return d;
@@ -2062,6 +2137,253 @@ async function caricaImmagineGitHub(file, onDone){
     }
   };
   reader.readAsDataURL(file);
+}
+
+/* ==================== LIBRERIA DEI LISTINI ==========================
+   Il menu' in uso resta dov'era, in DATA.menu: il sito lo legge come ha
+   sempre fatto e non si accorge di niente. Qui accanto vive una libreria
+   di listini messi da parte, per passare dalla pizzeria al ristorante
+   senza buttare via il lavoro fatto.
+   Il listino attivo e' sempre lo specchio di DATA.menu: lo riallineo a
+   ogni raccolta, cosi' i due non possono divergere. */
+
+function listini(){
+  if(!Array.isArray(DATA.listini)) DATA.listini = [];
+  return DATA.listini;
+}
+function listinoDa(id){ return listini().filter(l => l && l.id === id)[0] || null; }
+function listinoAttivo(){ return listinoDa(DATA.menuAttivoId); }
+
+function nuovoIdListino(nome){
+  const base = String(nome || 'listino').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'listino';
+  let id = base, n = 2;
+  while(listinoDa(id)) id = base + '-' + (n++);
+  return id;
+}
+
+/* quante voci e che prezzi ha un listino: serve a riconoscerlo a colpo d'occhio */
+function riassuntoListino(m){
+  const cats = (m && Array.isArray(m.categorie)) ? m.categorie : [];
+  const voci = cats.reduce((s, c) => s + ((c.voci || []).length), 0);
+  const prezzi = cats.reduce((a, c) => a.concat((c.voci || []).map(v => Number(v.prezzo) || 0)), [])
+                     .filter(p => p > 0);
+  const pezzi = [cats.length + (cats.length === 1 ? ' categoria' : ' categorie'),
+                 voci + (voci === 1 ? ' voce' : ' voci')];
+  if(prezzi.length) pezzi.push('da ' + regEuro(Math.min.apply(null, prezzi)) +
+                               ' a ' + regEuro(Math.max.apply(null, prezzi)));
+  const q = Number(m && m.copertoPersona) || 0;
+  pezzi.push(q > 0 ? ('quota ' + regEuro(q) + ' a persona') : 'nessuna quota');
+  return pezzi.join(' · ');
+}
+
+/* La festa e' passata? Il cambio di listino e' roba da festa successiva. */
+function festaPassata(){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String((DATA.evento || {}).data || ''));
+  if(!m) return true;                       /* nessuna data: non blocco niente */
+  const festa = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const ora = new Date();
+  return new Date(ora.getFullYear(), ora.getMonth(), ora.getDate()) > festa;
+}
+
+/* Cambiare listino con le prenotazioni aperte sarebbe un disastro: la gente
+   ha ordinato voci che sparirebbero dal listino. Quindi finche' la festa e'
+   davanti e c'e' anche una sola prenotazione, il cambio resta chiuso. */
+function statoCambioListino(){
+  const quante = REGISTRO.length;
+  if(quante === 0) return { ok:true };
+  if(festaPassata()){
+    return { ok:true, avviso:
+      '⚠️ Nel registro ci sono ancora ' + quante + ' prenotazioni della festa passata. ' +
+      'Restano leggibili (si portano dietro nomi e prezzi di quello che era stato ordinato), ' +
+      'ma se stai preparando la festa nuova conviene prima scaricare il backup e svuotare il registro.' };
+  }
+  const d = dataItaliana((DATA.evento || {}).data);
+  return { ok:false, motivo:
+    '🔒 Il cambio di listino è chiuso: ci sono ' + quante + ' prenotazioni attive per ' +
+    (d || 'la festa in programma') + '. Chi ha già ordinato si ritroverebbe con voci che non ' +
+    'esistono più. Si sblocca da solo il giorno dopo la festa.' };
+}
+
+function apriListini(){
+  disegnaListini();
+  $('modListini').classList.add('aperto');
+}
+function chiudiListini(){ $('modListini').classList.remove('aperto'); }
+
+function nomeListinoAttivo(){
+  const l = listinoAttivo();
+  return l ? ((l.emoji ? l.emoji + ' ' : '') + l.nome) : 'Menù senza nome';
+}
+function aggiornaNomeListino(){ testo('m_nomeListino', nomeListinoAttivo()); }
+
+function disegnaListini(){
+  const stato = statoCambioListino();
+  const luc = $('ml_lucchetto');
+  const testoLuc = stato.ok ? (stato.avviso || '') : stato.motivo;
+  luc.style.display = testoLuc ? '' : 'none';
+  luc.textContent = testoLuc;
+
+  const el = $('ml_elenco');
+  el.textContent = '';
+  const elenco = listini();
+  if(!elenco.length){
+    el.appendChild(crea('p', 'hint', 'Non hai ancora messo da parte nessun listino. ' +
+      'Premi «Metti da parte quello di adesso» per cominciare.'));
+    return;
+  }
+
+  elenco.forEach((l, i) => {
+    const attivo = (l.id === DATA.menuAttivoId);
+    const riga = crea('div', 'listino' + (attivo ? ' attivo' : ''));
+
+    const cuore = crea('div', 'cuore');
+    const nome = crea('div', 'nome', (l.emoji ? l.emoji + ' ' : '') + l.nome);
+    if(attivo){
+      nome.appendChild(document.createTextNode(' '));
+      nome.appendChild(crea('span', 'distintivo', 'in uso'));
+    }
+    cuore.appendChild(nome);
+    cuore.appendChild(crea('div', 'dettagli',
+      riassuntoListino(attivo ? DATA.menu : l.menu) +
+      (l.salvatoIl ? ' · messo da parte il ' + dataItaliana(l.salvatoIl) : '')));
+    riga.appendChild(cuore);
+
+    const az = crea('div', 'azioni-l');
+    if(!attivo){
+      const usa = crea('button', 'btn btn-p', '✅ Usa questo');
+      usa.type = 'button';
+      usa.disabled = !stato.ok;
+      if(!stato.ok) usa.title = 'Bloccato finché ci sono prenotazioni aperte';
+      usa.addEventListener('click', () => usaListino(l.id));
+      az.appendChild(usa);
+    }
+    const dup = crea('button', 'btn btn-w', '📄 Duplica');
+    dup.type = 'button';
+    dup.addEventListener('click', () => duplicaListino(l.id));
+    az.appendChild(dup);
+
+    const rin = crea('button', 'btn btn-w', '✏️ Rinomina');
+    rin.type = 'button';
+    rin.addEventListener('click', () => rinominaListino(l.id));
+    az.appendChild(rin);
+
+    if(!attivo){
+      const via = crea('button', 'btn btn-w', '🗑️ Elimina');
+      via.type = 'button';
+      via.addEventListener('click', () => eliminaListino(l.id));
+      az.appendChild(via);
+    }
+    riga.appendChild(az);
+    el.appendChild(riga);
+  });
+}
+
+/* Mette da parte il menu' in lavorazione come nuovo listino della libreria. */
+function salvaListinoAttuale(){
+  collect();                                   /* prima congelo quello che c'è nei campi */
+  const suggerito = (DATA.tema && DATA.tema.titoloFesta) || 'Listino';
+  const nome = (prompt('Che nome gli diamo?', suggerito) || '').trim();
+  if(!nome) return;
+  const emoji = (prompt('Un’emoji per riconoscerlo (facoltativa)', '🍕') || '').trim();
+  const l = {
+    id: nuovoIdListino(nome),
+    nome: nome,
+    emoji: emoji,
+    salvatoIl: oggiIso(),
+    menu: clone(DATA.menu)
+  };
+  listini().push(l);
+  /* se non c'era ancora un listino attivo, questo lo diventa: e' lo stesso menù */
+  if(!DATA.menuAttivoId) DATA.menuAttivoId = l.id;
+  tocca();
+  aggiornaNomeListino();
+  disegnaListini();
+  toast('💾 Listino «' + nome + '» messo da parte.', 6000);
+}
+
+function duplicaListino(id){
+  const l = listinoDa(id);
+  if(!l) return;
+  const attivo = (id === DATA.menuAttivoId);
+  const nome = (prompt('Nome della copia', l.nome + ' (copia)') || '').trim();
+  if(!nome) return;
+  listini().push({
+    id: nuovoIdListino(nome), nome: nome, emoji: l.emoji,
+    salvatoIl: oggiIso(),
+    menu: clone(attivo ? DATA.menu : l.menu)     /* dell'attivo copio la versione viva */
+  });
+  tocca();
+  disegnaListini();
+  toast('📄 Copia creata: «' + nome + '».', 5000);
+}
+
+function rinominaListino(id){
+  const l = listinoDa(id);
+  if(!l) return;
+  const nome = (prompt('Nuovo nome', l.nome) || '').trim();
+  if(!nome) return;
+  l.nome = nome;
+  const emoji = prompt('Emoji (lascia vuoto per toglierla)', l.emoji || '');
+  if(emoji !== null) l.emoji = String(emoji).trim();
+  tocca();
+  aggiornaNomeListino();
+  disegnaListini();
+  toast('✏️ Rinominato.', 4000);
+}
+
+function eliminaListino(id){
+  const l = listinoDa(id);
+  if(!l) return;
+  if(id === DATA.menuAttivoId){ toast('Non posso eliminare il listino in uso.', 6000); return; }
+  if(!confirm('Elimino il listino «' + l.nome + '»?\n\nSparisce dalla libreria e non si recupera.')) return;
+  DATA.listini = listini().filter(x => x.id !== id);
+  tocca();
+  disegnaListini();
+  toast('🗑️ Listino eliminato.', 4000);
+}
+
+/* Il cambio vero: metto al sicuro quello in uso e carico il prescelto. */
+function usaListino(id){
+  const stato = statoCambioListino();
+  if(!stato.ok){ toast(stato.motivo, 11000); return; }
+  const l = listinoDa(id);
+  if(!l || id === DATA.menuAttivoId) return;
+
+  const q = Number((l.menu || {}).copertoPersona) || 0;
+  if(!confirm('Passo a «' + l.nome + '»?\n\n' + riassuntoListino(l.menu) +
+              '\n\nIl listino di adesso resta nella libreria, non si perde.' +
+              (q === 0 ? '\n\nAttenzione: questo listino non ha la quota a persona.' : '') +
+              '\n\nDopo dovrai premere «Pubblica online» perché il sito lo mostri.')) return;
+
+  collect();                                   /* l'attivo viene riallineato qui dentro */
+  DATA.menu = clone(l.menu);
+  DATA.menuAttivoId = l.id;
+  riempiMenu(DATA.menu);                       /* i campi mostrano il listino nuovo */
+  tocca();
+  aggiornaNomeListino();
+  disegnaListini();
+  chiudiListini();
+  vaiAllaVista('menu');
+  toast('✅ Ora è in uso «' + l.nome + '». Controlla i prezzi e premi «Pubblica online».', 10000);
+}
+
+function listinoVuoto(){
+  const nome = (prompt('Nome del nuovo listino', 'Menù nuovo') || '').trim();
+  if(!nome) return;
+  listini().push({
+    id: nuovoIdListino(nome), nome: nome, emoji: '🍽️', salvatoIl: oggiIso(),
+    menu: { descrizione:'', avviso:'', copertoPersona:0, copertoEtichetta:'', copertoEmoji:'',
+            copertoNota:'', speciali:{ glutine:false, lattosio:false }, categorie:[] }
+  });
+  tocca();
+  disegnaListini();
+  toast('➕ Listino «' + nome + '» creato, vuoto. Usalo e poi riempilo.', 7000);
+}
+
+function oggiIso(){
+  const d = new Date();
+  return d.getFullYear() + '-' + due(d.getMonth() + 1) + '-' + due(d.getDate());
 }
 
 /* ====================== ALBUM DELLA SERATA ==========================
@@ -2334,6 +2656,16 @@ function collegaEventi(){
   misuraTop();
   window.addEventListener('resize', misuraTop);
   setTimeout(misuraTop, 400);   /* dopo il caricamento dei caratteri l'altezza cambia */
+
+  /* libreria dei listini */
+  $('btnListini').addEventListener('click', apriListini);
+  $('ml_chiudi').addEventListener('click', chiudiListini);
+  $('ml_btnSalva').addEventListener('click', salvaListinoAttuale);
+  $('ml_btnVuoto').addEventListener('click', listinoVuoto);
+  $('modListini').addEventListener('click', e => { if(e.target === $('modListini')) chiudiListini(); });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && $('modListini').classList.contains('aperto')) chiudiListini();
+  });
 
   /* album della serata */
   $('btnScatta').addEventListener('click', () => $('fileScatto').click());

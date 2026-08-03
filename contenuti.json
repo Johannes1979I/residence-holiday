@@ -265,6 +265,258 @@
       }
     ]
   },
+  "menuAttivoId": "pizzeria-tirreno",
+  "listini": [
+    {
+      "id": "pizzeria-tirreno",
+      "nome": "Pizzeria Il Tirreno — Serata Pizza",
+      "emoji": "🍕",
+      "salvatoIl": "2026-08-03",
+      "menu": {
+        "descrizione": "Il listino della Pizzeria Il Tirreno di Montalto di Castro. Scegli quante pizze vuoi: il totale si calcola da solo.",
+        "avviso": "Si prenotano solo le pizze e fritti: bevande e dolce li porta ognuno da casa. Listino ripreso dal tabellone della Pizzeria Il Tirreno.",
+        "copertoPersona": 3,
+        "copertoEtichetta": "Quota assistenza in piscina",
+        "copertoEmoji": "🛟",
+        "copertoNota": "Anche di sera la nostra bagnina Aurora resta in servizio, per la sicurezza dei grandi e soprattutto dei bambini. I 3 € a persona coprono la sua presenza per tutta la durata della festa: un piccolo contributo che ci permette di goderci la serata in tranquillità.",
+        "speciali": {
+          "glutine": true,
+          "lattosio": true
+        },
+        "categorie": [
+          {
+            "id": "rosse",
+            "nome": "Pizze rosse",
+            "emoji": "🍕",
+            "tipo": "cibo",
+            "voci": [
+              {
+                "nome": "Margherita",
+                "descrizione": "Pomodoro, mozzarella",
+                "prezzo": 8
+              },
+              {
+                "nome": "Marinara",
+                "descrizione": "Pomodoro, aglio, origano, olio",
+                "prezzo": 7
+              },
+              {
+                "nome": "Maremmana",
+                "descrizione": "Pomodoro, mozzarella, salsiccia, olive e peperoncino",
+                "prezzo": 9
+              },
+              {
+                "nome": "Funghi",
+                "descrizione": "Pomodoro, mozzarella, funghi champignon",
+                "prezzo": 8.5
+              },
+              {
+                "nome": "Prosciutto crudo",
+                "descrizione": "Pomodoro, mozzarella, prosciutto crudo",
+                "prezzo": 9
+              },
+              {
+                "nome": "Diavola",
+                "descrizione": "Pomodoro, mozzarella, salame piccante, olive",
+                "prezzo": 9
+              },
+              {
+                "nome": "Regina",
+                "descrizione": "Pomodoro, bufala, basilico",
+                "prezzo": 10
+              },
+              {
+                "nome": "Würstel",
+                "descrizione": "Pomodoro, mozzarella, würstel",
+                "prezzo": 8.5
+              },
+              {
+                "nome": "Rustica",
+                "descrizione": "Pomodoro, mozzarella, salsiccia",
+                "prezzo": 8.5
+              },
+              {
+                "nome": "Boscaiola",
+                "descrizione": "Pomodoro, mozzarella, salsiccia, funghi champignon",
+                "prezzo": 9
+              },
+              {
+                "nome": "Napoli",
+                "descrizione": "Pomodoro, mozzarella, alici",
+                "prezzo": 9
+              },
+              {
+                "nome": "Capricciosa",
+                "descrizione": "Pomodoro, mozzarella, olive, carciofini, prosciutto crudo, funghi",
+                "prezzo": 10
+              },
+              {
+                "nome": "Gamberi",
+                "descrizione": "Pomodoro, gamberi, salsa rosa, rucola",
+                "prezzo": 10
+              },
+              {
+                "nome": "Campagnola",
+                "descrizione": "Pomodoro, mozzarella, tonno, cipolla",
+                "prezzo": 9
+              },
+              {
+                "nome": "Piccantina",
+                "descrizione": "Pomodoro, pachino, peperoncino",
+                "prezzo": 8
+              },
+              {
+                "nome": "Siciliana",
+                "descrizione": "Pomodoro, acciughe, olive nere, capperi, origano",
+                "prezzo": 9
+              },
+              {
+                "nome": "Frutti di mare",
+                "descrizione": "Pomodoro, frutti di mare, prezzemolo, olio",
+                "prezzo": 12
+              },
+              {
+                "nome": "Calabrese",
+                "descrizione": "Pomodoro, mozzarella, origano, grana",
+                "prezzo": 8.5
+              }
+            ]
+          },
+          {
+            "id": "bianche",
+            "nome": "Pizze bianche",
+            "emoji": "🧀",
+            "tipo": "cibo",
+            "voci": [
+              {
+                "nome": "Fiori",
+                "descrizione": "Mozzarella, fiori di zucca, salsiccia",
+                "prezzo": 9.5
+              },
+              {
+                "nome": "Patate e salsiccia",
+                "descrizione": "Mozzarella, salsiccia e patate",
+                "prezzo": 11
+              },
+              {
+                "nome": "Patapizza",
+                "descrizione": "Mozzarella, patatine fritte e würstel",
+                "prezzo": 9
+              },
+              {
+                "nome": "Gustosa",
+                "descrizione": "Mozzarella, fiori di zucca, alici",
+                "prezzo": 9.5
+              },
+              {
+                "nome": "Fresca",
+                "descrizione": "Mozzarella, pachino, rucola",
+                "prezzo": 9
+              },
+              {
+                "nome": "4 formaggi",
+                "descrizione": "Mozzarella, crema formaggi, gorgonzola, grana",
+                "prezzo": 10
+              },
+              {
+                "nome": "Leggera",
+                "descrizione": "Mozzarella, gamberi, zucchine",
+                "prezzo": 10
+              },
+              {
+                "nome": "Salmone",
+                "descrizione": "Mozzarella, salmone, rucola, grana",
+                "prezzo": 10
+              },
+              {
+                "nome": "Saporita",
+                "descrizione": "Mozzarella, crema di olive, patate, salsiccia",
+                "prezzo": 10
+              },
+              {
+                "nome": "Padana",
+                "descrizione": "Mozzarella, bresaola, rucola, grana",
+                "prezzo": 11
+              },
+              {
+                "nome": "Vegetariana",
+                "descrizione": "Mozzarella, zucchine, melanzane, peperoni",
+                "prezzo": 9
+              },
+              {
+                "nome": "Brigante",
+                "descrizione": "Mozzarella, zucchine, gorgonzola",
+                "prezzo": 9
+              },
+              {
+                "nome": "Pregiata",
+                "descrizione": "Bufala, crudo, rucola, grana",
+                "prezzo": 12
+              }
+            ]
+          },
+          {
+            "id": "fritti",
+            "nome": "Fritti",
+            "emoji": "🍟",
+            "tipo": "cibo",
+            "voci": [
+              {
+                "nome": "Supplì",
+                "descrizione": "Cadauno",
+                "prezzo": 2
+              },
+              {
+                "nome": "Fiori di zucca",
+                "descrizione": "Cadauno",
+                "prezzo": 2
+              },
+              {
+                "nome": "Mozzarella in carrozza",
+                "descrizione": "Cadauno",
+                "prezzo": 1.5
+              },
+              {
+                "nome": "Filetto di baccalà",
+                "descrizione": "Cadauno",
+                "prezzo": 2.5
+              },
+              {
+                "nome": "Olive ascolane",
+                "descrizione": "6 pezzi",
+                "prezzo": 5
+              },
+              {
+                "nome": "Crocchette di patate",
+                "descrizione": "5 pezzi",
+                "prezzo": 5
+              },
+              {
+                "nome": "Finger di pollo",
+                "descrizione": "",
+                "prezzo": 5
+              },
+              {
+                "nome": "Patatine fritte",
+                "descrizione": "porzione",
+                "prezzo": 5
+              },
+              {
+                "nome": "Polpette di melanzane",
+                "descrizione": "",
+                "prezzo": 5
+              },
+              {
+                "nome": "Frittura di calamari e gamberi",
+                "descrizione": "Porzione",
+                "prezzo": 17
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
   "pagamento": {
     "attivo": true,
     "titolo": "Come si paga",
@@ -408,9 +660,9 @@
   },
   "album": {
     "attivo": true,
-    "titolo": "",
-    "sottotitolo": "",
-    "nota": "",
+    "titolo": "L'album della serata",
+    "sottotitolo": "Le foto della Serata Pizza in Piscina.",
+    "nota": "Se in una foto non ti ci vedi bene o preferisci non comparire, dillo agli organizzatori: la togliamo subito.",
     "foto": []
   }
 }
