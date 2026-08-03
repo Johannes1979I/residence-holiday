@@ -335,6 +335,7 @@
 
     <nav class="linguette" aria-label="Sezioni del pannello">
       <button type="button" data-vista="prenotazioni" class="attiva">📒 Prenotazioni</button>
+      <button type="button" data-vista="menu">🍽️ Menù</button>
       <button type="button" data-vista="contenuti">⚙️ Contenuti del sito</button>
       <button type="button" data-vista="album">📸 Album</button>
       <button type="button" data-vista="locandina">🖨️ Locandina</button>
@@ -504,6 +505,69 @@
 
     </section>
 
+    <section class="vista" id="v-menu">
+
+    <!-- ---------- MENU ---------- -->
+    <div class="card" id="sec-menu">
+      <h2>🍽️ Menù</h2>
+      <p class="intro">Le categorie e le voci che i condomini scelgono durante la prenotazione.</p>
+
+      <label for="m_desc">Descrizione del menù</label>
+      <textarea id="m_desc" rows="2"></textarea>
+      <p class="hint">Frase introduttiva sopra l’elenco, es. chi prepara le pizze.</p>
+
+      <label for="m_avviso">Avviso (facoltativo)</label>
+      <textarea id="m_avviso" rows="2"></textarea>
+      <p class="hint">Nota evidenziata sotto il menù, es. “alcuni prezzi sono in verifica”. Lascia vuoto per non mostrarla.</p>
+
+      <h3 class="sub-h">Quota a persona (bagnina)</h3>
+      <p class="hint" style="margin-bottom:10px">
+        Una cifra fissa che viene <b>aggiunta al totale per ogni partecipante</b>, oltre a pizze e bevande.
+        Serve per pagare l’assistenza della bagnina durante la serata. Metti <b>0</b> per non usarla.
+      </p>
+
+      <div class="grid2">
+        <div>
+          <label for="m_coperto">Quota a persona (€)</label>
+          <input id="m_coperto" inputmode="decimal" />
+        </div>
+        <div>
+          <label for="m_copertoEmoji">Simbolo</label>
+          <input id="m_copertoEmoji" placeholder="🛟" />
+        </div>
+      </div>
+
+      <label for="m_copertoEtichetta">Come si chiama questa quota</label>
+      <input id="m_copertoEtichetta" placeholder="Quota assistenza in piscina" />
+      <p class="hint">Compare nel riepilogo, nel voucher e sulla locandina, es. “Quota assistenza in piscina”.</p>
+
+      <label for="m_copertoNota">Spiegazione per i condomini</label>
+      <textarea id="m_copertoNota" rows="3"></textarea>
+      <p class="hint">Frase gentile mostrata nella sezione Menù del sito, per spiegare a cosa serve la quota.</p>
+
+      <h3 class="sub-h">Allergie e intolleranze</h3>
+      <p class="hint" style="margin-bottom:8px">
+        Scegli quali opzioni può indicare chi prenota, per ogni pizza. Se attivi
+        <b>entrambe</b>, nel modulo compare anche la scelta “senza glutine <b>e</b> senza lattosio”
+        insieme (per chi è celiaco e anche intollerante). Se le spegni tutte e due, la sezione non
+        compare.
+      </p>
+      <label class="check"><input type="checkbox" id="m_sp_glutine" /> Permetti l’opzione <b>senza glutine (celiaci)</b></label>
+      <label class="check"><input type="checkbox" id="m_sp_lattosio" /> Permetti l’opzione <b>senza lattosio</b></label>
+
+      <h3 class="sub-h">Categorie e voci <span class="conta" id="m_conteggio"></span></h3>
+      <p class="hint" style="margin-bottom:12px">
+        Ogni categoria è un gruppo del menù (es. “Pizze rosse”, “Bevande”).
+        Le categorie di tipo <b>Cibo</b> compaiono nel passo “Scegli le pizze”,
+        quelle di tipo <b>Bevanda</b> nel passo “Bevande”.
+        Usa ↑ e ↓ per cambiare l’ordine con cui appaiono sul sito.
+      </p>
+      <div id="categorie"></div>
+      <button class="add" id="btnAddCat">+ Aggiungi categoria</button>
+    </div>
+
+    </section>
+
     <section class="vista" id="v-contenuti">
 
     <nav class="sommario" aria-label="Schede dei contenuti">
@@ -511,7 +575,6 @@
       <a href="#sec-tema">🎨 Tema</a>
       <a href="#sec-aspetto">🖌️ Aspetto</a>
       <a href="#sec-evento">📅 Evento</a>
-      <a href="#sec-menu">🍽️ Menù</a>
       <a href="#sec-pagamento">💶 Pagamento</a>
       <a href="#sec-prenotazione">🎟️ Prenotazione</a>
       <a href="#sec-notifiche">🔔 Avvisi</a>
@@ -639,65 +702,6 @@
       <label for="e_desc">Descrizione della serata</label>
       <textarea id="e_desc" rows="4"></textarea>
       <p class="hint">Il testo di presentazione nella sezione “La festa”.</p>
-    </div>
-
-    <!-- ---------- MENU ---------- -->
-    <div class="card" id="sec-menu">
-      <h2>🍽️ Menù</h2>
-      <p class="intro">Le categorie e le voci che i condomini scelgono durante la prenotazione.</p>
-
-      <label for="m_desc">Descrizione del menù</label>
-      <textarea id="m_desc" rows="2"></textarea>
-      <p class="hint">Frase introduttiva sopra l’elenco, es. chi prepara le pizze.</p>
-
-      <label for="m_avviso">Avviso (facoltativo)</label>
-      <textarea id="m_avviso" rows="2"></textarea>
-      <p class="hint">Nota evidenziata sotto il menù, es. “alcuni prezzi sono in verifica”. Lascia vuoto per non mostrarla.</p>
-
-      <h3 class="sub-h">Quota a persona (bagnina)</h3>
-      <p class="hint" style="margin-bottom:10px">
-        Una cifra fissa che viene <b>aggiunta al totale per ogni partecipante</b>, oltre a pizze e bevande.
-        Serve per pagare l’assistenza della bagnina durante la serata. Metti <b>0</b> per non usarla.
-      </p>
-
-      <div class="grid2">
-        <div>
-          <label for="m_coperto">Quota a persona (€)</label>
-          <input id="m_coperto" inputmode="decimal" />
-        </div>
-        <div>
-          <label for="m_copertoEmoji">Simbolo</label>
-          <input id="m_copertoEmoji" placeholder="🛟" />
-        </div>
-      </div>
-
-      <label for="m_copertoEtichetta">Come si chiama questa quota</label>
-      <input id="m_copertoEtichetta" placeholder="Quota assistenza in piscina" />
-      <p class="hint">Compare nel riepilogo, nel voucher e sulla locandina, es. “Quota assistenza in piscina”.</p>
-
-      <label for="m_copertoNota">Spiegazione per i condomini</label>
-      <textarea id="m_copertoNota" rows="3"></textarea>
-      <p class="hint">Frase gentile mostrata nella sezione Menù del sito, per spiegare a cosa serve la quota.</p>
-
-      <h3 class="sub-h">Allergie e intolleranze</h3>
-      <p class="hint" style="margin-bottom:8px">
-        Scegli quali opzioni può indicare chi prenota, per ogni pizza. Se attivi
-        <b>entrambe</b>, nel modulo compare anche la scelta “senza glutine <b>e</b> senza lattosio”
-        insieme (per chi è celiaco e anche intollerante). Se le spegni tutte e due, la sezione non
-        compare.
-      </p>
-      <label class="check"><input type="checkbox" id="m_sp_glutine" /> Permetti l’opzione <b>senza glutine (celiaci)</b></label>
-      <label class="check"><input type="checkbox" id="m_sp_lattosio" /> Permetti l’opzione <b>senza lattosio</b></label>
-
-      <h3 class="sub-h">Categorie e voci <span class="conta" id="m_conteggio"></span></h3>
-      <p class="hint" style="margin-bottom:12px">
-        Ogni categoria è un gruppo del menù (es. “Pizze rosse”, “Bevande”).
-        Le categorie di tipo <b>Cibo</b> compaiono nel passo “Scegli le pizze”,
-        quelle di tipo <b>Bevanda</b> nel passo “Bevande”.
-        Usa ↑ e ↓ per cambiare l’ordine con cui appaiono sul sito.
-      </p>
-      <div id="categorie"></div>
-      <button class="add" id="btnAddCat">+ Aggiungi categoria</button>
     </div>
 
     <!-- ---------- PAGAMENTO ---------- -->
