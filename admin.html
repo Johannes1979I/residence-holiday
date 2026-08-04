@@ -3351,6 +3351,15 @@ function regDisegna(){
     bChiama.addEventListener('click', () => annChiama(p));
     azioni.appendChild(bChiama);
 
+    /* chiamata sbagliata: si torna indietro, e se sta ancora parlando tace */
+    if(p.chiamatoIl){
+      const bAnnulla = crea('button', 'reg-mini', '↩️ Segna da chiamare');
+      bAnnulla.type = 'button';
+      bAnnulla.title = 'Era la persona sbagliata: torna fra quelli da chiamare';
+      bAnnulla.addEventListener('click', () => annAnnullaChiamata(p));
+      azioni.appendChild(bAnnulla);
+    }
+
     if(p.telefono){
       const bWa = crea('button','reg-mini','💬 Scrivi su WhatsApp');
       bWa.type = 'button';
@@ -3513,6 +3522,18 @@ function annChiama(p){
   regDisegna();
   cloudPatch(p, { json: jsonPulito(p) });
   toast('🔊 Sto chiamando ' + p.nome + '.', 4000);
+}
+
+/* Torna indietro: la chiamata era sbagliata. Se l'annuncio sta ancora
+   uscendo dalla cassa lo interrompe subito, che e' la prima cosa che si
+   vuole quando ci si accorge di aver premuto sulla riga sbagliata. */
+function annAnnullaChiamata(p){
+  annFerma();
+  p.chiamatoIl = null;
+  regSalva();
+  regDisegna();
+  cloudPatch(p, { json: jsonPulito(p) });
+  toast('↩️ ' + p.nome + ' torna fra quelli da chiamare.', 4500);
 }
 
 function annOrarioDi(p){
