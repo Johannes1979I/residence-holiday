@@ -450,15 +450,40 @@
         <label for="ann_testo">Cosa dice</label>
         <textarea id="ann_testo" rows="2"></textarea>
         <p class="hint">
-          Scrivi <code>{nome}</code> dove va il nome di chi ritira. Il nome ripetuto due volte
-          si capisce meglio nel rumore.
+          Al posto di <code>{nome}</code> mette nome e cognome. Puoi usare anche
+          <code>{primoNome}</code> (solo il nome di battesimo: la sintesi lo pronuncia
+          molto meglio dei cognomi), <code>{cognome}</code> e <code>{quante}</code>.
+          Il nome ripetuto due volte si capisce meglio nel rumore.
         </p>
+
+        <label for="ann_pronuncia">Parole che la voce sbaglia</label>
+        <textarea id="ann_pronuncia" rows="5" placeholder="presentati = presèntati&#10;Gelasi = Gèlasi&#10;Marchionni = Marchiònni"></textarea>
+        <p class="hint">
+          Una riga per parola: a sinistra come si scrive, a destra come va letta.
+          <b>Scrivendo l’accento sulla sillaba giusta la voce lo rispetta.</b> Serve per i
+          cognomi (<i>Gèlasi</i>, <i>Marchiònni</i>) e per le parole sdrucciole, che la
+          sintesi italiana legge quasi sempre piane: <i>presèntati</i>, <i>avvicìnati</i>.
+          Vale <b>solo per l’annuncio</b>: nel registro il nome resta come l’ha scritto lui.
+        </p>
+
+        <div class="ann-riga" style="margin-top:12px">
+          <div>
+            <label for="ann_provaNome">Prova con un nome</label>
+            <input id="ann_provaNome" placeholder="Adriano gelasi" />
+          </div>
+        </div>
         <div class="reg-azioni">
           <button class="btn btn-p" type="button" id="ann_btnProva">▶️ Prova l’annuncio</button>
           <button class="btn btn-w" type="button" id="ann_btnFerma">⏹️ Ferma</button>
           <button class="btn btn-w" type="button" id="ann_btnRipristina">↩️ Testo di partenza</button>
         </div>
         <p class="hint" id="ann_stato" style="margin-top:8px"></p>
+        <p class="hint">
+          <b>Voce più naturale.</b> Le voci di serie sono un po’ metalliche. Su Mac:
+          <b>Impostazioni di Sistema → Accessibilità → Contenuto vociato → Voce di sistema →
+          Gestisci voci</b>, e scarica una voce italiana <b>(Migliorata)</b> o
+          <b>(Premium)</b>. Poi ricarica questa pagina e la trovi qui nell’elenco.
+        </p>
       </div>
 
       <h3 class="sub-h" id="reg_secAvviso">📣 Avviso a tutti gli iscritti</h3>
@@ -2718,15 +2743,22 @@ function collegaEventi(){
     testo('ann_velocitaVal', Number(ANN.velocita).toFixed(2) + '×');
   });
   $('ann_testo').addEventListener('change', () => { ANN.testo = $('ann_testo').value; annSalva(); });
+  $('ann_pronuncia').addEventListener('change', () => { ANN.pronuncia = $('ann_pronuncia').value; annSalva(); });
   $('ann_btnProva').addEventListener('click', () => {
-    const esempio = REGISTRO[0] || { nome:'Mario Rossi', righe:[{quantita:2}], codice:'RH-0000' };
+    const scritto = ($('ann_provaNome').value || '').trim();
+    const esempio = scritto
+      ? { nome: scritto, righe:[{quantita:2}], codice:'RH-PROVA' }
+      : (REGISTRO[0] || { nome:'Mario Rossi', righe:[{quantita:2}], codice:'RH-0000' });
     annParla(annTestoPer(esempio));
   });
   $('ann_btnFerma').addEventListener('click', annFerma);
   $('ann_btnRipristina').addEventListener('click', () => {
-    ANN.testo = ANN_TESTO_BASE; annSalva();
+    ANN.testo = ANN_TESTO_BASE;
+    ANN.pronuncia = ANN_PRONUNCIA_BASE;
+    annSalva();
     $('ann_testo').value = ANN.testo;
-    toast('Testo riportato a quello di partenza.', 4000);
+    $('ann_pronuncia').value = ANN.pronuncia;
+    toast('Testo e pronunce riportati a quelli di partenza.', 4500);
   });
 
   /* libreria dei listini */
@@ -3430,9 +3462,21 @@ function regDisegna(){
    niente chiavi segrete, niente costi. */
 
 const ANN_CHIAVE = 'rh_annuncio';
+/* Le parole sdrucciole (presèntati, avvicìnati) la sintesi le legge piane:
+   il testo di partenza le evita, cosi' suona giusto senza dover correggere. */
 const ANN_TESTO_BASE = 'Attenzione! {nome}. Ripeto: {nome}. ' +
-                       'La tua pizza è pronta: presentati al banco per il ritiro.';
-let ANN = { voce:'', volume:1, velocita:0.95, testo:ANN_TESTO_BASE };
+                       'La tua pizza è pronta: puoi venire a ritirarla al banco.';
+
+/* Parole che la voce italiana sbaglia quasi sempre: le mettiamo gia' scritte
+   con l'accento giusto, cosi' funzionano se l'organizzatore le usa. */
+const ANN_PRONUNCIA_BASE = [
+  'presentati = presèntati',
+  'avvicinati = avvicìnati',
+  'recati = rècati',
+  'ritiralo = ritìralo',
+  'ritirala = ritìrala'
+].join('\n');
+let ANN = { voce:'', volume:1, velocita:0.95, testo:ANN_TESTO_BASE, pronuncia:ANN_PRONUNCIA_BASE };
 
 function annDisponibile(){ return typeof window.speechSynthesis !== 'undefined'; }
 
@@ -3442,6 +3486,7 @@ function annCarica(){
     if(s && typeof s === 'object') ANN = Object.assign(ANN, s);
   }catch(e){}
   if(!ANN.testo) ANN.testo = ANN_TESTO_BASE;
+  if(ANN.pronuncia === undefined || ANN.pronuncia === null) ANN.pronuncia = ANN_PRONUNCIA_BASE;
 }
 function annSalva(){ try{ localStorage.setItem(ANN_CHIAVE, JSON.stringify(ANN)); }catch(e){} }
 
@@ -3469,14 +3514,21 @@ function annDisegnaVoci(){
     o.textContent = v.name + (/^it/i.test(v.lang||'') ? '' : ' (' + v.lang + ')');
     sel.appendChild(o);
   });
-  /* se la voce salvata non c'e' piu' (altro computer), prendo la prima italiana */
-  if(!voci.some(v => v.name === ANN.voce)) ANN.voce = voci[0].name;
+  /* se la voce salvata non c'e' piu' (altro computer), scelgo la migliore
+     italiana disponibile: prima le «Migliorata/Premium», che sono quelle
+     che sbagliano meno gli accenti */
+  if(!voci.some(v => v.name === ANN.voce)){
+    const buone = voci.filter(v => /migliorat|enhanced|premium|superiore/i.test(v.name));
+    ANN.voce = (buone[0] || voci[0]).name;
+    annSalva();                      /* cosi' la scelta non si ripete ogni volta */
+  }
   sel.value = ANN.voce;
 }
 
 function annAggiornaPannello(){
   if(!$('ann_testo')) return;
   $('ann_testo').value = ANN.testo;
+  $('ann_pronuncia').value = ANN.pronuncia || '';
   $('ann_volume').value = ANN.volume;
   $('ann_velocita').value = ANN.velocita;
   testo('ann_volumeVal', Math.round(ANN.volume * 100) + '%');
@@ -3487,13 +3539,47 @@ function annAggiornaPannello(){
     : '⚠️ Questo browser non sa parlare: usa Safari o Chrome sul Mac.');
 }
 
+/* La sintesi sbaglia spesso l'accento tonico dei cognomi: «Gelasi» diventa
+   «Gelàsi». Qui si riscrive il cognome come va letto — vale solo per la voce,
+   nel registro il nome resta quello che ha scritto la persona. */
+function annApplicaPronuncia(frase){
+  String(ANN.pronuncia || '').split('\n').forEach(riga => {
+    const pezzi = riga.split('=');
+    if(pezzi.length < 2) return;
+    const scritto = pezzi[0].trim();
+    const letto   = pezzi.slice(1).join('=').trim();
+    if(!scritto || !letto) return;
+    const esc = scritto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    try{
+      /* niente \b: con le lettere accentate non si comporta come ci si aspetta */
+      const re = new RegExp('(^|[^\\p{L}])(' + esc + ')(?![\\p{L}])', 'giu');
+      frase = frase.replace(re, (m, prima, trovato) => {
+        /* se la parola era maiuscola (inizio frase) resta maiuscola */
+        const maiuscola = trovato.charAt(0) === trovato.charAt(0).toUpperCase() &&
+                          trovato.charAt(0) !== trovato.charAt(0).toLowerCase();
+        return prima + (maiuscola ? letto.charAt(0).toUpperCase() + letto.slice(1) : letto);
+      });
+    }catch(e){
+      frase = frase.split(scritto).join(letto);   /* browser vecchio: alla buona */
+    }
+  });
+  return frase;
+}
+
 /* Il testo da pronunciare per una prenotazione. */
 function annTestoPer(p){
   const quante = (p.righe || []).reduce((s, r) => s + (Number(r.quantita) || 0), 0);
-  return String(ANN.testo || ANN_TESTO_BASE)
-    .replace(/\{nome\}/g, String(p.nome || '').trim())
+  const intero = String(p.nome || '').trim();
+  const pezzi = intero.split(/\s+/).filter(Boolean);
+  const primo = pezzi[0] || intero;
+  const cognome = pezzi.length > 1 ? pezzi.slice(1).join(' ') : '';
+  const frase = String(ANN.testo || ANN_TESTO_BASE)
+    .replace(/\{primoNome\}/g, primo)
+    .replace(/\{cognome\}/g, cognome)
+    .replace(/\{nome\}/g, intero)
     .replace(/\{quante\}/g, String(quante))
     .replace(/\{codice\}/g, String(p.codice || ''));
+  return annApplicaPronuncia(frase);
 }
 
 function annParla(frase){
