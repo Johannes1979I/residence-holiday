@@ -213,6 +213,14 @@
   .reg-extra{font-size:.76rem;font-weight:bold;border-radius:999px;padding:3px 9px;
              background:#fff3d6;color:#7a4d00;border:1px solid #ffcf6b}
   .reg-extra.attesa{background:#ffe8e8;color:#a01722;border-color:#f3a9b0}
+  /* chi è già stato chiamato al banco */
+  .reg-chiamato{font-size:.74rem;font-weight:bold;border-radius:999px;padding:3px 10px;
+                background:#e5edff;color:#1f3d8f;border:1px solid #b9caf5;white-space:nowrap}
+  .reg-riga.chiamata{border-left:5px solid #4a6fd4}
+  .ann-pannello{background:#f3f7ff;border:1px solid #c9d8f5;border-radius:16px;padding:14px 16px}
+  .ann-riga{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px}
+  .ann-riga > div{flex:1 1 180px;min-width:0}
+  .ann-riga label{margin-top:0}
 
   /* ---------- foglio stampabile (ordine pizzeria / lista ingresso) ----------
      E' dentro la pagina invece che in una finestra nuova: i browser bloccano
@@ -411,11 +419,47 @@
       <nav class="reg-scorciatoie" aria-label="Sezioni del registro">
         <a href="#reg_secElenco">📋 Elenco</a>
         <a href="#reg_secPizzeria">🍕 Ordine pizzeria</a>
+        <a href="#reg_secAnnuncio">🔊 Annuncio vocale</a>
         <a href="#reg_secAvviso">📣 Avviso a tutti</a>
         <a href="#reg_secCestino">🗑️ Cestino</a>
       </nav>
 
       <div id="reg_proposta" class="reg-proposta" style="display:none"></div>
+
+      <h3 class="sub-h" id="reg_secAnnuncio">🔊 Annuncio vocale al banco</h3>
+      <p class="hint" style="margin-bottom:8px">
+        Collega questo computer alla cassa via Bluetooth: il pulsante <b>«🔊 Chiama per ritiro»</b>
+        accanto a ogni prenotazione fa dire il nome ad alta voce, così lo sentono tutti.
+        Nessun servizio esterno, nessun costo: parla il computer.
+      </p>
+      <div class="ann-pannello">
+        <div class="ann-riga">
+          <div>
+            <label for="ann_voce">Voce</label>
+            <select id="ann_voce"></select>
+          </div>
+          <div>
+            <label for="ann_volume">Volume <span class="hint" style="font-weight:normal" id="ann_volumeVal"></span></label>
+            <input type="range" id="ann_volume" min="0.2" max="1" step="0.05" />
+          </div>
+          <div>
+            <label for="ann_velocita">Velocità <span class="hint" style="font-weight:normal" id="ann_velocitaVal"></span></label>
+            <input type="range" id="ann_velocita" min="0.6" max="1.3" step="0.05" />
+          </div>
+        </div>
+        <label for="ann_testo">Cosa dice</label>
+        <textarea id="ann_testo" rows="2"></textarea>
+        <p class="hint">
+          Scrivi <code>{nome}</code> dove va il nome di chi ritira. Il nome ripetuto due volte
+          si capisce meglio nel rumore.
+        </p>
+        <div class="reg-azioni">
+          <button class="btn btn-p" type="button" id="ann_btnProva">▶️ Prova l’annuncio</button>
+          <button class="btn btn-w" type="button" id="ann_btnFerma">⏹️ Ferma</button>
+          <button class="btn btn-w" type="button" id="ann_btnRipristina">↩️ Testo di partenza</button>
+        </div>
+        <p class="hint" id="ann_stato" style="margin-top:8px"></p>
+      </div>
 
       <h3 class="sub-h" id="reg_secAvviso">📣 Avviso a tutti gli iscritti</h3>
       <p class="hint" style="margin-bottom:8px">
@@ -2657,6 +2701,34 @@ function collegaEventi(){
   window.addEventListener('resize', misuraTop);
   setTimeout(misuraTop, 400);   /* dopo il caricamento dei caratteri l'altezza cambia */
 
+  /* annuncio vocale al banco */
+  annCarica();
+  annAggiornaPannello();
+  if(annDisponibile() && typeof speechSynthesis.addEventListener === 'function'){
+    /* le voci di sistema arrivano dopo: quando ci sono, riempio l'elenco */
+    speechSynthesis.addEventListener('voiceschanged', annDisegnaVoci);
+  }
+  $('ann_voce').addEventListener('change', () => { ANN.voce = $('ann_voce').value; annSalva(); });
+  $('ann_volume').addEventListener('input', () => {
+    ANN.volume = Number($('ann_volume').value); annSalva();
+    testo('ann_volumeVal', Math.round(ANN.volume * 100) + '%');
+  });
+  $('ann_velocita').addEventListener('input', () => {
+    ANN.velocita = Number($('ann_velocita').value); annSalva();
+    testo('ann_velocitaVal', Number(ANN.velocita).toFixed(2) + '×');
+  });
+  $('ann_testo').addEventListener('change', () => { ANN.testo = $('ann_testo').value; annSalva(); });
+  $('ann_btnProva').addEventListener('click', () => {
+    const esempio = REGISTRO[0] || { nome:'Mario Rossi', righe:[{quantita:2}], codice:'RH-0000' };
+    annParla(annTestoPer(esempio));
+  });
+  $('ann_btnFerma').addEventListener('click', annFerma);
+  $('ann_btnRipristina').addEventListener('click', () => {
+    ANN.testo = ANN_TESTO_BASE; annSalva();
+    $('ann_testo').value = ANN.testo;
+    toast('Testo riportato a quello di partenza.', 4000);
+  });
+
   /* libreria dei listini */
   $('btnListini').addEventListener('click', apriListini);
   $('ml_chiudi').addEventListener('click', chiudiListini);
@@ -2812,7 +2884,8 @@ function regCaricaCloud(){
       let p = {};
       try{ p = JSON.parse(doc.json || '{}'); }catch(e){ p = {}; }
       p._id = doc._id;
-      p.stato = doc.stato || 'attiva';
+      regNormalizza(p);                      /* salva lo stato della richiesta */
+      p.stato = doc.stato || 'attiva';   /* qui «stato» torna a dire attiva/cestino */
       if(!p.codice) p.codice = doc.codice || '';
       if(!p.nome)   p.nome = doc.nome || '';
       (p.stato === 'cestino' ? CESTINO : REGISTRO).push(p);
@@ -2991,7 +3064,18 @@ function escHtml(s){
 }
 function regPartecipanti(p){ return (Number(p.adulti)||0) + (Number(p.bambini)||0); }
 /* richiesta oltre i posti, senza tavolo e sedie: vale solo se la approvi tu */
-function regDaApprovare(p){ return (p||{}).stato === 'da approvare'; }
+function regDaApprovare(p){ return statoRichiesta(p) === 'da approvare'; }
+/* «stato» nel documento vuol dire attiva/cestino; nella prenotazione voleva dire
+   confermata/da approvare. Due cose diverse con lo stesso nome: il caricamento dal
+   cloud cancellava la seconda. Ora la richiesta ha un campo suo. */
+function statoRichiesta(p){
+  p = p || {};
+  if(p.statoRichiesta) return p.statoRichiesta;
+  if(p.stato === 'da approvare' || p.stato === 'confermata') return p.stato;  /* vecchio formato */
+  return 'confermata';
+}
+/* da chiamare appena letta dal cloud, PRIMA che «stato» venga rimpiazzato */
+function regNormalizza(p){ p.statoRichiesta = statoRichiesta(p); return p; }
 function regTestoPersone(p){
   const a = Number(p.adulti)||0, b = Number(p.bambini)||0;
   const pezzi = [];
@@ -3072,7 +3156,7 @@ function regInterpreta(testo){
   const ecc = t.match(/Persone in eccedenza:\s*(\d+)/i);
   p.postiExtra = ecc ? (Number(ecc[1]) || 0) : 0;
   if(/PORTA TAVOLO E SEDIE/i.test(t)){ p.portaTavolo = true;  p.stato = 'confermata'; }
-  else if(/NON HA TAVOLO E SEDIE|RICHIESTA DA APPROVARE/i.test(t)){ p.portaTavolo = false; p.stato = 'da approvare'; }
+  else if(/NON HA TAVOLO E SEDIE|RICHIESTA DA APPROVARE/i.test(t)){ p.portaTavolo = false; p.statoRichiesta = 'da approvare'; }
 
   p.totale = leggiNumero(cerca(/TOTALE:\s*€\s*([\d.,]+)/));
   const note = t.match(/📝\s*Note:\s*([\s\S]+)/);
@@ -3122,7 +3206,7 @@ function regAggiungi(p){
        sedie, e se la richiesta è ancora da approvare */
     postiExtra:Number(p.postiExtra)||0,
     portaTavolo:(p.portaTavolo === true || p.portaTavolo === false) ? p.portaTavolo : null,
-    stato:(p.stato === 'da approvare') ? 'da approvare' : 'confermata',
+    statoRichiesta:(p.st === 'da approvare' || p.stato === 'da approvare') ? 'da approvare' : 'confermata',
     ricevutoIl:(p.ricevutoIl || new Date().toISOString())
   };
   REGISTRO.push(rec);
@@ -3192,9 +3276,10 @@ function regDisegna(){
   }
 
   visibili.forEach(p => {
-    const daApprovare = (p.stato === 'da approvare');
+    const daApprovare = regDaApprovare(p);
     const riga = crea('div', 'reg-riga' + (p.pagato ? ' pagata' : '') +
                               (daApprovare ? ' da-approvare' : '') +
+                              (p.chiamatoIl ? ' chiamata' : '') +
                               (regModificaCodice === p.codice ? ' in-modifica' : ''));
 
     const testa = crea('div','reg-testa');
@@ -3207,6 +3292,7 @@ function regDisegna(){
       else                          etichetta = '✅ posto extra approvato · SENZA tavolo e sedie';
       testa.appendChild(crea('span','reg-extra' + (daApprovare ? ' attesa' : ''), etichetta));
     }
+    if(p.chiamatoIl) testa.appendChild(crea('span','reg-chiamato', '📞 chiamato alle ' + annOrarioDi(p)));
     testa.appendChild(crea('span','reg-bollo ' + (p.pagato?'si':'no'), p.pagato ? '✅ pagato' : '⏳ da pagare'));
     testa.appendChild(crea('span','reg-tot', regEuro(p.totale)));
     riga.appendChild(testa);
@@ -3256,6 +3342,15 @@ function regDisegna(){
     });
     azioni.appendChild(bPag);
 
+    /* chiamata al banco: parla il computer, la cassa fa il resto */
+    const bChiama = crea('button', 'reg-mini', p.chiamatoIl ? '🔁 Richiama' : '🔊 Chiama per ritiro');
+    bChiama.type = 'button';
+    bChiama.title = p.chiamatoIl
+      ? ('Già chiamato alle ' + annOrarioDi(p) + ': lo riannuncia')
+      : 'Annuncia il nome ad alta voce dalla cassa';
+    bChiama.addEventListener('click', () => annChiama(p));
+    azioni.appendChild(bChiama);
+
     if(p.telefono){
       const bWa = crea('button','reg-mini','💬 Scrivi su WhatsApp');
       bWa.type = 'button';
@@ -3274,7 +3369,7 @@ function regDisegna(){
       const bOk = crea('button','reg-mini verde','👍 Approva');
       bOk.type = 'button';
       bOk.addEventListener('click', () => {
-        p.stato = 'confermata';
+        p.statoRichiesta = 'confermata';
         p.approvatoIl = new Date().toISOString();
         regSalva(); regDisegna();
         cloudPatch(p, { json: jsonPulito(p) });
@@ -3317,6 +3412,113 @@ function regDisegna(){
   regDisegnaCestino();
   regDisegnaOrdine();
   sincronizzaPosti();   /* riallinea il contatore pubblico dei posti */
+}
+
+/* ================= ANNUNCIO VOCALE AL BANCO ==================
+   Il computer dell'organizzatore e' collegato via Bluetooth a una cassa:
+   il pulsante fa pronunciare ad alta voce il nome di chi deve ritirare.
+   Tutto qui dentro, con la voce di sistema: niente servizi esterni,
+   niente chiavi segrete, niente costi. */
+
+const ANN_CHIAVE = 'rh_annuncio';
+const ANN_TESTO_BASE = 'Attenzione! {nome}. Ripeto: {nome}. ' +
+                       'La tua pizza è pronta: presentati al banco per il ritiro.';
+let ANN = { voce:'', volume:1, velocita:0.95, testo:ANN_TESTO_BASE };
+
+function annDisponibile(){ return typeof window.speechSynthesis !== 'undefined'; }
+
+function annCarica(){
+  try{
+    const s = JSON.parse(localStorage.getItem(ANN_CHIAVE) || 'null');
+    if(s && typeof s === 'object') ANN = Object.assign(ANN, s);
+  }catch(e){}
+  if(!ANN.testo) ANN.testo = ANN_TESTO_BASE;
+}
+function annSalva(){ try{ localStorage.setItem(ANN_CHIAVE, JSON.stringify(ANN)); }catch(e){} }
+
+/* Le voci di sistema arrivano in ritardo: il browser le carica per conto suo
+   e avvisa dopo. Per questo si ridisegna l'elenco anche al segnale. */
+function annVoci(){
+  if(!annDisponibile()) return [];
+  const tutte = speechSynthesis.getVoices() || [];
+  const italiane = tutte.filter(v => /^it/i.test(v.lang || ''));
+  return italiane.length ? italiane : tutte;
+}
+
+function annDisegnaVoci(){
+  const sel = $('ann_voce');
+  if(!sel) return;
+  const voci = annVoci();
+  sel.textContent = '';
+  if(!voci.length){
+    sel.appendChild(crea('option', null, 'voce di sistema'));
+    return;
+  }
+  voci.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v.name;
+    o.textContent = v.name + (/^it/i.test(v.lang||'') ? '' : ' (' + v.lang + ')');
+    sel.appendChild(o);
+  });
+  /* se la voce salvata non c'e' piu' (altro computer), prendo la prima italiana */
+  if(!voci.some(v => v.name === ANN.voce)) ANN.voce = voci[0].name;
+  sel.value = ANN.voce;
+}
+
+function annAggiornaPannello(){
+  if(!$('ann_testo')) return;
+  $('ann_testo').value = ANN.testo;
+  $('ann_volume').value = ANN.volume;
+  $('ann_velocita').value = ANN.velocita;
+  testo('ann_volumeVal', Math.round(ANN.volume * 100) + '%');
+  testo('ann_velocitaVal', Number(ANN.velocita).toFixed(2) + '×');
+  annDisegnaVoci();
+  testo('ann_stato', annDisponibile()
+    ? '🔈 Pronto. Prima della festa fai una prova con la cassa accesa e regola il volume del computer.'
+    : '⚠️ Questo browser non sa parlare: usa Safari o Chrome sul Mac.');
+}
+
+/* Il testo da pronunciare per una prenotazione. */
+function annTestoPer(p){
+  const quante = (p.righe || []).reduce((s, r) => s + (Number(r.quantita) || 0), 0);
+  return String(ANN.testo || ANN_TESTO_BASE)
+    .replace(/\{nome\}/g, String(p.nome || '').trim())
+    .replace(/\{quante\}/g, String(quante))
+    .replace(/\{codice\}/g, String(p.codice || ''));
+}
+
+function annParla(frase){
+  if(!annDisponibile()){
+    toast('⚠️ Questo browser non sa parlare: apri l’admin con Safari o Chrome sul Mac.', 9000);
+    return false;
+  }
+  speechSynthesis.cancel();                   /* niente code accavallate */
+  const u = new SpeechSynthesisUtterance(frase);
+  const v = annVoci().filter(x => x.name === ANN.voce)[0];
+  if(v){ u.voice = v; u.lang = v.lang; } else { u.lang = 'it-IT'; }
+  u.volume = Number(ANN.volume) || 1;
+  u.rate   = Number(ANN.velocita) || 1;
+  u.pitch  = 1;
+  speechSynthesis.speak(u);
+  return true;
+}
+
+function annFerma(){ if(annDisponibile()) speechSynthesis.cancel(); }
+
+/* Il pulsante della riga: annuncia e si ricorda di averlo fatto. */
+function annChiama(p){
+  if(!annParla(annTestoPer(p))) return;
+  p.chiamatoIl = new Date().toISOString();
+  regSalva();
+  regDisegna();
+  cloudPatch(p, { json: jsonPulito(p) });
+  toast('🔊 Sto chiamando ' + p.nome + '.', 4000);
+}
+
+function annOrarioDi(p){
+  const d = new Date(p.chiamatoIl);
+  if(isNaN(d.getTime())) return '';
+  return due(d.getHours()) + ':' + due(d.getMinutes());
 }
 
 /* ---------- avviso a tutti gli iscritti ---------- */

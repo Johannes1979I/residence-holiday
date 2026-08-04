@@ -2285,6 +2285,9 @@ function conferma(){
     postiExtra: extra,
     portaTavolo: portaTavolo,
     stato: (extra > 0 && portaTavolo === false) ? 'da approvare' : 'confermata',
+    /* stesso valore con un nome tutto suo: nel database «stato» vuol dire
+       attiva/cestino, e sovrascriverebbe questo. */
+    statoRichiesta: (extra > 0 && portaTavolo === false) ? 'da approvare' : 'confermata',
     dataEvento: V((DATI.evento || {}).data, ''),
     creatoIl: new Date().toISOString()
   };
