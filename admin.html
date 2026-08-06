@@ -4179,17 +4179,15 @@ function regProponiLocale(){
 function regDocumentoOrdine(){
   if(!REGISTRO.length){ toast('Non c’è ancora nessuna prenotazione.', 5000); return; }
 
+  /* Questo foglio finisce in mano alla pizzeria: ci va solo quello che devono
+     preparare, con quantita' e prezzi loro. Niente nomi dei condomini, niente
+     quota della bagnina e niente conti di chi ha pagato — quelli riguardano
+     noi e stanno nella «Lista per l'ingresso». */
   const rp = regRiepilogoPizze();
-  const q = regTotaleQuote();
   const sommaPizze = rp.totaleImporto;
-  const totaleGenerale = sommaPizze + q.importo;
 
   const titolo = (DATA.tema && DATA.tema.titoloFesta) || 'Festa';
   const ev = (DATA.evento && DATA.evento.data) || '';
-  const referente = (DATA.pagamento && DATA.pagamento.referente) || '';
-
-  const incassato = REGISTRO.filter(p=>p.pagato).reduce((s,p)=>s+(Number(p.totale)||0),0);
-  const previsto  = REGISTRO.reduce((s,p)=>s+(Number(p.totale)||0),0);
 
   /* Un solo elenco: prima le pizze normali, poi le speciali raggruppate e in
      rosso, con la richiesta in grassetto e il nome di chi le ha chieste. */
@@ -4221,24 +4219,13 @@ function regDocumentoOrdine(){
 
   const righePizze = righeNormali + righeSpeciali;
 
-  const righePagamenti = REGISTRO.slice()
-    .sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'it'))
-    .map(p => `<tr class="${p.pagato ? 'pagata' : ''}">
-      <td class="c">${p.pagato ? '☑' : '☐'}</td>
-      <td>${escHtml(p.nome)}${p.appartamento ? '<br><small>'+escHtml(p.appartamento)+'</small>' : ''}</td>
-      <td class="m">${escHtml(p.codice)}</td>
-      <td class="c">${regPartecipanti(p)}</td>
-      <td class="r">${escHtml(regEuro(p.totale))}</td>
-      <td class="c">${p.pagato ? '<b class="ok">versato</b>' : '<b class="ko">da versare</b>'}</td>
-    </tr>`).join('');
-
   const html = `
   <h1>🍕 Ordine per la pizzeria</h1>
-  <p class="sub">${escHtml(titolo)}${ev ? ' · ' + escHtml(dataItaliana(ev)) : ''} · ${REGISTRO.length} prenotazioni · ${REGISTRO.reduce((s,p)=>s+regPartecipanti(p),0)} partecipanti</p>
+  <p class="sub">${escHtml(titolo)}${ev ? ' · ' + escHtml(dataItaliana(ev)) : ''} · per ${REGISTRO.reduce((s,p)=>s+regPartecipanti(p),0)} persone</p>
 
   <h2>Da preparare</h2>
   <table>
-    <thead><tr><th style="width:12%">Q.tà</th><th>Pizza</th><th style="width:20%" class="r">Prezzo</th><th style="width:20%" class="r">Totale</th></tr></thead>
+    <thead><tr><th style="width:12%">Q.tà</th><th>Portata</th><th style="width:20%" class="r">Prezzo</th><th style="width:20%" class="r">Totale</th></tr></thead>
     <tbody>${righePizze}</tbody>
     <tfoot><tr>
       <td class="c">${rp.totaleQuantita}</td>
@@ -4247,30 +4234,9 @@ function regDocumentoOrdine(){
     </tr></tfoot>
   </table>
 
-  ${q.importo ? `<div class="quota">
-     <span>🛟 ${escHtml(q.etichetta)} — ${q.persone} persone × ${escHtml(regEuro(q.perTesta))}</span>
-     <b>${escHtml(regEuro(q.importo))}</b>
-   </div>` : ''}
+  <div class="totale"><span>Totale ordine</span><b>${escHtml(regEuro(sommaPizze))}</b></div>
 
-  <div class="totale"><span>Totale da raccogliere</span><b>${escHtml(regEuro(totaleGenerale))}</b></div>
-
-  <div class="sezione">
-    <h2>💶 Chi ha già versato la quota</h2>
-    <table>
-      <thead><tr><th style="width:8%"></th><th>Nome</th><th style="width:20%">Codice</th>
-        <th style="width:9%" class="c">Pers.</th><th style="width:14%" class="r">Importo</th>
-        <th style="width:16%" class="c">Stato</th></tr></thead>
-      <tbody>${righePagamenti}</tbody>
-    </table>
-    <div class="riepilogo">
-      <div><b>${REGISTRO.length}</b>prenotazioni</div>
-      <div><b class="ok">${escHtml(regEuro(incassato))}</b>già versato</div>
-      <div><b class="ko">${escHtml(regEuro(previsto - incassato))}</b>ancora da versare</div>
-      <div><b>${escHtml(regEuro(previsto))}</b>totale atteso</div>
-    </div>
-  </div>
-
-  <p class="firma">Documento generato dall'area amministrazione${referente ? ' · quota da consegnare a ' + escHtml(referente) : ''}.</p>`;
+  <p class="firma">Ordine per «${escHtml(titolo)}»${ev ? ' — ' + escHtml(dataItaliana(ev)) : ''}.</p>`;
 
   regMostraFoglio('Ordine per la pizzeria', html);
 }
