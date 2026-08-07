@@ -4106,10 +4106,17 @@ function regRiepilogoPizze(){
 
 /* totale delle quote a persona (la bagnina) su tutte le prenotazioni */
 function regTotaleQuote(){
-  const persone = REGISTRO.reduce((s,p)=> s + regPartecipanti(p), 0);
-  const importo = REGISTRO.reduce((s,p)=> s + (Number(p.coperto)||0), 0);
+  const totali   = REGISTRO.reduce((s,p)=> s + regPartecipanti(p), 0);
+  const importo  = REGISTRO.reduce((s,p)=> s + (Number(p.coperto)||0), 0);
   const perTesta = Number((DATA && DATA.menu && DATA.menu.copertoPersona) || 0);
-  return { persone, importo, perTesta,
+  /* Quante persone la quota l'hanno versata davvero: la bagnina e i suoi
+     ospiti no. Se qui scrivessimo il totale dei partecipanti, la riga
+     direbbe «76 × 3» accanto a 222, e il conto sembrerebbe sbagliato. */
+  const paganti = perTesta > 0
+    ? REGISTRO.reduce((s,p)=> s + Math.round((Number(p.coperto)||0) / perTesta), 0)
+    : totali;
+  return { persone: paganti, totali, esenti: Math.max(0, totali - paganti),
+           importo, perTesta,
            etichetta: (DATA && DATA.menu && DATA.menu.copertoEtichetta) || 'Quota a persona' };
 }
 
@@ -4161,7 +4168,11 @@ function regDisegnaOrdine(){
   const q = regTotaleQuote();
   if(q.importo){
     const rq = crea('div','r');
-    rq.appendChild(crea('span', null, '🛟 ' + q.etichetta + ' (' + q.persone + ' × ' + regEuro(q.perTesta) + ')'));
+    /* se qualcuno è esente lo si dice: «74 × 3» accanto a «76 persone − 2
+       che non pagano» toglie ogni dubbio a chi legge il foglio */
+    const dettaglio = '🛟 ' + q.etichetta + ' (' + q.persone + ' × ' + regEuro(q.perTesta) + ')' +
+      (q.esenti ? '  ·  ' + q.totali + ' persone − ' + q.esenti + ' che non pagano' : '');
+    rq.appendChild(crea('span', null, dettaglio));
     rq.appendChild(crea('b', null, regEuro(q.importo)));
     box.appendChild(rq);
   }
@@ -4480,6 +4491,13 @@ function resConti(){
   const partecipanti  = paganti.reduce((s, p) => s + regPartecipanti(p), 0);
   const raccolto = menuRaccolto + quoteRaccolte;
 
+  /* quante persone hanno versato la quota: chi e' esente non va contato,
+     altrimenti il moltiplicatore non torna con l'importo */
+  const perTesta = Number((DATA && DATA.menu && DATA.menu.copertoPersona) || 0);
+  const personeQuota = perTesta > 0
+    ? paganti.reduce((s, p) => s + Math.round((Number(p.coperto) || 0) / perTesta), 0)
+    : partecipanti;
+
   const ciboBagnina = bagnina ? resCibo(bagnina) : 0;
   const ciboTotale  = REGISTRO.reduce((s, p) => s + resCibo(p), 0);   /* la fattura piena */
 
@@ -4489,11 +4507,11 @@ function resConti(){
 
   const uscite = pizzeria + compenso;
   return {
-    bagnina, prenotazioni: paganti.length, partecipanti,
+    bagnina, prenotazioni: paganti.length, partecipanti, personeQuota,
+    esenti: Math.max(0, partecipanti - personeQuota),
     menuRaccolto, quoteRaccolte, raccolto,
     ciboBagnina, ciboTotale, pizzeria, compenso, uscite,
-    avanzo: raccolto - uscite,
-    perTesta: Number((DATA && DATA.menu && DATA.menu.copertoPersona) || 0)
+    avanzo: raccolto - uscite, perTesta
   };
 }
 
@@ -4606,7 +4624,7 @@ function resDocumento(){
       </tr>
       <tr>
         <td>${escHtml(etichettaQuota)}</td>
-        <td class="c">${c.partecipanti} persone${c.perTesta ? ' × ' + escHtml(regEuro(c.perTesta)) : ''}</td>
+        <td class="c">${c.personeQuota} persone${c.perTesta ? ' × ' + escHtml(regEuro(c.perTesta)) : ''}${c.esenti ? '<br><small>' + c.partecipanti + ' presenti − ' + c.esenti + ' che non pagano</small>' : ''}</td>
         <td class="r">${escHtml(regEuro(c.quoteRaccolte))}</td>
       </tr>
     </tbody>
