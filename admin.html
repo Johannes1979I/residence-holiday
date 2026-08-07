@@ -575,13 +575,14 @@
       <div id="reg_totalePizze" class="reg-pizze"></div>
       <div class="reg-azioni">
         <button class="btn btn-p" id="reg_btnDocumento">🧾 Genera l’ordine per la pizzeria</button>
+        <button class="btn btn-s" id="reg_btnResoconto">📊 Genera resoconto per il condominio</button>
         <button class="btn btn-s" id="reg_btnCopiaOrdine">📋 Copia l’ordine come testo</button>
         <button class="btn btn-w" id="reg_btnStampa">🖨️ Stampa la lista per l’ingresso</button>
       </div>
       <p class="hint">
-        «Genera l’ordine» apre un foglio completo da stampare o salvare in PDF: pizze per
-        tipologia con quantità e prezzi, pizze speciali in evidenza, totale finale e
-        l’elenco di chi ha già versato la quota.
+        «Genera l’ordine» apre il foglio da dare alla pizzeria: solo portate, quantità
+        e prezzi. «Genera resoconto» apre il rendiconto economico da mostrare ai
+        condomini: quanto si è raccolto, quanto si è speso e quanto avanza.
       </p>
 
       <h3 class="sub-h" id="reg_secCestino">🗑️ Cestino <span class="conta" id="reg_contaCestino"></span></h3>
@@ -1237,6 +1238,44 @@
 
     </section>
 
+  </div>
+</div>
+
+<!-- impostazioni del resoconto economico per il condominio -->
+<div class="modale" id="modResoconto">
+  <div class="modale-scatola" role="dialog" aria-modal="true" aria-labelledby="res_titolo">
+    <div class="modale-testa">
+      <h3 id="res_titolo">📊 Resoconto per il condominio</h3>
+      <button class="btn btn-w" type="button" id="res_chiudi">✕ Chiudi</button>
+    </div>
+    <div class="modale-corpo">
+      <p class="hint" style="margin-top:0">
+        Due dati che il programma non può sapere da solo, poi il conto lo fa lui.
+      </p>
+
+      <label for="res_compenso">Compenso della bagnina (€)</label>
+      <input id="res_compenso" inputmode="decimal" placeholder="100" />
+      <p class="hint">Quanto le viene dato per la serata, oltre alla cena.</p>
+
+      <label for="res_cerca" style="margin-top:14px">Ordine della bagnina</label>
+      <input id="res_cerca" placeholder="🔎 Cerca per nome o codice…" autocomplete="off" />
+      <div id="res_risultati"></div>
+      <p class="hint" id="res_scelta">Nessun ordine selezionato: verrà considerato tutto come incassato.</p>
+
+      <label for="res_pizzeria" style="margin-top:14px">Importo versato alla pizzeria (€)</label>
+      <input id="res_pizzeria" inputmode="decimal" />
+      <p class="hint" id="res_pizzeriaNota"></p>
+
+      <label for="res_destinazione" style="margin-top:14px">Come viene destinato l’avanzo</label>
+      <textarea id="res_destinazione" rows="3" placeholder="Es. L’assemblea ha deciso di tenere la somma nella cassa comune per la festa di Ferragosto."></textarea>
+      <p class="hint">Questo testo compare in fondo al foglio stampato.</p>
+
+      <div class="reg-azioni" style="margin-top:16px">
+        <button class="btn btn-p" type="button" id="res_btnGenera">🖨️ Apri l’anteprima di stampa</button>
+        <button class="btn btn-w" type="button" id="res_btnAzzera">↩️ Azzera le impostazioni</button>
+      </div>
+      <div class="lucchetto" id="res_anteprima" style="display:none;background:#eef7f0;border-color:#8ec9a4;color:#14532d"></div>
+    </div>
   </div>
 </div>
 
@@ -2819,6 +2858,25 @@ function collegaEventi(){
     toast('Testo e pronunce riportati a quelli di partenza.', 4500);
   });
 
+  /* resoconto economico per il condominio */
+  resCarica();
+  $('reg_btnResoconto').addEventListener('click', resApri);
+  $('res_chiudi').addEventListener('click', resChiudi);
+  $('res_btnGenera').addEventListener('click', resDocumento);
+  $('res_cerca').addEventListener('input', resDisegnaRisultati);
+  $('res_compenso').addEventListener('input', () => { RES.compenso = $('res_compenso').value; resSalva(); resAnteprima(); });
+  $('res_pizzeria').addEventListener('input', () => { RES.pizzeria = $('res_pizzeria').value; resSalva(); resAnteprima(); });
+  $('res_destinazione').addEventListener('input', () => { RES.destinazione = $('res_destinazione').value; resSalva(); });
+  $('res_btnAzzera').addEventListener('click', () => {
+    RES = { compenso:100, codiceBagnina:'', pizzeria:'', destinazione:'' };
+    resSalva(); resAggiornaPannello();
+    toast('Impostazioni del resoconto azzerate.', 4000);
+  });
+  $('modResoconto').addEventListener('click', e => { if(e.target === $('modResoconto')) resChiudi(); });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && $('modResoconto').classList.contains('aperto')) resChiudi();
+  });
+
   /* musica della festa */
   $('mus_btnScegli').addEventListener('click', () => $('mus_file').click());
   $('mus_file').addEventListener('change', async ev => {
@@ -4389,6 +4447,215 @@ function regProponiLocale(){
 }
 
 /* ---------- documento d'ordine completo per gli organizzatori ---------- */
+/* ============= RESOCONTO ECONOMICO PER IL CONDOMINIO =============
+   Quanto si e' raccolto, quanto si e' speso, quanto avanza e dove va.
+   Due cose il programma non le sa: quanto prende la bagnina e quale
+   ordine e' il suo (la sua cena la offre il condominio, quindi non entra
+   fra gli incassi ma resta nel conto della pizzeria). */
+
+const RES_CHIAVE = 'rh_resoconto';
+let RES = { compenso:100, codiceBagnina:'', pizzeria:'', destinazione:'' };
+
+function resCarica(){
+  try{
+    const s = JSON.parse(localStorage.getItem(RES_CHIAVE) || 'null');
+    if(s && typeof s === 'object') RES = Object.assign(RES, s);
+  }catch(e){}
+}
+function resSalva(){ try{ localStorage.setItem(RES_CHIAVE, JSON.stringify(RES)); }catch(e){} }
+
+function resCibo(p){ return (p.righe || []).reduce((s, r) => s + (Number(r.importo) || 0), 0); }
+function resBagnina(){
+  if(!RES.codiceBagnina) return null;
+  return REGISTRO.filter(p => p.codice === RES.codiceBagnina)[0] || null;
+}
+
+function resConti(){
+  const bagnina = resBagnina();
+  /* chi ha versato davvero: tutti tranne la bagnina, che e' ospite */
+  const paganti = REGISTRO.filter(p => !bagnina || p.codice !== bagnina.codice);
+
+  const menuRaccolto  = paganti.reduce((s, p) => s + resCibo(p), 0);
+  const quoteRaccolte = paganti.reduce((s, p) => s + (Number(p.coperto) || 0), 0);
+  const partecipanti  = paganti.reduce((s, p) => s + regPartecipanti(p), 0);
+  const raccolto = menuRaccolto + quoteRaccolte;
+
+  const ciboBagnina = bagnina ? resCibo(bagnina) : 0;
+  const ciboTotale  = REGISTRO.reduce((s, p) => s + resCibo(p), 0);   /* la fattura piena */
+
+  const scritto = String(RES.pizzeria === null || RES.pizzeria === undefined ? '' : RES.pizzeria).trim();
+  const pizzeria = scritto === '' ? ciboTotale : (leggiNumero(scritto) || 0);
+  const compenso = leggiNumero(String(RES.compenso)) || 0;
+
+  const uscite = pizzeria + compenso;
+  return {
+    bagnina, prenotazioni: paganti.length, partecipanti,
+    menuRaccolto, quoteRaccolte, raccolto,
+    ciboBagnina, ciboTotale, pizzeria, compenso, uscite,
+    avanzo: raccolto - uscite,
+    perTesta: Number((DATA && DATA.menu && DATA.menu.copertoPersona) || 0)
+  };
+}
+
+/* ---- ricerca dell'ordine della bagnina ---- */
+function resDisegnaRisultati(){
+  const box = $('res_risultati');
+  if(!box) return;
+  box.textContent = '';
+  const q = ($('res_cerca').value || '').toLowerCase().trim();
+  if(!q) return;
+  const trovati = REGISTRO.filter(p =>
+    String(p.nome || '').toLowerCase().indexOf(q) >= 0 ||
+    String(p.codice || '').toLowerCase().indexOf(q) >= 0
+  ).slice(0, 6);
+  if(!trovati.length){
+    box.appendChild(crea('p', 'hint', 'Nessuna prenotazione con questo nome.'));
+    return;
+  }
+  trovati.forEach(p => {
+    const b = crea('button', 'btn btn-w',
+      p.nome + ' · ' + p.codice + ' · ' + regEuro(resCibo(p)) + ' di cena');
+    b.type = 'button';
+    b.style.cssText = 'display:block;width:100%;text-align:left;margin-bottom:6px';
+    b.addEventListener('click', () => {
+      RES.codiceBagnina = p.codice;
+      resSalva();
+      $('res_cerca').value = '';
+      resDisegnaRisultati();
+      resAggiornaScelta();
+      resAnteprima();
+    });
+    box.appendChild(b);
+  });
+}
+
+function resAggiornaScelta(){
+  const el = $('res_scelta');
+  if(!el) return;
+  el.textContent = '';
+  const b = resBagnina();
+  if(!b){
+    el.appendChild(document.createTextNode(
+      'Nessun ordine selezionato: tutte le prenotazioni contano come incassate.'));
+    return;
+  }
+  el.appendChild(document.createTextNode(
+    '✅ Ordine della bagnina: ' + b.nome + ' (' + b.codice + ') — ' +
+    regEuro(resCibo(b)) + '. È escluso dagli incassi ma resta nel conto della pizzeria. '));
+  const via = crea('button', 'btn btn-w', 'Togli');
+  via.type = 'button';
+  via.style.cssText = 'padding:4px 12px;min-height:32px;font-size:.82rem';
+  via.addEventListener('click', () => {
+    RES.codiceBagnina = ''; resSalva(); resAggiornaScelta(); resAnteprima();
+  });
+  el.appendChild(via);
+}
+
+/* riquadro verde: il risultato si vede prima di stampare */
+function resAnteprima(){
+  const el = $('res_anteprima');
+  if(!el) return;
+  if(!REGISTRO.length){ el.style.display = 'none'; return; }
+  const c = resConti();
+  el.style.display = '';
+  el.textContent = 'Raccolto ' + regEuro(c.raccolto) + ' − uscite ' + regEuro(c.uscite) +
+                   ' = avanzo ' + regEuro(c.avanzo) +
+                   (c.avanzo < 0 ? ' (mancano soldi: controlla gli importi)' : '');
+}
+
+function resAggiornaPannello(){
+  if(!$('res_compenso')) return;
+  $('res_compenso').value = (RES.compenso === '' || RES.compenso === null) ? '' : String(RES.compenso).replace('.', ',');
+  $('res_pizzeria').value = RES.pizzeria === '' ? '' : String(RES.pizzeria).replace('.', ',');
+  $('res_destinazione').value = RES.destinazione || '';
+  const totale = REGISTRO.reduce((s, p) => s + resCibo(p), 0);
+  testo('res_pizzeriaNota',
+    'Lascia vuoto per usare il totale calcolato dagli ordini: ' + regEuro(totale) +
+    '. Scrivi la cifra vera se la pizzeria ha fatto uno sconto o un arrotondamento.');
+  resAggiornaScelta();
+  resDisegnaRisultati();
+  resAnteprima();
+}
+
+function resApri(){
+  if(!REGISTRO.length){ toast('Non c’è ancora nessuna prenotazione.', 5000); return; }
+  resAggiornaPannello();
+  $('modResoconto').classList.add('aperto');
+}
+function resChiudi(){ $('modResoconto').classList.remove('aperto'); }
+
+function resDocumento(){
+  const c = resConti();
+  const titolo = (DATA.tema && DATA.tema.titoloFesta) || 'Festa';
+  const ev = (DATA.evento && DATA.evento.data) || '';
+  const nomeBagnina = c.bagnina ? c.bagnina.nome : '';
+  const etichettaQuota = (DATA.menu && DATA.menu.copertoEtichetta) || 'Quota assistenza in piscina';
+
+  const html = `
+  <h1>📊 Resoconto economico</h1>
+  <p class="sub">${escHtml(titolo)}${ev ? ' · ' + escHtml(dataItaliana(ev)) : ''} · ${c.prenotazioni} prenotazioni · ${c.partecipanti} partecipanti</p>
+
+  <h2>Entrate</h2>
+  <table>
+    <thead><tr><th>Voce</th><th style="width:26%" class="c">Dettaglio</th><th style="width:22%" class="r">Importo</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Menù — pizze e fritti</td>
+        <td class="c">${c.prenotazioni} prenotazioni · ${c.partecipanti} partecipanti</td>
+        <td class="r">${escHtml(regEuro(c.menuRaccolto))}</td>
+      </tr>
+      <tr>
+        <td>${escHtml(etichettaQuota)}</td>
+        <td class="c">${c.partecipanti} persone${c.perTesta ? ' × ' + escHtml(regEuro(c.perTesta)) : ''}</td>
+        <td class="r">${escHtml(regEuro(c.quoteRaccolte))}</td>
+      </tr>
+    </tbody>
+    <tfoot><tr>
+      <td><b>Totale raccolto</b></td><td></td>
+      <td class="r"><b>${escHtml(regEuro(c.raccolto))}</b></td>
+    </tr></tfoot>
+  </table>
+
+  <h2>Uscite</h2>
+  <table>
+    <thead><tr><th>Voce</th><th style="width:26%" class="c">Dettaglio</th><th style="width:22%" class="r">Importo</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Pizzeria — conto della serata</td>
+        <td class="c">${c.bagnina ? 'cena di tutti, bagnina compresa' : 'ordine completo'}</td>
+        <td class="r">${escHtml(regEuro(c.pizzeria))}</td>
+      </tr>
+      ${c.bagnina ? `<tr>
+        <td style="padding-left:26px">↳ di cui cena offerta alla bagnina${nomeBagnina ? ' (' + escHtml(nomeBagnina) + ')' : ''}</td>
+        <td class="c">già compresa qui sopra</td>
+        <td class="r">${escHtml(regEuro(c.ciboBagnina))}</td>
+      </tr>` : ''}
+      <tr>
+        <td>Compenso alla bagnina</td>
+        <td class="c">servizio della serata</td>
+        <td class="r">${escHtml(regEuro(c.compenso))}</td>
+      </tr>
+    </tbody>
+    <tfoot><tr>
+      <td><b>Totale uscite</b></td><td></td>
+      <td class="r"><b>${escHtml(regEuro(c.uscite))}</b></td>
+    </tr></tfoot>
+  </table>
+
+  <div class="totale"><span>${c.avanzo < 0 ? 'Differenza da coprire' : 'Avanzo di cassa'}</span><b>${escHtml(regEuro(Math.abs(c.avanzo)))}</b></div>
+
+  ${RES.destinazione ? `<div class="sezione">
+    <h2>Destinazione dell’${c.avanzo < 0 ? 'ammanco' : 'avanzo'}</h2>
+    <p style="font-size:11.5pt;line-height:1.5">${escHtml(RES.destinazione).replace(/\n/g, '<br>')}</p>
+  </div>` : ''}
+
+  ${c.bagnina ? `<p class="firma">L’ordine di ${escHtml(nomeBagnina)} non compare fra le entrate: la cena è offerta dal condominio, ed è già conteggiata nel conto della pizzeria.</p>` : ''}
+  <p class="firma">Resoconto generato dall’area amministrazione${ev ? ' · ' + escHtml(dataItaliana(ev)) : ''}.</p>`;
+
+  resChiudi();
+  regMostraFoglio('Resoconto per il condominio', html);
+}
+
 function regDocumentoOrdine(){
   if(!REGISTRO.length){ toast('Non c’è ancora nessuna prenotazione.', 5000); return; }
 
