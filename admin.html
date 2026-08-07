@@ -4509,40 +4509,38 @@ function resBagnina(){
 
 function resConti(){
   const bagnina = resBagnina();
-  /* chi ha versato davvero: tutti tranne la bagnina, che e' ospite */
-  const paganti = REGISTRO.filter(p => !bagnina || p.codice !== bagnina.codice);
-
-  const menuRaccolto  = paganti.reduce((s, p) => s + resCibo(p), 0);
-  const quoteRaccolte = paganti.reduce((s, p) => s + (Number(p.coperto) || 0), 0);
-  const partecipanti  = paganti.reduce((s, p) => s + regPartecipanti(p), 0);
-  const raccolto = menuRaccolto + quoteRaccolte;
-
-  /* quante persone hanno versato la quota: chi e' esente non va contato,
-     altrimenti il moltiplicatore non torna con l'importo */
   const perTesta = Number((DATA && DATA.menu && DATA.menu.copertoPersona) || 0);
-  const personeQuota = perTesta > 0
-    ? paganti.reduce((s, p) => s + Math.round((Number(p.coperto) || 0) / perTesta), 0)
-    : partecipanti;
 
+  /* I totali comprendono TUTTI, bagnina inclusa: chi legge il foglio deve
+     ritrovare i numeri della serata. Quello che non e' stato incassato si
+     toglie dopo, con una riga che lo dice a chiare lettere. */
+  const prenotazioni = REGISTRO.length;
+  const partecipanti = REGISTRO.reduce((s, p) => s + regPartecipanti(p), 0);
+  const menuTotale   = REGISTRO.reduce((s, p) => s + resCibo(p), 0);
+  const quoteRaccolte = REGISTRO.reduce((s, p) => s + (Number(p.coperto) || 0), 0);
+
+  /* la cena della bagnina e' dentro il totale, ma nessuno l'ha pagata */
   const ciboBagnina = bagnina ? resCibo(bagnina) : 0;
-  const ciboTotale  = REGISTRO.reduce((s, p) => s + resCibo(p), 0);   /* la fattura piena */
+  const menuIncassato = menuTotale - ciboBagnina;
+  const raccolto = menuIncassato + quoteRaccolte;
+
+  /* quante persone hanno versato la quota: il moltiplicatore deve tornare
+     con l'importo, quindi gli esenti non si contano */
+  const personeQuota = perTesta > 0
+    ? REGISTRO.reduce((s, p) => s + Math.round((Number(p.coperto) || 0) / perTesta), 0)
+    : partecipanti;
+  const chiEsente = regChiEsente();
 
   const scritto = String(RES.pizzeria === null || RES.pizzeria === undefined ? '' : RES.pizzeria).trim();
-  const pizzeria = scritto === '' ? ciboTotale : (leggiNumero(scritto) || 0);
+  const pizzeria = scritto === '' ? menuTotale : (leggiNumero(scritto) || 0);
   const compenso = leggiNumero(String(RES.compenso)) || 0;
-
   const uscite = pizzeria + compenso;
-  /* chi, fra quelli conteggiati, non ha versato la quota */
-  const chiEsente = perTesta > 0 ? paganti.map(p => ({
-      nome: p.nome || '(senza nome)',
-      quante: Math.max(0, regPartecipanti(p) - Math.round((Number(p.coperto) || 0) / perTesta))
-    })).filter(x => x.quante > 0) : [];
 
   return {
-    bagnina, prenotazioni: paganti.length, partecipanti, personeQuota, chiEsente,
+    bagnina, prenotazioni, partecipanti, personeQuota, chiEsente,
     esenti: Math.max(0, partecipanti - personeQuota),
-    menuRaccolto, quoteRaccolte, raccolto,
-    ciboBagnina, ciboTotale, pizzeria, compenso, uscite,
+    menuTotale, menuIncassato, ciboBagnina, quoteRaccolte, raccolto,
+    pizzeria, compenso, uscite,
     avanzo: raccolto - uscite, perTesta
   };
 }
@@ -4652,8 +4650,13 @@ function resDocumento(){
       <tr>
         <td>Menù — pizze e fritti</td>
         <td class="c">${c.prenotazioni} prenotazioni · ${c.partecipanti} partecipanti</td>
-        <td class="r">${escHtml(regEuro(c.menuRaccolto))}</td>
+        <td class="r">${escHtml(regEuro(c.menuTotale))}</td>
       </tr>
+      ${c.ciboBagnina ? `<tr>
+        <td style="padding-left:26px">↳ cena offerta alla bagnina${nomeBagnina ? ' (' + escHtml(nomeBagnina) + ')' : ''}: non incassata</td>
+        <td class="c">offerta dal condominio</td>
+        <td class="r">− ${escHtml(regEuro(c.ciboBagnina))}</td>
+      </tr>` : ''}
       <tr>
         <td>${escHtml(etichettaQuota)}</td>
         <td class="c">${c.personeQuota} persone${c.perTesta ? ' × ' + escHtml(regEuro(c.perTesta)) : ''}${c.esenti ? '<br><small>' + c.partecipanti + ' presenti − ' + c.esenti + (regFraseEsenti(c.chiEsente) ? ' (' + escHtml(regFraseEsenti(c.chiEsente)) + ')' : '') + '</small>' : ''}</td>
@@ -4672,11 +4675,11 @@ function resDocumento(){
     <tbody>
       <tr>
         <td>Pizzeria — conto della serata</td>
-        <td class="c">${c.bagnina ? 'cena di tutti, bagnina compresa' : 'ordine completo'}</td>
+        <td class="c">ordine completo · ${c.partecipanti} partecipanti</td>
         <td class="r">${escHtml(regEuro(c.pizzeria))}</td>
       </tr>
-      ${c.bagnina ? `<tr>
-        <td style="padding-left:26px">↳ di cui cena offerta alla bagnina${nomeBagnina ? ' (' + escHtml(nomeBagnina) + ')' : ''}</td>
+      ${c.ciboBagnina ? `<tr>
+        <td style="padding-left:26px">↳ di cui cena della bagnina${nomeBagnina ? ' (' + escHtml(nomeBagnina) + ')' : ''}</td>
         <td class="c">già compresa qui sopra</td>
         <td class="r">${escHtml(regEuro(c.ciboBagnina))}</td>
       </tr>` : ''}
@@ -4699,7 +4702,7 @@ function resDocumento(){
     <p style="font-size:11.5pt;line-height:1.5">${escHtml(RES.destinazione).replace(/\n/g, '<br>')}</p>
   </div>` : ''}
 
-  ${c.bagnina ? `<p class="firma">L’ordine di ${escHtml(nomeBagnina)} non compare fra le entrate: la cena è offerta dal condominio, ed è già conteggiata nel conto della pizzeria.</p>` : ''}
+  ${c.ciboBagnina ? `<p class="firma">La cena di ${escHtml(nomeBagnina)} è compresa nel totale del menù e nel conto pagato alla pizzeria, ma è offerta dal condominio: per questo viene sottratta dalle entrate.</p>` : ''}
   <p class="firma">Resoconto generato dall’area amministrazione${ev ? ' · ' + escHtml(dataItaliana(ev)) : ''}.</p>`;
 
   resChiudi();
