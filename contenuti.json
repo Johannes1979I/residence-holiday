@@ -664,5 +664,16 @@
     "sottotitolo": "Le foto della Serata Pizza in Piscina.",
     "nota": "Se in una foto non ti ci vedi bene o preferisci non comparire, dillo agli organizzatori: la togliamo subito.",
     "foto": []
+  },
+  "musica": {
+    "titolo": "La musica della festa",
+    "nota": "Collega il computer alla cassa e premi play. Durante un annuncio al banco la musica si abbassa da sola.",
+    "brani": [
+      {
+        "file": "musica/sindaca-veronica.mp3",
+        "titolo": "Sindaca Veronica",
+        "sottotitolo": "Morti de Fame — Holiday 2026"
+      }
+    ]
   }
 }

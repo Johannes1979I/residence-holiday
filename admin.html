@@ -246,6 +246,14 @@
   .listino .azioni-l{display:flex;gap:6px;flex-wrap:wrap}
   .lucchetto{background:#fff3cd;border:2px solid #e0a800;border-radius:14px;padding:13px 15px;
              color:#5a4500;font-size:.9rem;margin-bottom:14px}
+  /* ---------- brani della festa ---------- */
+  .brano{border:1px solid var(--linea);border-radius:16px;padding:14px 16px;margin-bottom:12px}
+  .brano .tit{font-weight:bold;font-size:1.02rem}
+  .brano .sot{color:var(--muted);font-size:.86rem;margin-top:2px}
+  .brano audio{width:100%;margin-top:10px}
+  .brano .azioni-b{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .brano.suona{border-color:var(--c2);background:#f0fbfc;box-shadow:inset 0 0 0 1px var(--c2)}
+
   .listino-attuale{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#f0fbfc;
                    border:1px solid var(--c2);border-radius:16px;padding:12px 15px;margin-bottom:8px}
   .listino-attuale span{flex:1 1 200px}
@@ -374,6 +382,7 @@
       <button type="button" data-vista="menu">🍽️ Menù</button>
       <button type="button" data-vista="contenuti">⚙️ Contenuti del sito</button>
       <button type="button" data-vista="album">📸 Album</button>
+      <button type="button" data-vista="musica">🎵 Musica</button>
       <button type="button" data-vista="locandina">🖨️ Locandina</button>
       <button type="button" data-vista="pubblica">📣 Pubblica e backup</button>
     </nav>
@@ -1045,6 +1054,44 @@
 
     </section>
 
+    <section class="vista" id="v-musica">
+
+    <!-- ---------- MUSICA DELLA FESTA ---------- -->
+    <div class="card" id="sec-musica">
+      <h2>🎵 Musica della festa</h2>
+      <p class="intro">
+        Collega il computer alla cassa via Bluetooth e premi play. Quando chiami qualcuno
+        al banco con <b>«🔊 Chiama per ritiro»</b>, <b>la musica si ferma da sola</b> e
+        riparte appena finito l’annuncio.
+      </p>
+
+      <div id="mus_elenco"></div>
+
+      <h3 class="sub-h">Aggiungi un brano</h3>
+      <p class="hint" style="margin-bottom:8px">
+        Il file viene caricato su GitHub nella cartella <code>musica/</code>. Serve il
+        collegamento a GitHub. Formati: mp3, m4a, wav. Meglio sotto i 15 MB.
+      </p>
+      <div class="toolbar" style="justify-content:flex-start">
+        <button class="btn btn-p" type="button" id="mus_btnScegli">🎼 Scegli un file audio</button>
+        <input type="file" id="mus_file" accept="audio/*" style="display:none" />
+      </div>
+      <p class="hint" id="mus_stato"></p>
+
+      <div class="grid2" style="margin-top:14px">
+        <div>
+          <label for="mus_titolo">Titolo della sezione</label>
+          <input id="mus_titolo" placeholder="La musica della festa" />
+        </div>
+        <div>
+          <label for="mus_nota">Nota</label>
+          <input id="mus_nota" placeholder="Collega il computer alla cassa…" />
+        </div>
+      </div>
+    </div>
+
+    </section>
+
     <section class="vista" id="v-locandina">
     <!-- ---------- LOCANDINA ---------- -->
     <div class="card" id="sec-locandina">
@@ -1522,6 +1569,11 @@ function riempi(){
   $('nt_token').value = nt.telegramBotToken||"";
   $('nt_chat').value  = nt.telegramChatId||"";
 
+  const mu = d.musica || {};
+  $('mus_titolo').value = mu.titolo||"";
+  $('mus_nota').value   = mu.nota||"";
+  musDisegna();
+
   $('al_attivo').checked = (al.attivo === true);
   $('al_titolo').value = al.titolo||"";
   $('al_sotto').value  = al.sottotitolo||"";
@@ -1905,6 +1957,12 @@ function collect(){
 
   d.foto = [...document.querySelectorAll('#foto .foto-val')]
                     .map(x => x.value.trim()).filter(v => v !== '');
+
+  d.musica = Object.assign({}, d.musica, {
+    titolo: $('mus_titolo').value.trim(),
+    nota:   $('mus_nota').value.trim(),
+    brani:  (DATA && DATA.musica && Array.isArray(DATA.musica.brani)) ? DATA.musica.brani : []
+  });
 
   d.album = Object.assign({}, d.album, {
     attivo:      $('al_attivo').checked,
@@ -2761,6 +2819,14 @@ function collegaEventi(){
     toast('Testo e pronunce riportati a quelli di partenza.', 4500);
   });
 
+  /* musica della festa */
+  $('mus_btnScegli').addEventListener('click', () => $('mus_file').click());
+  $('mus_file').addEventListener('change', async ev => {
+    const f = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    await musCarica(f);
+  });
+
   /* libreria dei listini */
   $('btnListini').addEventListener('click', apriListini);
   $('ml_chiudi').addEventListener('click', chiudiListini);
@@ -3455,6 +3521,142 @@ function regDisegna(){
   sincronizzaPosti();   /* riallinea il contatore pubblico dei posti */
 }
 
+/* ==================== MUSICA DELLA FESTA =====================
+   I brani stanno nel sito, in musica/. Il computer e' collegato alla cassa,
+   quindi qui basta un lettore: quello che esce dal Mac esce dalla cassa. */
+
+function musBrani(){
+  const m = (DATA && DATA.musica) || {};
+  return Array.isArray(m.brani) ? m.brani : [];
+}
+
+/* Il brano che sta suonando adesso, se ce n'e' uno. */
+function musInRiproduzione(){
+  return [].slice.call(document.querySelectorAll('#mus_elenco audio'))
+           .filter(a => !a.paused && !a.ended)[0] || null;
+}
+
+function musDisegna(){
+  const el = $('mus_elenco');
+  if(!el) return;
+  el.textContent = '';
+  const brani = musBrani();
+  if(!brani.length){
+    el.appendChild(crea('p', 'hint', 'Ancora nessun brano. Caricane uno qui sotto.'));
+    return;
+  }
+  brani.forEach((b, i) => {
+    const box = crea('div', 'brano');
+    box.appendChild(crea('div', 'tit', b.titolo || b.file));
+    if(b.sottotitolo) box.appendChild(crea('div', 'sot', b.sottotitolo));
+
+    const audio = document.createElement('audio');
+    audio.controls = true;
+    audio.preload = 'none';
+    audio.src = b.file;
+    /* il riquadro si accende mentre suona: a colpo d'occhio si sa cosa sta andando */
+    audio.addEventListener('play', () => {
+      /* un brano alla volta: se ne parte un altro, questo si ferma */
+      [].forEach.call(document.querySelectorAll('#mus_elenco audio'), a => {
+        if(a !== audio){ a.pause(); }
+      });
+      [].forEach.call(document.querySelectorAll('#mus_elenco .brano'), r => r.classList.remove('suona'));
+      box.classList.add('suona');
+    });
+    audio.addEventListener('pause', () => box.classList.remove('suona'));
+    audio.addEventListener('ended', () => box.classList.remove('suona'));
+    box.appendChild(audio);
+
+    const az = crea('div', 'azioni-b');
+    const scarica = document.createElement('a');
+    scarica.className = 'btn btn-w';
+    scarica.href = b.file;
+    scarica.download = '';
+    scarica.textContent = '⬇️ Scarica';
+    az.appendChild(scarica);
+
+    const rinomina = crea('button', 'btn btn-w', '✏️ Rinomina');
+    rinomina.type = 'button';
+    rinomina.addEventListener('click', () => {
+      const t = (prompt('Titolo del brano', b.titolo || '') || '').trim();
+      if(!t) return;
+      b.titolo = t;
+      const s = prompt('Sottotitolo (lascia vuoto per toglierlo)', b.sottotitolo || '');
+      if(s !== null) b.sottotitolo = String(s).trim();
+      tocca(); musDisegna();
+      toast('✏️ Rinominato.', 4000);
+    });
+    az.appendChild(rinomina);
+
+    const via = crea('button', 'btn btn-w', '🗑️ Togli dall’elenco');
+    via.type = 'button';
+    via.title = 'Lo toglie dalla lista: il file resta su GitHub';
+    via.addEventListener('click', () => {
+      if(!confirm('Tolgo «' + (b.titolo || b.file) + '» dall’elenco?\n\nIl file resta su GitHub, sparisce solo da qui.')) return;
+      DATA.musica.brani = musBrani().filter((x, k) => k !== i);
+      tocca(); musDisegna();
+      toast('Brano tolto dall’elenco.', 4000);
+    });
+    az.appendChild(via);
+    box.appendChild(az);
+    el.appendChild(box);
+  });
+}
+
+function musNomeFile(nome){
+  const pulito = String(nome || 'brano')
+    .toLowerCase()
+    .replace(/\.[a-z0-9]+$/, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 50) || 'brano';
+  const est = (String(nome || '').match(/\.([a-z0-9]+)$/i) || [, 'mp3'])[1].toLowerCase();
+  return 'musica/' + pulito + '.' + est;
+}
+
+async function musCarica(file){
+  if(!file){ return; }
+  if(!ghPronto()){
+    testo('mus_stato', '⚠️ Manca il token di GitHub: serve per caricare il file. Ti porto dove si incolla.');
+    chiediGh();
+    return;
+  }
+  if(!/^audio\//.test(file.type || '') && !/\.(mp3|m4a|wav|ogg)$/i.test(file.name || '')){
+    testo('mus_stato', '⚠️ Questo non sembra un file audio.');
+    return;
+  }
+  const mb = file.size / 1024 / 1024;
+  if(mb > 40){
+    testo('mus_stato', '⚠️ Il file pesa ' + mb.toFixed(1) + ' MB: troppo. Comprimilo sotto i 15 MB.');
+    return;
+  }
+  try{
+    testo('mus_stato', '⏳ Preparo il file (' + mb.toFixed(1) + ' MB)…');
+    const b64 = await new Promise((ok, ko) => {
+      const r = new FileReader();
+      r.onerror = () => ko(new Error('non riesco a leggere il file'));
+      r.onload  = () => ok(String(r.result).split(',')[1]);
+      r.readAsDataURL(file);
+    });
+    const percorso = musNomeFile(file.name);
+    testo('mus_stato', '📤 Sto caricando ' + percorso + '…');
+    await ghPut(percorso, b64, 'Brano della festa: ' + percorso);
+    if(!DATA.musica) DATA.musica = { titolo:'', nota:'', brani:[] };
+    if(!Array.isArray(DATA.musica.brani)) DATA.musica.brani = [];
+    DATA.musica.brani.push({
+      file: percorso,
+      titolo: String(file.name).replace(/\.[a-z0-9]+$/i, ''),
+      sottotitolo: ''
+    });
+    tocca();
+    musDisegna();
+    testo('mus_stato', '✅ Caricato. Premi «Pubblica online» per salvarlo nell’elenco.');
+    toast('✅ Brano caricato. Ricordati di pubblicare.', 8000);
+  }catch(e){
+    testo('mus_stato', '⚠️ ' + e.message);
+  }
+}
+
 /* ================= ANNUNCIO VOCALE AL BANCO ==================
    Il computer dell'organizzatore e' collegato via Bluetooth a una cassa:
    il pulsante fa pronunciare ad alta voce il nome di chi deve ritirare.
@@ -3594,6 +3796,17 @@ function annParla(frase){
   u.volume = Number(ANN.volume) || 1;
   u.rate   = Number(ANN.velocita) || 1;
   u.pitch  = 1;
+
+  /* Se dalla cassa sta uscendo la musica, l'annuncio non si sentirebbe:
+     metto in pausa e faccio ripartire il brano appena ho finito di parlare. */
+  const brano = musInRiproduzione();
+  if(brano){
+    brano.pause();
+    const riprendi = () => { try{ brano.play(); }catch(e){} };
+    u.addEventListener('end', riprendi);
+    u.addEventListener('error', riprendi);
+  }
+
   speechSynthesis.speak(u);
   return true;
 }
