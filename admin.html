@@ -4116,8 +4116,32 @@ function regTotaleQuote(){
     ? REGISTRO.reduce((s,p)=> s + Math.round((Number(p.coperto)||0) / perTesta), 0)
     : totali;
   return { persone: paganti, totali, esenti: Math.max(0, totali - paganti),
-           importo, perTesta,
+           chiEsente: regChiEsente(), importo, perTesta,
            etichetta: (DATA && DATA.menu && DATA.menu.copertoEtichetta) || 'Quota a persona' };
+}
+
+/* Chi non ha versato la quota, e in quanti. Serve a scriverlo per nome:
+   «2 che non pagano» da solo lascia il dubbio su chi siano. */
+function regChiEsente(){
+  const perTesta = Number((DATA && DATA.menu && DATA.menu.copertoPersona) || 0);
+  if(perTesta <= 0) return [];
+  const fuori = [];
+  REGISTRO.forEach(p => {
+    const presenti = regPartecipanti(p);
+    const pagate = Math.round((Number(p.coperto) || 0) / perTesta);
+    const quante = Math.max(0, presenti - pagate);
+    if(quante > 0) fuori.push({ nome: p.nome || '(senza nome)', quante });
+  });
+  return fuori;
+}
+
+/* «Aurora Bagnina e il suo ospite» — o i suoi ospiti, se sono di più. */
+function regFraseEsenti(elenco){
+  return (elenco || []).map(e =>
+    e.quante <= 1 ? e.nome
+    : e.quante === 2 ? e.nome + ' e il suo ospite'
+    : e.nome + ' e i suoi ' + (e.quante - 1) + ' ospiti'
+  ).join(', ');
 }
 
 function regDisegnaOrdine(){
@@ -4170,8 +4194,10 @@ function regDisegnaOrdine(){
     const rq = crea('div','r');
     /* se qualcuno è esente lo si dice: «74 × 3» accanto a «76 persone − 2
        che non pagano» toglie ogni dubbio a chi legge il foglio */
+    const chi = regFraseEsenti(q.chiEsente);
     const dettaglio = '🛟 ' + q.etichetta + ' (' + q.persone + ' × ' + regEuro(q.perTesta) + ')' +
-      (q.esenti ? '  ·  ' + q.totali + ' persone − ' + q.esenti + ' che non pagano' : '');
+      (q.esenti ? '  ·  ' + q.totali + ' persone − ' + q.esenti +
+                  (chi ? ' (' + chi + ')' : ' che non pagano') : '');
     rq.appendChild(crea('span', null, dettaglio));
     rq.appendChild(crea('b', null, regEuro(q.importo)));
     box.appendChild(rq);
@@ -4506,8 +4532,14 @@ function resConti(){
   const compenso = leggiNumero(String(RES.compenso)) || 0;
 
   const uscite = pizzeria + compenso;
+  /* chi, fra quelli conteggiati, non ha versato la quota */
+  const chiEsente = perTesta > 0 ? paganti.map(p => ({
+      nome: p.nome || '(senza nome)',
+      quante: Math.max(0, regPartecipanti(p) - Math.round((Number(p.coperto) || 0) / perTesta))
+    })).filter(x => x.quante > 0) : [];
+
   return {
-    bagnina, prenotazioni: paganti.length, partecipanti, personeQuota,
+    bagnina, prenotazioni: paganti.length, partecipanti, personeQuota, chiEsente,
     esenti: Math.max(0, partecipanti - personeQuota),
     menuRaccolto, quoteRaccolte, raccolto,
     ciboBagnina, ciboTotale, pizzeria, compenso, uscite,
@@ -4624,7 +4656,7 @@ function resDocumento(){
       </tr>
       <tr>
         <td>${escHtml(etichettaQuota)}</td>
-        <td class="c">${c.personeQuota} persone${c.perTesta ? ' × ' + escHtml(regEuro(c.perTesta)) : ''}${c.esenti ? '<br><small>' + c.partecipanti + ' presenti − ' + c.esenti + ' che non pagano</small>' : ''}</td>
+        <td class="c">${c.personeQuota} persone${c.perTesta ? ' × ' + escHtml(regEuro(c.perTesta)) : ''}${c.esenti ? '<br><small>' + c.partecipanti + ' presenti − ' + c.esenti + (regFraseEsenti(c.chiEsente) ? ' (' + escHtml(regFraseEsenti(c.chiEsente)) + ')' : '') + '</small>' : ''}</td>
         <td class="r">${escHtml(regEuro(c.quoteRaccolte))}</td>
       </tr>
     </tbody>
