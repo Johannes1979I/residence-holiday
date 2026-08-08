@@ -254,6 +254,13 @@
   .brano .azioni-b{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
   .brano.suona{border-color:var(--c2);background:#f0fbfc;box-shadow:inset 0 0 0 1px var(--c2)}
 
+  /* ---------- interruttore prenotazioni ---------- */
+  .stato-pren{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-radius:16px;
+              padding:13px 16px;border:2px solid var(--linea);background:#f7fbfd}
+  .stato-pren span:first-child{flex:1 1 220px;font-weight:bold}
+  .stato-pren.aperte{border-color:#4caf7d;background:#eefaf2;color:#14532d}
+  .stato-pren.chiuse{border-color:var(--c1);background:#fff0f1;color:#8a1520}
+
   .listino-attuale{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#f0fbfc;
                    border:1px solid var(--c2);border-radius:16px;padding:12px 15px;margin-bottom:8px}
   .listino-attuale span{flex:1 1 200px}
@@ -426,6 +433,7 @@
 
       <!-- scorciatoie: il registro è lungo, così le sezioni si raggiungono subito -->
       <nav class="reg-scorciatoie" aria-label="Sezioni del registro">
+        <a href="#reg_secStato">🚦 Apri/chiudi</a>
         <a href="#reg_secElenco">📋 Elenco</a>
         <a href="#reg_secPizzeria">🍕 Ordine pizzeria</a>
         <a href="#reg_secAnnuncio">🔊 Annuncio vocale</a>
@@ -434,6 +442,26 @@
       </nav>
 
       <div id="reg_proposta" class="reg-proposta" style="display:none"></div>
+
+      <h3 class="sub-h" id="reg_secStato">🚦 Prenotazioni aperte o chiuse</h3>
+      <p class="hint" style="margin-bottom:8px">
+        Quando l’ordine parte per la pizzeria, chiudi: al posto del modulo i condomini
+        vedono un riquadro che lo spiega. <b>Vale subito</b>, anche per chi ha già la
+        pagina aperta — se ne accorge entro un minuto senza ricaricare.
+      </p>
+      <div class="stato-pren" id="reg_statoBox">
+        <span id="reg_statoTesto">Sto controllando…</span>
+        <span class="reg-azioni" style="margin:0">
+          <button class="btn btn-p" type="button" id="reg_btnApri">✅ Apri le prenotazioni</button>
+          <button class="btn btn-w" type="button" id="reg_btnChiudi">🛑 Chiudi le prenotazioni</button>
+        </span>
+      </div>
+      <label for="reg_msgChiuse" style="margin-top:12px">Messaggio da mostrare quando sono chiuse</label>
+      <textarea id="reg_msgChiuse" rows="3"></textarea>
+      <p class="hint">
+        Il titolo del riquadro sul sito resta «🍕 Ordine già inviato alla pizzeria»; questo
+        è il testo sotto. Si salva quando premi uno dei due pulsanti.
+      </p>
 
       <h3 class="sub-h" id="reg_secAnnuncio">🔊 Annuncio vocale al banco</h3>
       <p class="hint" style="margin-bottom:8px">
@@ -2858,6 +2886,10 @@ function collegaEventi(){
     toast('Testo e pronunce riportati a quelli di partenza.', 4500);
   });
 
+  /* interruttore delle prenotazioni */
+  $('reg_btnApri').addEventListener('click', () => chiImposta(false));
+  $('reg_btnChiudi').addEventListener('click', () => chiImposta(true));
+
   /* resoconto economico per il condominio */
   resCarica();
   $('reg_btnResoconto').addEventListener('click', resApri);
@@ -3107,6 +3139,7 @@ function regLogin(){
     regMostraConnesso();
     avviaAggiornamentoRegistro();
     caricaAlbum();
+    chiLeggi();
     toast('☁️ Connesso: prenotazioni sincronizzate.', 4000);
   }).catch(function(e){
     regLoginErrore(msgErroreFirebase(e && e.message));
@@ -3577,6 +3610,64 @@ function regDisegna(){
   regDisegnaCestino();
   regDisegnaOrdine();
   sincronizzaPosti();   /* riallinea il contatore pubblico dei posti */
+}
+
+/* ============ PRENOTAZIONI APERTE O CHIUSE ============
+   Comanda il database: e' quello che il sito rilegge ogni minuto, quindi
+   la chiusura arriva anche a chi ha la pagina gia' aperta. Lo stesso valore
+   finisce nei contenuti, che servono da rete quando il database non
+   risponde: per quello va poi premuto «Pubblica online». */
+
+const CHI_MSG_BASE = 'L’ordine è già partito per la pizzeria, quindi non si accettano altre ' +
+  'prenotazioni. Chi ha già prenotato è confermato: presentati all’ingresso con il tuo voucher.';
+
+function chiMostra(chiuse, daControllare){
+  const box = $('reg_statoBox');
+  if(!box) return;
+  box.className = 'stato-pren' + (daControllare ? '' : (chiuse ? ' chiuse' : ' aperte'));
+  testo('reg_statoTesto', daControllare
+    ? '⏳ Sto controllando…'
+    : (chiuse ? '🛑 Prenotazioni CHIUSE: sul sito compare il riquadro dell’ordine già inviato.'
+              : '✅ Prenotazioni APERTE: i condomini possono prenotare.'));
+  const apri = $('reg_btnApri'), chiudi = $('reg_btnChiudi');
+  if(apri)   apri.disabled   = !!daControllare || chiuse === false;
+  if(chiudi) chiudi.disabled = !!daControllare || chiuse === true;
+}
+
+function chiLeggi(){
+  if(!regCloudAttivo() || !window.FB || !FB.leggiChiusura){ chiMostra(false); return; }
+  chiMostra(null, true);
+  return FB.leggiChiusura().then(ch => {
+    /* se nel database non c'e' ancora niente comanda quello dei contenuti */
+    const daContenuti = !!((DATA && DATA.prenotazione && DATA.prenotazione.chiuse) === true);
+    chiMostra(ch ? ch.chiuse : daContenuti);
+    const msg = (ch && ch.messaggio) ||
+                (DATA && DATA.prenotazione && DATA.prenotazione.messaggioChiuse) || CHI_MSG_BASE;
+    if($('reg_msgChiuse') && !$('reg_msgChiuse').value) $('reg_msgChiuse').value = msg;
+  }).catch(() => chiMostra(false));
+}
+
+function chiImposta(chiuse){
+  if(!regLoggato()){
+    toast('⚠️ Prima entra nel database, qui sopra: la chiusura si scrive lì.', 8000);
+    return;
+  }
+  const messaggio = ($('reg_msgChiuse').value || '').trim() || CHI_MSG_BASE;
+  chiMostra(null, true);
+  fbToken()
+    .then(t => FB.scriviChiusura(t, chiuse, messaggio))
+    .then(() => {
+      /* gli stessi valori nei contenuti, cosi' restano anche dopo la pubblicazione */
+      if(!DATA.prenotazione) DATA.prenotazione = {};
+      DATA.prenotazione.chiuse = !!chiuse;
+      DATA.prenotazione.messaggioChiuse = messaggio;
+      tocca();
+      chiMostra(chiuse);
+      toast(chiuse
+        ? '🛑 Prenotazioni chiuse: sul sito è già cambiato. Chi ha la pagina aperta lo vede entro un minuto.'
+        : '✅ Prenotazioni riaperte: il modulo è di nuovo disponibile.', 9000);
+    })
+    .catch(e => { chiMostra(null, true); toast('⚠️ ' + e.message, 9000); chiLeggi(); });
 }
 
 /* ==================== MUSICA DELLA FESTA =====================
@@ -4937,6 +5028,10 @@ function registroAvvia(){
   }
 
   if(regCloudAttivo()){
+    /* Lo stato delle prenotazioni si legge senza login (e' un dato pubblico):
+       cosi' l'interruttore dice subito come sta messa la festa, anche prima
+       di entrare nel registro. */
+    chiLeggi();
     /* modalità cloud: le prenotazioni stanno online, servono email+password */
     FBSESS = fbSessLeggi();
     if(regLoggato()){
