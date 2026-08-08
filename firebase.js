@@ -181,6 +181,44 @@
       .catch(function(){ return false; });
   }
 
+  /* ========================= PRENOTAZIONI CHIUSE ========================
+     Quando l'ordine e' partito per la pizzeria non si prenota piu'. Il dato
+     sta in un documento pubblico: cosi' anche chi ha la pagina gia' aperta
+     se ne accorge entro un minuto, senza dover ricaricare. */
+  var DOC_CHIUSURA = 'pubblico/chiusura';
+
+  function leggiChiusura(){
+    return fetch(BASE + '/' + DOC_CHIUSURA + '?key=' + API + '&_=' + Date.now(),
+                 { cache:'no-store' })
+      .then(jget).then(function(d){
+        if(d.error) return null;                  /* non esiste: nulla di chiuso */
+        var f = d.fields || {};
+        return {
+          chiuse: !!(f.chiuse && f.chiuse.booleanValue),
+          messaggio: (f.messaggio && f.messaggio.stringValue) || ''
+        };
+      })
+      .catch(function(){ return null; });
+  }
+
+  function scriviChiusura(idToken, chiuse, messaggio){
+    if(!idToken) return Promise.resolve(false);
+    return fetch(BASE + '/' + DOC_CHIUSURA + '?key=' + API +
+                 '&updateMask.fieldPaths=chiuse&updateMask.fieldPaths=messaggio' +
+                 '&updateMask.fieldPaths=aggiornatoIl', {
+      method:'PATCH',
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + idToken },
+      body: JSON.stringify({ fields: {
+        chiuse:       { booleanValue: !!chiuse },
+        messaggio:    { stringValue: String(messaggio || '') },
+        aggiornatoIl: { stringValue: new Date().toISOString() }
+      }})
+    }).then(jget).then(function(d){
+      if(d.error) throw new Error(d.error.message || 'salvataggio chiusura fallito');
+      return true;
+    });
+  }
+
   /* ============================== ALBUM =================================
      Le foto della serata. Il file dell'immagine sta su GitHub; qui viaggiano
      solo l'elenco degli indirizzi e le didascalie, in un documento pubblico:
@@ -241,6 +279,7 @@
     signIn: signIn, refresh: refresh,
     creaPrenotazione: creaPrenotazione, elenco: elenco, aggiorna: aggiorna, elimina: elimina,
     leggiPosti: leggiPosti, incrementaPosti: incrementaPosti, scriviPosti: scriviPosti,
-    leggiAlbum: leggiAlbum, scriviAlbum: scriviAlbum, provaAlbum: provaAlbum
+    leggiAlbum: leggiAlbum, scriviAlbum: scriviAlbum, provaAlbum: provaAlbum,
+    leggiChiusura: leggiChiusura, scriviChiusura: scriviChiusura
   };
 })();

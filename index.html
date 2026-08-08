@@ -389,6 +389,15 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
   .posti .sep{ display:none; }
   .posti .voce{ display:flex; justify-content:space-between; align-items:center; gap:14px; }
 }
+/* prenotazioni chiuse: riquadro al posto del percorso a passi */
+.chiuse{
+  background:#fff; border-radius:20px; padding:26px 24px; max-width:620px;
+  margin:0 auto; box-shadow:var(--shadow-s); text-align:center; color:var(--ink);
+  border:3px solid var(--c1);
+}
+.chiuse-titolo{ font-size:1.3rem; font-weight:bold; color:var(--c1); margin-bottom:10px; }
+.chiuse p{ font-size:1.02rem; line-height:1.55; }
+
 /* ---- album della serata: muro di foto + lente per guardarle grandi ---- */
 .muro{ column-count:1; column-gap:14px; }
 @media(min-width:620px){ .muro{ column-count:2; } }
@@ -692,6 +701,12 @@ footer .servizio a:hover{ opacity:1; }
           <button type="button" class="btn btn-scuro btn-piccolo" id="btnRivedi">👁️ Rivedi il voucher</button>
           <button type="button" class="btn btn-chiaro btn-piccolo" id="btnCancella">🗑️ Cancella e ricomincia</button>
         </div>
+      </div>
+
+      <!-- prenotazioni chiuse: l'ordine è già partito per la pizzeria -->
+      <div class="chiuse" id="prenotazioniChiuse" style="display:none">
+        <div class="chiuse-titolo" id="chiuseTitolo">🍕 Ordine già inviato alla pizzeria</div>
+        <p id="chiuseTesto"></p>
       </div>
 
       <!-- ------------------------- il percorso ------------------------- -->
@@ -1129,10 +1144,46 @@ function disegna(){
   preparaCondivisione();
   disegnaPiede();
   avviaConto(ev);
+  var prenC = V(DATI.prenotazione, {});
+  applicaChiusura(V(prenC.chiuse, false), V(prenC.messaggioChiuse, ''));
   caricaPosti();          /* dopo FB.cfg: serve il collegamento al database */
   avviaAggiornamentoPosti();
   avviaAlbum();
   controllaPrenotazioneSalvata();
+}
+
+/* ====================== PRENOTAZIONI CHIUSE ==========================
+   Quando l'ordine e' partito per la pizzeria non si prenota piu'. Il
+   riquadro prende il posto del percorso a passi, e la conferma si rifiuta
+   comunque: chi ha la pagina aperta da prima non deve poter passare. */
+var PRENOTAZIONI_CHIUSE = false;
+var MESSAGGIO_CHIUSURA = '';
+
+function applicaChiusura(chiuse, messaggio){
+  PRENOTAZIONI_CHIUSE = !!chiuse;
+  MESSAGGIO_CHIUSURA = messaggio || '';
+
+  var box = $('prenotazioniChiuse');
+  var passi = $('pannelloPassi');
+  var flottante = $('flottante');
+  if(!box) return;
+
+  if(!PRENOTAZIONI_CHIUSE){
+    box.style.display = 'none';
+    if(passi) passi.style.display = '';
+    if(flottante) flottante.style.display = '';
+    return;
+  }
+
+  testo('chiuseTesto', MESSAGGIO_CHIUSURA ||
+    'Le prenotazioni sono chiuse: l\'ordine è già stato inviato alla pizzeria. ' +
+    'Chi ha già prenotato è confermato e può presentarsi come da voucher.');
+  box.style.display = '';
+  if(passi) passi.style.display = 'none';
+  if(flottante) flottante.style.display = 'none';   /* niente invito a prenotare */
+
+  /* chi ha gia' una prenotazione deve poter rivedere il voucher: quel
+     riquadro resta. Il resto della macchina si ferma qui. */
 }
 
 /* ========================= ALBUM DELLA SERATA =========================
@@ -1234,6 +1285,16 @@ function chiudiLente(){
 var postiOccupati = null;
 
 function caricaPosti(){
+  /* Insieme ai posti si controlla anche se le prenotazioni sono state
+     chiuse: e' cosi' che chi tiene la pagina aperta se ne accorge entro
+     un minuto, senza dover ricaricare. */
+  if(window.FB && FB.attivo() && FB.leggiChiusura){
+    FB.leggiChiusura().then(function(ch){
+      if(ch && ch.chiuse !== PRENOTAZIONI_CHIUSE){
+        applicaChiusura(ch.chiuse, ch.messaggio || MESSAGGIO_CHIUSURA);
+      }
+    });
+  }
   var totali = Number(V((DATI.evento||{}).postiTotali, 0)) || 0;
   if(!totali || !window.FB || !FB.attivo()){ $('postiBox').style.display = 'none'; return; }
   FB.leggiPosti().then(function(n){
@@ -2250,6 +2311,13 @@ function conferma(){
     return;
   }
   nascondiErrore('eConsenso');
+
+  /* rete di sicurezza: se nel frattempo l'ordine e' partito, non si passa */
+  if(PRENOTAZIONI_CHIUSE){
+    applicaChiusura(true, MESSAGGIO_CHIUSURA);
+    $('prenotazioniChiuse').scrollIntoView({ behavior:'smooth', block:'center' });
+    return;
+  }
 
   var c = calcola();
   var pren = V(DATI.prenotazione, {});
