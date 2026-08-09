@@ -672,7 +672,45 @@
     "titolo": "L'album della serata",
     "sottotitolo": "Le foto della Serata Pizza in Piscina.",
     "nota": "Se in una foto non ti ci vedi bene o preferisci non comparire, dillo agli organizzatori: la togliamo subito.",
-    "foto": []
+    "foto": [],
+    "didascalieAuto": {
+      "attive": true,
+      "arrivo": [
+        "i primi arrivati si prendono i posti buoni",
+        "sedie contate, tavoli sistemati, si comincia",
+        "l’attesa più lunga è quella della prima teglia",
+        "chi arriva presto sceglie l’ombrellone",
+        "il tavolo è pronto, mancano solo le pizze",
+        "ultimi preparativi prima che arrivi tutti quanti"
+      ],
+      "cena": [
+        "la prima teglia non fa in tempo ad arrivare",
+        "qui qualcuno aveva detto «solo una fetta»",
+        "la margherita non delude mai",
+        "silenzio: si mangia",
+        "la tavolata al completo",
+        "chi trova un posto in prima fila ha già vinto",
+        "in questa foto c’è il momento esatto in cui è finita la diavola",
+        "fritti in arrivo, occhio alle mani",
+        "la fila al banco vale sempre la pena"
+      ],
+      "dopocena": [
+        "a quest’ora si balla",
+        "la giunta al completo, per una volta tutti d’accordo",
+        "il momento in cui nessuno vuole più andare a casa",
+        "la piscina di sera è un’altra cosa",
+        "chiacchiere che vanno avanti fino a tardi",
+        "la parte migliore comincia dopo il dolce",
+        "stasera nessuno guarda l’orologio",
+        "foto di gruppo, cioè quasi tutti girati dall’altra parte"
+      ],
+      "sempre": [
+        "gente dell’Holiday",
+        "una di quelle sere che ci si ricorda",
+        "un momento della serata",
+        "com’eravamo, sabato sera"
+      ]
+    }
   },
   "musica": {
     "titolo": "La musica della festa",

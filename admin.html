@@ -1077,6 +1077,35 @@
       <div id="al_elenco"></div>
 
       <details style="margin-top:18px">
+        <summary style="cursor:pointer;font-weight:bold;padding:6px 0">Le didascalie che si scrivono da sole</summary>
+        <p class="hint" style="margin-top:8px">
+          Il programma <b>non guarda la foto</b>: non può, senza mandarla a un servizio
+          esterno. Pesca però una frase da questi elenchi, scegliendo il gruppo in base
+          <b>all’ora in cui la foto è stata scattata</b> — che legge dalla foto stessa, non
+          da quando la carichi. Non si ripete due volte di fila, e con
+          <b>🎲 Un’altra</b> ne provi una diversa. Una riga per frase.
+        </p>
+        <label class="reg-check" style="margin-top:4px">
+          <input type="checkbox" id="al_didAttive" /> Scrivi le didascalie da solo
+        </label>
+
+        <label for="al_didArrivo" style="margin-top:12px">Prima delle 20:30 — si arriva</label>
+        <textarea id="al_didArrivo" rows="5"></textarea>
+
+        <label for="al_didCena">Dalle 20:30 alle 22:00 — si mangia</label>
+        <textarea id="al_didCena" rows="6"></textarea>
+
+        <label for="al_didDopo">Dalle 22:00 in poi — dopocena</label>
+        <textarea id="al_didDopo" rows="6"></textarea>
+
+        <label for="al_didSempre">Sempre buone, a qualsiasi ora</label>
+        <textarea id="al_didSempre" rows="4"></textarea>
+        <p class="hint">
+          Queste ultime si aggiungono al gruppo dell’ora: tienile generiche.
+        </p>
+      </details>
+
+      <details style="margin-top:14px">
         <summary style="cursor:pointer;font-weight:bold;padding:6px 0">Modificare l’elenco a mano</summary>
         <p class="hint" style="margin-top:8px">
           Una riga per foto: indirizzo, poi la didascalia dopo una barra verticale.<br>
@@ -1733,6 +1762,13 @@ function riempi(){
   musDisegna();
 
   $('al_attivo').checked = (al.attivo === true);
+  const da = al.didascalieAuto || {};
+  const righe = v => Array.isArray(v) ? v.join('\n') : (v || '');
+  $('al_didAttive').checked = (da.attive !== false);
+  $('al_didArrivo').value = righe(da.arrivo)   || DID_BASE.arrivo.join('\n');
+  $('al_didCena').value   = righe(da.cena)     || DID_BASE.cena.join('\n');
+  $('al_didDopo').value   = righe(da.dopocena) || DID_BASE.dopocena.join('\n');
+  $('al_didSempre').value = righe(da.sempre)   || DID_BASE.sempre.join('\n');
   $('al_titolo').value = al.titolo||"";
   $('al_sotto').value  = al.sottotitolo||"";
   $('al_nota').value   = al.nota||"";
@@ -2129,7 +2165,15 @@ function collect(){
     brani:  (DATA && DATA.musica && Array.isArray(DATA.musica.brani)) ? DATA.musica.brani : []
   });
 
+  const inRighe = id => ($(id).value || '').split('\n').map(x => x.trim()).filter(Boolean);
   d.album = Object.assign({}, d.album, {
+    didascalieAuto: {
+      attive:   $('al_didAttive').checked,
+      arrivo:   inRighe('al_didArrivo'),
+      cena:     inRighe('al_didCena'),
+      dopocena: inRighe('al_didDopo'),
+      sempre:   inRighe('al_didSempre')
+    },
     attivo:      $('al_attivo').checked,
     titolo:      $('al_titolo').value.trim(),
     sottotitolo: $('al_sotto').value.trim(),
@@ -2686,11 +2730,153 @@ let ALBUM = [], ALBUM_ACCESO = false;
 
 function due(n){ return (Number(n) < 10 ? '0' : '') + Number(n); }
 
-function didascaliaAutomatica(video){
-  const ora = new Date();
+/* ---- l'ora vera dello scatto ----
+   Dentro un JPEG c'e' scritto quando e' stato scattato. Serve perche' le
+   foto si caricano il giorno dopo: senza questo verrebbero tutte «10:15»,
+   l'ora del caricamento, e le didascalie non avrebbero senso. */
+function oraDelloScatto(file){
+  return new Promise(resolve => {
+    if(!file || !/^image\/jpe?g$/i.test(file.type || '')){ resolve(null); return; }
+    const r = new FileReader();
+    r.onerror = () => resolve(null);
+    r.onload = () => {
+      try{ resolve(leggiExifData(new DataView(r.result))); }
+      catch(e){ resolve(null); }
+    };
+    /* i dati stanno all'inizio del file: bastano i primi 128 KB */
+    r.readAsArrayBuffer(file.slice(0, 131072));
+  });
+}
+
+function leggiExifData(v){
+  if(v.getUint16(0) !== 0xFFD8) return null;             /* non e' un JPEG */
+  let p = 2;
+  while(p < v.byteLength - 4){
+    if(v.getUint16(p) !== 0xFFE1){                        /* cerco il blocco APP1 */
+      if((v.getUint16(p) & 0xFF00) !== 0xFF00) return null;
+      p += 2 + v.getUint16(p + 2);
+      continue;
+    }
+    const inizio = p + 4;
+    if(v.getUint32(inizio) !== 0x45786966) return null;   /* "Exif" */
+    const tiff = inizio + 6;
+    const piccolo = v.getUint16(tiff) === 0x4949;         /* ordine dei byte */
+    const u16 = o => v.getUint16(o, piccolo);
+    const u32 = o => v.getUint32(o, piccolo);
+    let ifd = tiff + u32(tiff + 4);
+
+    /* nella prima tabella cerco il rimando alla tabella Exif */
+    let exif = 0;
+    for(let i = 0; i < u16(ifd); i++){
+      const t = ifd + 2 + i * 12;
+      if(u16(t) === 0x8769) exif = tiff + u32(t + 8);
+    }
+    if(!exif) return null;
+    /* e lì dentro la data dello scatto */
+    for(let i = 0; i < u16(exif); i++){
+      const t = exif + 2 + i * 12;
+      if(u16(t) === 0x9003){
+        let o = tiff + u32(t + 8), s = '';
+        for(let k = 0; k < 19; k++) s += String.fromCharCode(v.getUint8(o + k));
+        const m = /^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})$/.exec(s);
+        if(!m) return null;
+        return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+      }
+    }
+    return null;
+  }
+  return null;
+}
+
+/* ---- didascalie simpatiche ----
+   Non guardiamo la foto: non si puo' senza mandarla a un servizio esterno.
+   Peschiamo pero' da un repertorio scritto per questa festa, scegliendo il
+   momento della serata in base all'ora dello scatto. Il risultato non e'
+   preciso, ma e' vero abbastanza da far sorridere — e si corregge in due
+   secondi scrivendoci sopra. */
+const DID_BASE = {
+  arrivo: [
+    'i primi arrivati si prendono i posti buoni',
+    'sedie contate, tavoli sistemati, si comincia',
+    'l’attesa più lunga è quella della prima teglia',
+    'chi arriva presto sceglie l’ombrellone',
+    'il tavolo è pronto, mancano solo le pizze',
+    'ultimi preparativi prima che arrivi tutti quanti'
+  ],
+  cena: [
+    'la prima teglia non fa in tempo ad arrivare',
+    'qui qualcuno aveva detto «solo una fetta»',
+    'la margherita non delude mai',
+    'silenzio: si mangia',
+    'la tavolata al completo',
+    'chi trova un posto in prima fila ha già vinto',
+    'in questa foto c’è il momento esatto in cui è finita la diavola',
+    'fritti in arrivo, occhio alle mani',
+    'la fila al banco vale sempre la pena'
+  ],
+  dopocena: [
+    'a quest’ora si balla',
+    'la giunta al completo, per una volta tutti d’accordo',
+    'il momento in cui nessuno vuole più andare a casa',
+    'la piscina di sera è un’altra cosa',
+    'chiacchiere che vanno avanti fino a tardi',
+    'la parte migliore comincia dopo il dolce',
+    'stasera nessuno guarda l’orologio',
+    'foto di gruppo, cioè quasi tutti girati dall’altra parte'
+  ],
+  sempre: [
+    'gente dell’Holiday',
+    'una di quelle sere che ci si ricorda',
+    'un momento della serata',
+    'com’eravamo, sabato sera'
+  ]
+};
+
+/* le ultime usate, per non ripetersi due foto di fila */
+let DID_RECENTI = [];
+
+function didRepertorio(){
+  const a = (DATA && DATA.album && DATA.album.didascalieAuto) || {};
+  const prendi = (k) => {
+    const v = a[k];
+    if(typeof v === 'string') return v.split('\n').map(x => x.trim()).filter(Boolean);
+    return Array.isArray(v) && v.length ? v : DID_BASE[k];
+  };
+  return { arrivo: prendi('arrivo'), cena: prendi('cena'),
+           dopocena: prendi('dopocena'), sempre: prendi('sempre') };
+}
+
+function didMomento(ora){
+  const m = ora.getHours() * 60 + ora.getMinutes();
+  if(m < 20 * 60 + 30) return 'arrivo';
+  if(m < 22 * 60)      return 'cena';
+  return 'dopocena';
+}
+
+function didPesca(ora){
+  const rep = didRepertorio();
+  const lista = (rep[didMomento(ora)] || []).concat(rep.sempre || []);
+  if(!lista.length) return '';
+  /* evito quelle appena usate, ma se sono finite ricomincio */
+  let libere = lista.filter(x => DID_RECENTI.indexOf(x) === -1);
+  if(!libere.length){ DID_RECENTI = []; libere = lista; }
+  const scelta = libere[Math.floor(Math.random() * libere.length)];
+  DID_RECENTI.push(scelta);
+  if(DID_RECENTI.length > 12) DID_RECENTI.shift();
+  return scelta;
+}
+
+function didascaliaAutomatica(video, quando){
+  const ora = (quando instanceof Date && !isNaN(quando.getTime())) ? quando : new Date();
   const orario = due(ora.getHours()) + ':' + due(ora.getMinutes());
-  const titolo = (DATA && DATA.tema && DATA.tema.titoloFesta) || 'la festa';
-  return orario + ' — ' + (video ? 'video · ' : '') + titolo;
+  const attive = !((DATA && DATA.album && DATA.album.didascalieAuto &&
+                    DATA.album.didascalieAuto.attive) === false);
+  const frase = attive ? didPesca(ora) : '';
+  if(!frase){
+    const titolo = (DATA && DATA.tema && DATA.tema.titoloFesta) || 'la festa';
+    return orario + ' — ' + (video ? 'video · ' : '') + titolo;
+  }
+  return orario + ' — ' + (video ? 'video · ' : '') + frase;
 }
 
 /* Le foto dal telefono sono enormi: si rimpiccioliscono prima di mandarle,
@@ -2777,6 +2963,9 @@ async function aggiungiFotoAlbum(file){
     const estensione = video
       ? ((String(file.name).match(/\.([a-z0-9]+)$/i) || [, 'mp4'])[1].toLowerCase())
       : 'jpg';
+    /* l'ora dello scatto va letta prima di rimpicciolire: il ridimensionamento
+       butta via i dati della foto, ora compresa */
+    const scattata = video ? null : await oraDelloScatto(file);
     const b64 = video ? await leggiBase64(file) : await rimpicciolisci(file, 1600);
     const nome = nomeFotoAlbum(estensione);
     testo('statoFoto', '📤 Sto caricando ' + nome + '…' + (video ? ' Con un video ci vuole un po’.' : ''));
@@ -2790,8 +2979,9 @@ async function aggiungiFotoAlbum(file){
       url: url,
       file: 'images/album/' + nome,
       tipo: video ? 'video' : 'foto',
-      didascalia: didascaliaAutomatica(video),
-      quando: new Date().toISOString(),
+      didascalia: didascaliaAutomatica(video, scattata),
+      quando: (scattata || new Date()).toISOString(),
+      caricata: new Date().toISOString(),
       chi: (FBSESS && FBSESS.email) || ''
     });
     /* chi scatta vuole che si veda: l'album si accende da solo, senza dover
@@ -2886,6 +3076,19 @@ function disegnaAlbum(){
       (isNaN(q.getTime()) ? '' : ('scattata alle ' + due(q.getHours()) + ':' + due(q.getMinutes()))) +
       (f.chi ? ' da ' + f.chi : '')));
     r.appendChild(c);
+
+    /* la didascalia non convince? se ne pesca un'altra dal repertorio */
+    const dado = crea('button', 'btn btn-w');
+    dado.type = 'button'; dado.textContent = '🎲 Un’altra';
+    dado.title = 'Pesca un’altra didascalia dal repertorio';
+    dado.addEventListener('click', () => {
+      const scatto = new Date(f.quando);
+      f.didascalia = didascaliaAutomatica(f.tipo === 'video',
+        isNaN(scatto.getTime()) ? null : scatto);
+      inp.value = f.didascalia;
+      salvaAlbum().catch(e => toast(msgAlbumErrore(e), 11000));
+    });
+    r.appendChild(dado);
 
     const via = crea('button', 'btn btn-w');
     via.type = 'button'; via.textContent = '🗑️ Togli';
