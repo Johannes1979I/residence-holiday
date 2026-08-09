@@ -389,23 +389,31 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
   .posti .sep{ display:none; }
   .posti .voce{ display:flex; justify-content:space-between; align-items:center; gap:14px; }
 }
-/* festa conclusa: ringraziamenti, e casa del residence fra una cena e l'altra */
-.conclusa{
-  background:#fff; border-radius:22px; padding:32px 26px; max-width:680px;
-  margin:0 auto; box-shadow:var(--shadow-s); text-align:center; color:var(--ink);
+/* festa conclusa: i ringraziamenti stanno in cima, sopra la foto della
+   piscina, al posto del conto alla rovescia e del contatore dei posti */
+.hero-grazie{
+  max-width:720px; margin:16px auto 0; padding:24px 24px;
+  border-radius:22px; background:rgba(255,255,255,.17);
+  border:1px solid rgba(255,255,255,.45); backdrop-filter:blur(5px);
+  color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.5); text-align:center;
 }
-.conclusa-titolo{ font-size:1.65rem; font-weight:bold; color:var(--c1); line-height:1.2; }
-.conclusa-sotto{ font-size:1.08rem; color:var(--muted); margin-top:8px; }
-.conclusa-sotto:empty{ display:none; }
-.conclusa-testo{ margin-top:18px; font-size:1.04rem; line-height:1.6; text-align:left; }
-.conclusa-testo p{ margin-bottom:12px; }
-.conclusa-prossima{
-  margin-top:18px; padding:14px 18px; border-radius:16px;
-  background:var(--c3); color:var(--ink); font-weight:bold; font-size:1.06rem;
+.hero-grazie .tit{ font-size:1.75rem; font-weight:bold; line-height:1.15; }
+.hero-grazie .sot{ font-size:1.06rem; margin-top:7px; opacity:.95; }
+.hero-grazie .sot:empty{ display:none; }
+.hero-grazie .testo{ margin-top:16px; font-size:1rem; line-height:1.55; text-align:left; }
+.hero-grazie .testo p{ margin-bottom:11px; }
+.hero-grazie .testo p:last-child{ margin-bottom:0; }
+.hero-grazie .prossima{
+  margin-top:16px; padding:13px 17px; border-radius:16px;
+  background:var(--c3); color:var(--ink); text-shadow:none;
+  font-weight:bold; font-size:1.02rem;
 }
-.conclusa-prossima:empty{ display:none; }
-.conclusa .azioni{ margin-top:22px; }
-@media(max-width:520px){ .conclusa{ padding:24px 18px; } .conclusa-titolo{ font-size:1.35rem; } }
+.hero-grazie .prossima:empty{ display:none; }
+@media(max-width:520px){
+  .hero-grazie{ padding:20px 17px; border-radius:18px; }
+  .hero-grazie .tit{ font-size:1.4rem; }
+  .hero-grazie .testo{ font-size:.96rem; }
+}
 
 /* prenotazioni chiuse: riquadro al posto del percorso a passi */
 .chiuse{
@@ -603,6 +611,15 @@ footer .servizio a:hover{ opacity:1; }
     </div>
     <div class="conto" id="conto"></div>
 
+    <!-- festa conclusa: i ringraziamenti prendono il posto del conto alla
+         rovescia e del contatore dei posti, sopra la foto della piscina -->
+    <div class="hero-grazie" id="heroGrazie" style="display:none">
+      <div class="tit" id="conclusaTitolo"></div>
+      <p class="sot" id="conclusaSotto"></p>
+      <div class="testo" id="conclusaTesto"></div>
+      <p class="prossima" id="conclusaProssima"></p>
+    </div>
+
     <!-- posti: si aggiorna da solo dopo ogni prenotazione -->
     <div class="posti" id="postiBox" style="display:none">
       <span class="voce">🎟️ Posti disponibili <b id="postiTotali">—</b></span>
@@ -720,16 +737,6 @@ footer .servizio a:hover{ opacity:1; }
           <button type="button" class="btn btn-scuro btn-piccolo" id="btnRivedi">👁️ Rivedi il voucher</button>
           <button type="button" class="btn btn-chiaro btn-piccolo" id="btnCancella">🗑️ Cancella e ricomincia</button>
         </div>
-      </div>
-
-      <!-- festa conclusa: ringraziamenti, e casa del residence fra una cena
-           e l'altra. Prende il posto di tutto il percorso a passi. -->
-      <div class="conclusa" id="festaConclusa" style="display:none">
-        <div class="conclusa-titolo" id="conclusaTitolo"></div>
-        <p class="conclusa-sotto" id="conclusaSotto"></p>
-        <div class="conclusa-testo" id="conclusaTesto"></div>
-        <p class="conclusa-prossima" id="conclusaProssima"></p>
-        <div class="azioni" id="conclusaAzioni"></div>
       </div>
 
       <!-- prenotazioni chiuse: l'ordine è già partito per la pizzeria -->
@@ -1211,8 +1218,11 @@ function applicaStato(stato, messaggio){
   /* il percorso a passi vale solo a prenotazioni aperte */
   mostra('pannelloPassi', STATO_FESTA === 'aperta');
   mostra('prenotazioniChiuse', chiusa);
-  mostra('festaConclusa', conclusa);
   mostra('flottante', STATO_FESTA === 'aperta');
+  /* a festa conclusa i ringraziamenti stanno in cima, sopra la piscina:
+     tutta la sezione della prenotazione non serve piu' */
+  mostra('heroGrazie', conclusa);
+  mostra('prenota', !conclusa);
 
   if(chiusa){
     testo('chiuseTesto', MESSAGGIO_CHIUSURA ||
@@ -1233,22 +1243,11 @@ function applicaStato(stato, messaggio){
   mostra('btnMenuHero', !conclusa);
   mostra('btnPiscinaHero', conclusa);
   if(conclusa){ mostra('postiBox', false); mostra('postiNota', false); }
-
-  /* il titolo della sezione cambia: non si prenota piu' niente */
-  var fascia = document.querySelector('#prenota .titolo-sez');
-  var occhiello = document.querySelector('#prenota .occhiello');
-  if(conclusa){
-    if(fascia) fascia.innerHTML = 'Grazie a <span style="color:var(--c3)">tutti</span>';
-    if(occhiello) occhiello.textContent = '';
-  }
 }
 
 /* riempie il riquadro dei ringraziamenti con quello che ha scritto l'admin */
 function disegnaConclusa(){
   var r = V(DATI.ringraziamenti, {});
-  var tema = V(DATI.tema, {});
-  var res = V(DATI.residence, {});
-
   testo('conclusaTitolo', V(r.titolo, 'Grazie a tutti!'));
   testo('conclusaSotto', V(r.sottotitolo, ''));
   testo('conclusaProssima', V(r.prossima, ''));
@@ -1261,19 +1260,6 @@ function disegnaConclusa(){
       p.textContent = t;
       cont.appendChild(p);
     });
-
-  /* i pulsanti sotto: album (se acceso) e piscina */
-  var az = $('conclusaAzioni');
-  az.textContent = '';
-  if($('album') && $('album').style.display !== 'none'){
-    var a = document.createElement('a');
-    a.className = 'btn btn-p'; a.href = '#album'; a.textContent = '📷 Guarda le foto';
-    az.appendChild(a);
-  }
-  var b = document.createElement('a');
-  b.className = 'btn btn-chiaro'; b.href = '#foto';
-  b.textContent = '🏊 La piscina del ' + V(res.nome, 'residence');
-  az.appendChild(b);
 }
 
 /* compatibilita': il vecchio interruttore a due posizioni */
