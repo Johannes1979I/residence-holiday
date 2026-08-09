@@ -530,9 +530,11 @@
     "messaggioBase": "Ciao! Ecco la mia prenotazione per la Serata Pizza in Piscina del Residence Holiday.",
     "scadenza": "2026-08-02",
     "chiediAppartamento": true,
-    "prefissoCodice": "RH"
+    "prefissoCodice": "RH",
+    "chiuse": true,
+    "messaggioChiuse": "L’ordine è già partito per la pizzeria, quindi non si accettano altre prenotazioni. Chi ha già prenotato è confermato: presentati all’ingresso con il tuo voucher. Ci vediamo stasera in piscina!"
   },
-  "statoFesta": "chiusa",
+  "statoFesta": "conclusa",
   "ringraziamenti": {
     "titolo": "Grazie a tutti!",
     "sottotitolo": "È stata una bella serata, e l’abbiamo fatta insieme.",
