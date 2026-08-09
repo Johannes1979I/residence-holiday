@@ -1231,8 +1231,10 @@ function applicaStato(stato, messaggio){
   }
   if(conclusa) disegnaConclusa();
 
-  /* A festa conclusa il sito diventa la casa del residence: sparisce tutto
-     quello che riguarda una serata che non c'e' piu'. */
+  /* A festa conclusa il sito diventa la casa del residence: della serata
+     passata non resta niente. Restano i ringraziamenti, la piscina e
+     l'album — e basta. */
+  mostra('festa', !conclusa);          /* data, orario, luogo, tema, dress code */
   mostra('menu', !conclusa);
   mostra('regolamento', !conclusa);
   if(conclusa) mostra('pagamento', false);
@@ -1243,6 +1245,34 @@ function applicaStato(stato, messaggio){
   mostra('btnMenuHero', !conclusa);
   mostra('btnPiscinaHero', conclusa);
   if(conclusa){ mostra('postiBox', false); mostra('postiNota', false); }
+  vestiHero(conclusa);
+}
+
+/* In cima, a festa conclusa, comanda il residence e non piu' la serata:
+   via il nome della festa e il suo sottotitolo. Gli originali si tengono
+   da parte, cosi' riaprendo torna tutto com'era. */
+var HERO_ORIGINALE = null;
+
+function vestiHero(conclusa){
+  if(!$('heroTitolo')) return;
+  if(!HERO_ORIGINALE){
+    HERO_ORIGINALE = {
+      titolo: $('heroTitolo').textContent,
+      sotto:  $('heroSottotitolo').textContent,
+      luogo:  $('heroLuogo').textContent
+    };
+  }
+  var res = V(DATI.residence, {});
+  if(conclusa){
+    testo('heroTitolo', V(res.nome, HERO_ORIGINALE.titolo));
+    testo('heroSottotitolo', '');
+    testo('heroLuogo', V(res.localita, '') ? ('📍 ' + res.localita) : '');
+  } else {
+    testo('heroTitolo', HERO_ORIGINALE.titolo);
+    testo('heroSottotitolo', HERO_ORIGINALE.sotto);
+    testo('heroLuogo', HERO_ORIGINALE.luogo);
+  }
+  mostra('heroTema', !conclusa);
 }
 
 /* riempie il riquadro dei ringraziamenti con quello che ha scritto l'admin */
