@@ -434,6 +434,9 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
   box-shadow:var(--shadow-s); background:#fff; cursor:zoom-in;
 }
 .muro img{ width:100%; height:auto; display:block; }
+.muro figure.video{ cursor:default; background:#0d2b3e; }
+.muro video{ width:100%; height:auto; display:block; background:#0d2b3e; }
+.muro figure.video figcaption{ background:#fff; }
 .muro figcaption{ padding:9px 13px; font-size:.88rem; color:var(--muted); }
 .album-nota{
   text-align:center; margin:26px auto 0; max-width:700px;
@@ -1358,6 +1361,12 @@ function aggiornaAlbum(){
   }).catch(function(){ /* rete assente: si riprova al giro dopo */ });
 }
 
+/* un video si riconosce dall'estensione, o dal tipo salvato dall'admin */
+function eVideo(v){
+  if(v && v.tipo === 'video') return true;
+  return /\.(mp4|mov|m4v|webm)(\?|$)/i.test(String((v && (v.file || v.url)) || ''));
+}
+
 function disegnaMuro(foto){
   var el = $('muro');
   el.textContent = '';
@@ -1365,17 +1374,36 @@ function disegnaMuro(foto){
     if(!v.url) return;
     var didascalia = v.didascalia || '';
     var f = document.createElement('figure');
-    var img = document.createElement('img');
-    img.src = v.url;
-    img.alt = didascalia || ('Foto ' + (i + 1) + ' della serata');
-    img.loading = 'lazy';
-    f.appendChild(img);
+
+    if(eVideo(v)){
+      /* il video si guarda dentro il muro: niente lente, altrimenti
+         ricomincerebbe da capo e perderebbe l'audio gia' avviato */
+      f.className = 'video';
+      var vid = document.createElement('video');
+      vid.src = v.url;
+      vid.controls = true;
+      vid.playsInline = true;
+      vid.preload = 'metadata';
+      vid.setAttribute('aria-label', didascalia || ('Video ' + (i + 1) + ' della serata'));
+      /* uno alla volta: se ne parte un altro, questo si ferma */
+      vid.addEventListener('play', function(){
+        [].forEach.call(el.querySelectorAll('video'), function(a){ if(a !== vid) a.pause(); });
+      });
+      f.appendChild(vid);
+    } else {
+      var img = document.createElement('img');
+      img.src = v.url;
+      img.alt = didascalia || ('Foto ' + (i + 1) + ' della serata');
+      img.loading = 'lazy';
+      f.appendChild(img);
+      f.addEventListener('click', function(){ apriLente(v.url, img.alt); });
+    }
+
     if(didascalia){
       var cap = document.createElement('figcaption');
       cap.textContent = didascalia;
       f.appendChild(cap);
     }
-    f.addEventListener('click', function(){ apriLente(v.url, img.alt); });
     el.appendChild(f);
   });
 }
@@ -1437,6 +1465,14 @@ function avviaAggiornamentoPosti(){
 function mostraPosti(){
   var box = $('postiBox');
   var nota = $('postiNota');
+  /* A festa conclusa i posti non interessano piu' nessuno. Il controllo va
+     qui perche' il contatore si ridisegna da solo ogni minuto: senza,
+     tornerebbe a farsi vedere da sé. */
+  if(STATO_FESTA === 'conclusa'){
+    if(box) box.style.display = 'none';
+    if(nota) nota.style.display = 'none';
+    return;
+  }
   var totali = Number(V((DATI.evento||{}).postiTotali, 0)) || 0;
   if(!totali || postiOccupati === null){
     box.style.display = 'none';
