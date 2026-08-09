@@ -390,6 +390,7 @@
       <button type="button" data-vista="contenuti">⚙️ Contenuti del sito</button>
       <button type="button" data-vista="album">📸 Album</button>
       <button type="button" data-vista="musica">🎵 Musica</button>
+      <button type="button" data-vista="grazie">🙏 Dopo la festa</button>
       <button type="button" data-vista="locandina">🖨️ Locandina</button>
       <button type="button" data-vista="pubblica">📣 Pubblica e backup</button>
     </nav>
@@ -454,6 +455,7 @@
         <span class="reg-azioni" style="margin:0">
           <button class="btn btn-p" type="button" id="reg_btnApri">✅ Apri le prenotazioni</button>
           <button class="btn btn-w" type="button" id="reg_btnChiudi">🛑 Chiudi le prenotazioni</button>
+          <button class="btn btn-s" type="button" id="reg_btnConclusa">🙏 Festa conclusa</button>
         </span>
       </div>
       <label for="reg_msgChiuse" style="margin-top:12px">Messaggio da mostrare quando sono chiuse</label>
@@ -1121,6 +1123,47 @@
 
     </section>
 
+    <section class="vista" id="v-grazie">
+
+    <!-- ---------- DOPO LA FESTA ---------- -->
+    <div class="card" id="sec-grazie">
+      <h2>🙏 Dopo la festa</h2>
+      <p class="intro">
+        Quando la cena è passata, il sito smette di chiedere prenotazioni e mostra questa
+        pagina: i ringraziamenti e l’appuntamento alla prossima. Fra una cena e l’altra
+        <b>fa da pagina di casa del residence</b> — restano le foto della piscina, l’album
+        e i contatti, spariscono menù, regolamento e conto alla rovescia.
+      </p>
+      <p class="hint" style="margin-bottom:16px">
+        Si accende dall’interruttore in <b>📒 Prenotazioni → 🚦 Prenotazioni aperte o chiuse</b>,
+        con il pulsante <b>«🙏 Festa conclusa»</b>. Quando poi metti la data nuova e il menù
+        nuovo e riapri, questa pagina sparisce da sola e torna il modulo di prenotazione.
+      </p>
+
+      <label for="gr_titolo">Titolo</label>
+      <input id="gr_titolo" placeholder="Grazie a tutti!" />
+
+      <label for="gr_sotto">Sottotitolo</label>
+      <input id="gr_sotto" placeholder="È stata una bella serata, e l’abbiamo fatta insieme." />
+
+      <label for="gr_testo">Il testo dei ringraziamenti</label>
+      <textarea id="gr_testo" rows="9"></textarea>
+      <p class="hint">
+        Lascia una riga vuota fra un paragrafo e l’altro. Fai i nomi di chi ha dato una mano:
+        è la parte che la gente legge davvero.
+      </p>
+
+      <label for="gr_prossima">L’appuntamento alla prossima</label>
+      <input id="gr_prossima" placeholder="La prossima cena la organizziamo presto: appena c’è la data, la trovate qui." />
+      <p class="hint">Compare in fondo, dentro un riquadro giallo. Lascia vuoto per non mostrarlo.</p>
+
+      <div class="reg-azioni" style="margin-top:16px">
+        <a class="btn btn-w" href="index.html" target="_blank" rel="noopener">👀 Vedi il sito</a>
+      </div>
+    </div>
+
+    </section>
+
     <section class="vista" id="v-locandina">
     <!-- ---------- LOCANDINA ---------- -->
     <div class="card" id="sec-locandina">
@@ -1636,6 +1679,12 @@ function riempi(){
   $('nt_token').value = nt.telegramBotToken||"";
   $('nt_chat').value  = nt.telegramChatId||"";
 
+  const gr = d.ringraziamenti || {};
+  $('gr_titolo').value   = gr.titolo||"";
+  $('gr_sotto').value    = gr.sottotitolo||"";
+  $('gr_testo').value    = gr.testo||"";
+  $('gr_prossima').value = gr.prossima||"";
+
   const mu = d.musica || {};
   $('mus_titolo').value = mu.titolo||"";
   $('mus_nota').value   = mu.nota||"";
@@ -2024,6 +2073,13 @@ function collect(){
 
   d.foto = [...document.querySelectorAll('#foto .foto-val')]
                     .map(x => x.value.trim()).filter(v => v !== '');
+
+  d.ringraziamenti = Object.assign({}, d.ringraziamenti, {
+    titolo:      $('gr_titolo').value.trim(),
+    sottotitolo: $('gr_sotto').value.trim(),
+    testo:       $('gr_testo').value,
+    prossima:    $('gr_prossima').value.trim()
+  });
 
   d.musica = Object.assign({}, d.musica, {
     titolo: $('mus_titolo').value.trim(),
@@ -2887,8 +2943,9 @@ function collegaEventi(){
   });
 
   /* interruttore delle prenotazioni */
-  $('reg_btnApri').addEventListener('click', () => chiImposta(false));
-  $('reg_btnChiudi').addEventListener('click', () => chiImposta(true));
+  $('reg_btnApri').addEventListener('click', () => chiImposta('aperta'));
+  $('reg_btnChiudi').addEventListener('click', () => chiImposta('chiusa'));
+  $('reg_btnConclusa').addEventListener('click', () => chiImposta('conclusa'));
 
   /* resoconto economico per il condominio */
   resCarica();
@@ -3621,51 +3678,70 @@ function regDisegna(){
 const CHI_MSG_BASE = 'L’ordine è già partito per la pizzeria, quindi non si accettano altre ' +
   'prenotazioni. Chi ha già prenotato è confermato: presentati all’ingresso con il tuo voucher.';
 
-function chiMostra(chiuse, daControllare){
+const CHI_STATI = {
+  aperta:   { classe:'aperte', testo:'✅ Prenotazioni APERTE: i condomini possono prenotare.' },
+  chiusa:   { classe:'chiuse', testo:'🛑 Prenotazioni CHIUSE: sul sito compare il riquadro dell’ordine già inviato.' },
+  conclusa: { classe:'chiuse', testo:'🙏 Festa CONCLUSA: sul sito ci sono i ringraziamenti e la pagina del residence.' }
+};
+
+function chiMostra(stato, daControllare){
   const box = $('reg_statoBox');
   if(!box) return;
-  box.className = 'stato-pren' + (daControllare ? '' : (chiuse ? ' chiuse' : ' aperte'));
-  testo('reg_statoTesto', daControllare
-    ? '⏳ Sto controllando…'
-    : (chiuse ? '🛑 Prenotazioni CHIUSE: sul sito compare il riquadro dell’ordine già inviato.'
-              : '✅ Prenotazioni APERTE: i condomini possono prenotare.'));
-  const apri = $('reg_btnApri'), chiudi = $('reg_btnChiudi');
-  if(apri)   apri.disabled   = !!daControllare || chiuse === false;
-  if(chiudi) chiudi.disabled = !!daControllare || chiuse === true;
+  const s = CHI_STATI[stato] || CHI_STATI.aperta;
+  box.className = 'stato-pren' + (daControllare ? '' : ' ' + s.classe);
+  testo('reg_statoTesto', daControllare ? '⏳ Sto controllando…' : s.testo);
+  /* il pulsante di quello che e' gia' attivo resta spento */
+  const spegni = (id, mio) => { const b = $(id); if(b) b.disabled = !!daControllare || stato === mio; };
+  spegni('reg_btnApri', 'aperta');
+  spegni('reg_btnChiudi', 'chiusa');
+  spegni('reg_btnConclusa', 'conclusa');
+}
+
+function chiStatoDaiContenuti(){
+  const d = DATA || {};
+  if(d.statoFesta) return d.statoFesta;
+  return (d.prenotazione && d.prenotazione.chiuse) ? 'chiusa' : 'aperta';
 }
 
 function chiLeggi(){
-  if(!regCloudAttivo() || !window.FB || !FB.leggiChiusura){ chiMostra(false); return; }
+  if(!regCloudAttivo() || !window.FB || !FB.leggiChiusura){ chiMostra(chiStatoDaiContenuti()); return; }
   chiMostra(null, true);
   return FB.leggiChiusura().then(ch => {
     /* se nel database non c'e' ancora niente comanda quello dei contenuti */
-    const daContenuti = !!((DATA && DATA.prenotazione && DATA.prenotazione.chiuse) === true);
-    chiMostra(ch ? ch.chiuse : daContenuti);
+    chiMostra(ch ? ch.stato : chiStatoDaiContenuti());
     const msg = (ch && ch.messaggio) ||
                 (DATA && DATA.prenotazione && DATA.prenotazione.messaggioChiuse) || CHI_MSG_BASE;
     if($('reg_msgChiuse') && !$('reg_msgChiuse').value) $('reg_msgChiuse').value = msg;
-  }).catch(() => chiMostra(false));
+  }).catch(() => chiMostra(chiStatoDaiContenuti()));
 }
 
-function chiImposta(chiuse){
+function chiImposta(stato){
   if(!regLoggato()){
-    toast('⚠️ Prima entra nel database, qui sopra: la chiusura si scrive lì.', 8000);
+    toast('⚠️ Prima entra nel database, qui sopra: lo stato della festa si scrive lì.', 8000);
     return;
+  }
+  if(stato === 'aperta' && REGISTRO.length){
+    if(!confirm('Riapro le prenotazioni.\n\nNel registro ci sono ancora ' + REGISTRO.length +
+                ' prenotazioni della cena precedente. Se stai preparando una cena nuova, ' +
+                'scarica prima il backup e svuota il registro.\n\nProcedo lo stesso?')) return;
   }
   const messaggio = ($('reg_msgChiuse').value || '').trim() || CHI_MSG_BASE;
   chiMostra(null, true);
   fbToken()
-    .then(t => FB.scriviChiusura(t, chiuse, messaggio))
+    .then(t => FB.scriviChiusura(t, stato, messaggio))
     .then(() => {
       /* gli stessi valori nei contenuti, cosi' restano anche dopo la pubblicazione */
       if(!DATA.prenotazione) DATA.prenotazione = {};
-      DATA.prenotazione.chiuse = !!chiuse;
+      DATA.statoFesta = stato;
+      DATA.prenotazione.chiuse = (stato !== 'aperta');
       DATA.prenotazione.messaggioChiuse = messaggio;
       tocca();
-      chiMostra(chiuse);
-      toast(chiuse
-        ? '🛑 Prenotazioni chiuse: sul sito è già cambiato. Chi ha la pagina aperta lo vede entro un minuto.'
-        : '✅ Prenotazioni riaperte: il modulo è di nuovo disponibile.', 9000);
+      chiMostra(stato);
+      toast({
+        aperta:   '✅ Prenotazioni riaperte: il modulo è di nuovo disponibile.',
+        chiusa:   '🛑 Prenotazioni chiuse: sul sito è già cambiato. Chi ha la pagina aperta lo vede entro un minuto.',
+        conclusa: '🙏 Sul sito ci sono i ringraziamenti. Controllali in «🙏 Dopo la festa».'
+      }[stato] || 'Fatto.', 9000);
     })
     .catch(e => { chiMostra(null, true); toast('⚠️ ' + e.message, 9000); chiLeggi(); });
 }

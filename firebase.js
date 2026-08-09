@@ -193,28 +193,37 @@
       .then(jget).then(function(d){
         if(d.error) return null;                  /* non esiste: nulla di chiuso */
         var f = d.fields || {};
+        var chiuse = !!(f.chiuse && f.chiuse.booleanValue);
         return {
-          chiuse: !!(f.chiuse && f.chiuse.booleanValue),
+          chiuse: chiuse,
+          /* «stato» e' il campo nuovo a tre posizioni; se manca si ricava
+             dal vecchio interruttore aperto/chiuso */
+          stato: (f.stato && f.stato.stringValue) || (chiuse ? 'chiusa' : 'aperta'),
           messaggio: (f.messaggio && f.messaggio.stringValue) || ''
         };
       })
       .catch(function(){ return null; });
   }
 
-  function scriviChiusura(idToken, chiuse, messaggio){
-    if(!idToken) return Promise.resolve(false);
+  /* stato: 'aperta' | 'chiusa' | 'conclusa'. Si scrive anche il vecchio
+     campo booleano, cosi' una pagina non ancora aggiornata capisce lo
+     stesso che non si prenota piu'. */
+  function scriviChiusura(idToken, stato, messaggio){
+    if(idToken === null || idToken === undefined || idToken === '') return Promise.resolve(false);
+    var s = (stato === true) ? 'chiusa' : (stato === false) ? 'aperta' : String(stato || 'aperta');
     return fetch(BASE + '/' + DOC_CHIUSURA + '?key=' + API +
-                 '&updateMask.fieldPaths=chiuse&updateMask.fieldPaths=messaggio' +
-                 '&updateMask.fieldPaths=aggiornatoIl', {
+                 '&updateMask.fieldPaths=chiuse&updateMask.fieldPaths=stato' +
+                 '&updateMask.fieldPaths=messaggio&updateMask.fieldPaths=aggiornatoIl', {
       method:'PATCH',
       headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + idToken },
       body: JSON.stringify({ fields: {
-        chiuse:       { booleanValue: !!chiuse },
+        chiuse:       { booleanValue: (s !== 'aperta') },
+        stato:        { stringValue: s },
         messaggio:    { stringValue: String(messaggio || '') },
         aggiornatoIl: { stringValue: new Date().toISOString() }
       }})
     }).then(jget).then(function(d){
-      if(d.error) throw new Error(d.error.message || 'salvataggio chiusura fallito');
+      if(d.error) throw new Error(d.error.message || 'salvataggio stato fallito');
       return true;
     });
   }

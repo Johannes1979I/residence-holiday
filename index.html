@@ -389,6 +389,24 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
   .posti .sep{ display:none; }
   .posti .voce{ display:flex; justify-content:space-between; align-items:center; gap:14px; }
 }
+/* festa conclusa: ringraziamenti, e casa del residence fra una cena e l'altra */
+.conclusa{
+  background:#fff; border-radius:22px; padding:32px 26px; max-width:680px;
+  margin:0 auto; box-shadow:var(--shadow-s); text-align:center; color:var(--ink);
+}
+.conclusa-titolo{ font-size:1.65rem; font-weight:bold; color:var(--c1); line-height:1.2; }
+.conclusa-sotto{ font-size:1.08rem; color:var(--muted); margin-top:8px; }
+.conclusa-sotto:empty{ display:none; }
+.conclusa-testo{ margin-top:18px; font-size:1.04rem; line-height:1.6; text-align:left; }
+.conclusa-testo p{ margin-bottom:12px; }
+.conclusa-prossima{
+  margin-top:18px; padding:14px 18px; border-radius:16px;
+  background:var(--c3); color:var(--ink); font-weight:bold; font-size:1.06rem;
+}
+.conclusa-prossima:empty{ display:none; }
+.conclusa .azioni{ margin-top:22px; }
+@media(max-width:520px){ .conclusa{ padding:24px 18px; } .conclusa-titolo{ font-size:1.35rem; } }
+
 /* prenotazioni chiuse: riquadro al posto del percorso a passi */
 .chiuse{
   background:#fff; border-radius:20px; padding:26px 24px; max-width:620px;
@@ -602,10 +620,11 @@ footer .servizio a:hover{ opacity:1; }
       <span><b>Se non li hai</b> diventa una richiesta: gli organizzatori la valutano e ti
         rispondono sul numero che lasci.</span>
     </div>
-    <div class="azioni">
-      <a href="#prenota" class="btn btn-p">🎟️ Prenota il tuo posto</a>
-      <a href="#menu" class="btn btn-fantasma">🍕 Vedi il menù</a>
+    <div class="azioni" id="azioniHero">
+      <a href="#prenota" class="btn btn-p" id="btnPrenotaHero">🎟️ Prenota il tuo posto</a>
+      <a href="#menu" class="btn btn-fantasma" id="btnMenuHero">🍕 Vedi il menù</a>
       <a href="#album" class="btn btn-fantasma" id="btnAlbumHero" style="display:none">📷 L'album della serata</a>
+      <a href="#foto" class="btn btn-fantasma" id="btnPiscinaHero" style="display:none">🏊 La nostra piscina</a>
     </div>
   </div>
   <svg class="onde" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
@@ -701,6 +720,16 @@ footer .servizio a:hover{ opacity:1; }
           <button type="button" class="btn btn-scuro btn-piccolo" id="btnRivedi">👁️ Rivedi il voucher</button>
           <button type="button" class="btn btn-chiaro btn-piccolo" id="btnCancella">🗑️ Cancella e ricomincia</button>
         </div>
+      </div>
+
+      <!-- festa conclusa: ringraziamenti, e casa del residence fra una cena
+           e l'altra. Prende il posto di tutto il percorso a passi. -->
+      <div class="conclusa" id="festaConclusa" style="display:none">
+        <div class="conclusa-titolo" id="conclusaTitolo"></div>
+        <p class="conclusa-sotto" id="conclusaSotto"></p>
+        <div class="conclusa-testo" id="conclusaTesto"></div>
+        <p class="conclusa-prossima" id="conclusaProssima"></p>
+        <div class="azioni" id="conclusaAzioni"></div>
       </div>
 
       <!-- prenotazioni chiuse: l'ordine è già partito per la pizzeria -->
@@ -1145,7 +1174,8 @@ function disegna(){
   disegnaPiede();
   avviaConto(ev);
   var prenC = V(DATI.prenotazione, {});
-  applicaChiusura(V(prenC.chiuse, false), V(prenC.messaggioChiuse, ''));
+  applicaStato(V(DATI.statoFesta, prenC.chiuse ? 'chiusa' : 'aperta'),
+               V(prenC.messaggioChiuse, ''));
   caricaPosti();          /* dopo FB.cfg: serve il collegamento al database */
   avviaAggiornamentoPosti();
   avviaAlbum();
@@ -1156,34 +1186,99 @@ function disegna(){
    Quando l'ordine e' partito per la pizzeria non si prenota piu'. Il
    riquadro prende il posto del percorso a passi, e la conferma si rifiuta
    comunque: chi ha la pagina aperta da prima non deve poter passare. */
-var PRENOTAZIONI_CHIUSE = false;
+/* Il sito ha tre stati:
+     aperta   — si prenota
+     chiusa   — l'ordine e' partito per la pizzeria, non si prenota piu'
+     conclusa — la festa e' passata: ringraziamenti, e fra una cena e
+                l'altra fa da pagina di casa del residence            */
+var STATO_FESTA = 'aperta';
 var MESSAGGIO_CHIUSURA = '';
+var PRENOTAZIONI_CHIUSE = false;   /* comodita': vero se non si prenota */
 
-function applicaChiusura(chiuse, messaggio){
-  PRENOTAZIONI_CHIUSE = !!chiuse;
-  MESSAGGIO_CHIUSURA = messaggio || '';
+function mostra(id, visibile){
+  var el = $(id);
+  if(el) el.style.display = visibile ? '' : 'none';
+}
 
-  var box = $('prenotazioniChiuse');
-  var passi = $('pannelloPassi');
-  var flottante = $('flottante');
-  if(!box) return;
+function applicaStato(stato, messaggio){
+  STATO_FESTA = (stato === 'chiusa' || stato === 'conclusa') ? stato : 'aperta';
+  if(messaggio !== undefined && messaggio !== null) MESSAGGIO_CHIUSURA = messaggio || '';
+  PRENOTAZIONI_CHIUSE = (STATO_FESTA !== 'aperta');
 
-  if(!PRENOTAZIONI_CHIUSE){
-    box.style.display = 'none';
-    if(passi) passi.style.display = '';
-    if(flottante) flottante.style.display = '';
-    return;
+  var conclusa = (STATO_FESTA === 'conclusa');
+  var chiusa   = (STATO_FESTA === 'chiusa');
+
+  /* il percorso a passi vale solo a prenotazioni aperte */
+  mostra('pannelloPassi', STATO_FESTA === 'aperta');
+  mostra('prenotazioniChiuse', chiusa);
+  mostra('festaConclusa', conclusa);
+  mostra('flottante', STATO_FESTA === 'aperta');
+
+  if(chiusa){
+    testo('chiuseTesto', MESSAGGIO_CHIUSURA ||
+      'Le prenotazioni sono chiuse: l\'ordine è già stato inviato alla pizzeria. ' +
+      'Chi ha già prenotato è confermato e può presentarsi come da voucher.');
   }
+  if(conclusa) disegnaConclusa();
 
-  testo('chiuseTesto', MESSAGGIO_CHIUSURA ||
-    'Le prenotazioni sono chiuse: l\'ordine è già stato inviato alla pizzeria. ' +
-    'Chi ha già prenotato è confermato e può presentarsi come da voucher.');
-  box.style.display = '';
-  if(passi) passi.style.display = 'none';
-  if(flottante) flottante.style.display = 'none';   /* niente invito a prenotare */
+  /* A festa conclusa il sito diventa la casa del residence: sparisce tutto
+     quello che riguarda una serata che non c'e' piu'. */
+  mostra('menu', !conclusa);
+  mostra('regolamento', !conclusa);
+  if(conclusa) mostra('pagamento', false);
+  mostra('conto', !conclusa);
+  mostra('heroDataGiorno', !conclusa);
+  mostra('heroDataOra', !conclusa);
+  mostra('btnPrenotaHero', !conclusa);
+  mostra('btnMenuHero', !conclusa);
+  mostra('btnPiscinaHero', conclusa);
+  if(conclusa){ mostra('postiBox', false); mostra('postiNota', false); }
 
-  /* chi ha gia' una prenotazione deve poter rivedere il voucher: quel
-     riquadro resta. Il resto della macchina si ferma qui. */
+  /* il titolo della sezione cambia: non si prenota piu' niente */
+  var fascia = document.querySelector('#prenota .titolo-sez');
+  var occhiello = document.querySelector('#prenota .occhiello');
+  if(conclusa){
+    if(fascia) fascia.innerHTML = 'Grazie a <span style="color:var(--c3)">tutti</span>';
+    if(occhiello) occhiello.textContent = '';
+  }
+}
+
+/* riempie il riquadro dei ringraziamenti con quello che ha scritto l'admin */
+function disegnaConclusa(){
+  var r = V(DATI.ringraziamenti, {});
+  var tema = V(DATI.tema, {});
+  var res = V(DATI.residence, {});
+
+  testo('conclusaTitolo', V(r.titolo, 'Grazie a tutti!'));
+  testo('conclusaSotto', V(r.sottotitolo, ''));
+  testo('conclusaProssima', V(r.prossima, ''));
+
+  var cont = $('conclusaTesto');
+  cont.textContent = '';
+  String(V(r.testo, '')).split(/\n\s*\n|\n/).map(function(t){ return t.trim(); })
+    .filter(Boolean).forEach(function(t){
+      var p = document.createElement('p');
+      p.textContent = t;
+      cont.appendChild(p);
+    });
+
+  /* i pulsanti sotto: album (se acceso) e piscina */
+  var az = $('conclusaAzioni');
+  az.textContent = '';
+  if($('album') && $('album').style.display !== 'none'){
+    var a = document.createElement('a');
+    a.className = 'btn btn-p'; a.href = '#album'; a.textContent = '📷 Guarda le foto';
+    az.appendChild(a);
+  }
+  var b = document.createElement('a');
+  b.className = 'btn btn-chiaro'; b.href = '#foto';
+  b.textContent = '🏊 La piscina del ' + V(res.nome, 'residence');
+  az.appendChild(b);
+}
+
+/* compatibilita': il vecchio interruttore a due posizioni */
+function applicaChiusura(chiuse, messaggio){
+  applicaStato(chiuse ? 'chiusa' : 'aperta', messaggio);
 }
 
 /* ========================= ALBUM DELLA SERATA =========================
@@ -1290,9 +1385,9 @@ function caricaPosti(){
      un minuto, senza dover ricaricare. */
   if(window.FB && FB.attivo() && FB.leggiChiusura){
     FB.leggiChiusura().then(function(ch){
-      if(ch && ch.chiuse !== PRENOTAZIONI_CHIUSE){
-        applicaChiusura(ch.chiuse, ch.messaggio || MESSAGGIO_CHIUSURA);
-      }
+      if(!ch) return;
+      var nuovo = ch.stato || (ch.chiuse ? 'chiusa' : 'aperta');
+      if(nuovo !== STATO_FESTA) applicaStato(nuovo, ch.messaggio || MESSAGGIO_CHIUSURA);
     });
   }
   var totali = Number(V((DATI.evento||{}).postiTotali, 0)) || 0;
@@ -2314,8 +2409,9 @@ function conferma(){
 
   /* rete di sicurezza: se nel frattempo l'ordine e' partito, non si passa */
   if(PRENOTAZIONI_CHIUSE){
-    applicaChiusura(true, MESSAGGIO_CHIUSURA);
-    $('prenotazioniChiuse').scrollIntoView({ behavior:'smooth', block:'center' });
+    applicaStato(STATO_FESTA, MESSAGGIO_CHIUSURA);
+    var avviso = (STATO_FESTA === 'conclusa') ? $('festaConclusa') : $('prenotazioniChiuse');
+    if(avviso) avviso.scrollIntoView({ behavior:'smooth', block:'center' });
     return;
   }
 
