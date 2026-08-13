@@ -6,20 +6,20 @@
     "emoji": "🌴"
   },
   "tema": {
-    "titoloFesta": "Serata Pizza in Piscina",
-    "sottotitolo": "Pizza sotto le stelle a bordo piscina",
-    "nomeTema": "Serata Pizza 🍕",
+    "titoloFesta": "Serata Ristoante in Piscina",
+    "sottotitolo": "Cena sotto le stelle a bordo piscina",
+    "nomeTema": "Serata Ristorante",
     "colorePrimario": "#e63946",
     "coloreSecondario": "#12b6c9",
     "coloreAccento": "#ffd23f"
   },
   "evento": {
-    "data": "2026-08-08",
+    "data": "2026-08-18",
     "orario": "20:00",
     "orarioFine": "23:00",
     "luogo": "Piscina del Residence Holiday",
-    "descrizione": "Veronica la \"Sindaca del Residence Holiday\" è lieta di annunciare la prima serata dell'estate: PIZZA a bordo piscina! Le pizze sono a cura della Pizzeria Il Tirreno di Montalto di Castro. Prenota qui sotto per te e la tua famiglia: bastano due minuti e ricevi il tuo voucher da mostrare all'ingresso. Sono disponibili le opzioni senza lattosio e senza glutine.",
-    "dressCode": "Costume da bagno serale elegante!",
+    "descrizione": "Dopo il successo della cena del 08/08/2026 è il momento di replicare con un'altra serata da trascorrere tutti insieme in armonia! Scegli il tuo menù di terra o di mare e preparati a trascorrere una serata spensierata tra amici!\nIl menù della serata è curato dal ristorante \"Tempo Pieno\" di Montalto di Castro",
+    "dressCode": "Look Estivo!",
     "postiTotali": 70
   },
   "menu": {
@@ -515,22 +515,41 @@
           }
         ]
       }
+    },
+    {
+      "id": "men-ristorante",
+      "nome": "Menù Ristorante",
+      "emoji": "🍽️",
+      "salvatoIl": "2026-08-13",
+      "menu": {
+        "descrizione": "",
+        "avviso": "",
+        "copertoPersona": 0,
+        "copertoEtichetta": "",
+        "copertoEmoji": "",
+        "copertoNota": "",
+        "speciali": {
+          "glutine": false,
+          "lattosio": false
+        },
+        "categorie": []
+      }
     }
   ],
   "pagamento": {
     "attivo": true,
     "titolo": "Come si paga",
     "referente": "Alla bagnina della piscina Aurora",
-    "scadenza": "2026-08-02",
-    "orari": "in piscina, tutti i giorni dalle 10:00 alle 18:00",
+    "scadenza": "2026-08-16",
+    "orari": "in piscina, tutti i giorni dalle 10:00 alle 13:00 e dalle 16:00 alle 20:00",
     "istruzioni": "Porta l'importo del tuo voucher in contanti alla bagnina della piscina. La prenotazione è confermata solo dopo il pagamento: serve per ordinare le pizze in tempo.",
     "nota": "Se non riesci entro la scadenza, avvisa gli organizzatori."
   },
   "prenotazione": {
-    "messaggioBase": "Ciao! Ecco la mia prenotazione per la Serata Pizza in Piscina del Residence Holiday.",
-    "scadenza": "2026-08-02",
+    "messaggioBase": "Ciao! Ecco la mia prenotazione per la Serata Ristoante in Piscina del Residence Holiday.",
+    "scadenza": "2026-08-18",
     "chiediAppartamento": true,
-    "prefissoCodice": "RH",
+    "prefissoCodice": "RHT",
     "chiuse": true,
     "messaggioChiuse": "L’ordine è già partito per la pizzeria, quindi non si accettano altre prenotazioni. Chi ha già prenotato è confermato: presentati all’ingresso con il tuo voucher. Ci vediamo stasera in piscina!"
   },
@@ -617,10 +636,10 @@
     }
   },
   "regolamento": [
-    "Prenotazione obbligatoria entro giovedì 6 agosto: le pizze vengono ordinate in base alle prenotazioni.",
+    "Prenotazione obbligatoria entro giovedì 18 agosto: le portate vengono ordinate in base alle prenotazioni.",
     "Porta con te il voucher (stampato o sul telefono) e mostralo all'ingresso della festa.",
     "La prenotazione è confermata solo dopo il pagamento della quota alla bagnina.",
-    "Al costo delle pizze si aggiungono 3 € a persona per l'assistenza della bagnina durante la serata.",
+    "Al costo del menù si aggiungono 3 € a persona per l'assistenza della bagnina durante la serata.",
     "I bambini restano sotto la responsabilità dei genitori: in orario serale non c'è servizio di salvataggio.",
     "Le bevande non sono comprese nella prenotazione: ognuno porta le proprie e beve quello che ha portato.",
     "Lo stesso vale per il dolce: chi lo desidera se lo porta da casa.",
