@@ -259,6 +259,13 @@
                   padding:14px 16px;margin:14px 0}
   .gh-scorciatoie > b{display:block;font-size:1rem;color:var(--ink)}
 
+  /* ---------- feste archiviate ---------- */
+  .festa-archiviata{border:1px solid var(--linea);border-radius:16px;padding:14px 16px;margin-bottom:12px;
+                    background:#fbfcfd}
+  .festa-archiviata .nome{font-weight:bold;font-size:1rem}
+  .festa-archiviata .dettagli{color:var(--muted);font-size:.86rem;margin-top:3px}
+  .festa-archiviata .azioni-a{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+
   /* ---------- interruttore prenotazioni ---------- */
   .stato-pren{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-radius:16px;
               padding:13px 16px;border:2px solid var(--linea);background:#f7fbfd}
@@ -444,6 +451,7 @@
         <a href="#reg_secPizzeria">🍕 Ordine pizzeria</a>
         <a href="#reg_secAnnuncio">🔊 Annuncio vocale</a>
         <a href="#reg_secAvviso">📣 Avviso a tutti</a>
+        <a href="#reg_secArchivio">📦 Archivio</a>
         <a href="#reg_secCestino">🗑️ Cestino</a>
       </nav>
 
@@ -619,6 +627,17 @@
         e prezzi. «Genera resoconto» apre il rendiconto economico da mostrare ai
         condomini: quanto si è raccolto, quanto si è speso e quanto avanza.
       </p>
+
+      <h3 class="sub-h" id="reg_secArchivio">📦 Feste archiviate <span class="conta" id="reg_contaArchivio"></span></h3>
+      <p class="hint" style="margin-bottom:8px">
+        Quando una cena è finita, archiviala: le prenotazioni escono dall’elenco ma
+        <b>restano qui</b>, per eventuali contestazioni e per vedere com’è andata. Il registro
+        si svuota, il contatore dei posti torna a zero e sei pronto per la festa nuova.
+      </p>
+      <div class="reg-azioni">
+        <button class="btn btn-p" type="button" id="reg_btnArchivia">📦 Archivia la festa e riparti</button>
+      </div>
+      <div id="reg_archivio"></div>
 
       <h3 class="sub-h" id="reg_secCestino">🗑️ Cestino <span class="conta" id="reg_contaCestino"></span></h3>
       <p class="hint" style="margin-bottom:8px">
@@ -3236,6 +3255,9 @@ function collegaEventi(){
     regCopiaTesto(t, '📋 Token copiato. Incollalo nell’admin dell’altro dispositivo — e non lasciarlo in giro.');
   });
 
+  /* archivio delle feste passate */
+  $('reg_btnArchivia').addEventListener('click', regArchivia);
+
   /* interruttore delle prenotazioni */
   $('reg_btnApri').addEventListener('click', () => chiImposta('aperta'));
   $('reg_btnChiudi').addEventListener('click', () => chiImposta('chiusa'));
@@ -3330,6 +3352,8 @@ const REG_CHIAVE = 'rh_registro';
 const REG_CESTINO_CHIAVE = 'rh_registro_cestino';
 let REGISTRO = [];
 let CESTINO = [];
+/* le prenotazioni delle feste gia' passate: fuori dall'elenco ma non perse */
+let ARCHIVIO = [];
 let regModificaCodice = null;   /* codice in corso di modifica, null = nuova */
 let regFormSpeciali = [];       /* esigenze alimentari del modulo aperto */
 
@@ -3418,7 +3442,7 @@ function msgErroreFirebase(m){
 /* carica TUTTE le prenotazioni dal cloud in REGISTRO/CESTINO */
 function regCaricaCloud(){
   return fbToken().then(FB.elenco).then(function(docs){
-    REGISTRO = []; CESTINO = [];
+    REGISTRO = []; CESTINO = []; ARCHIVIO = [];
     docs.forEach(function(doc){
       let p = {};
       try{ p = JSON.parse(doc.json || '{}'); }catch(e){ p = {}; }
@@ -3427,7 +3451,8 @@ function regCaricaCloud(){
       p.stato = doc.stato || 'attiva';   /* qui «stato» torna a dire attiva/cestino */
       if(!p.codice) p.codice = doc.codice || '';
       if(!p.nome)   p.nome = doc.nome || '';
-      (p.stato === 'cestino' ? CESTINO : REGISTRO).push(p);
+      (p.stato === 'cestino' ? CESTINO
+        : p.stato === 'archivio' ? ARCHIVIO : REGISTRO).push(p);
     });
     REGISTRO.sort(function(a,b){ return String(a.ricevutoIl||'').localeCompare(String(b.ricevutoIl||'')); });
     try{ regSalva(); }catch(e){}   /* copia locale di comodo (offline) */
@@ -3959,6 +3984,7 @@ function regDisegna(){
   if(ta && !ta.dataset.toccato) ta.value = regMessaggioPromemoria();
 
   regDisegnaCestino();
+  regDisegnaArchivio();
   regDisegnaOrdine();
   sincronizzaPosti();   /* riallinea il contatore pubblico dei posti */
 }
@@ -4945,6 +4971,174 @@ function regProponiLocale(){
 }
 
 /* ---------- documento d'ordine completo per gli organizzatori ---------- */
+/* ==================== ARCHIVIO DELLE FESTE ====================
+   Finita una cena, le prenotazioni escono dall'elenco ma restano nel
+   database con lo stato «archivio»: servono se qualcuno contesta qualcosa
+   e per vedere com'e' andata. Il registro si svuota e si riparte. */
+
+function resArchivioGruppi(){
+  const per = {};
+  ARCHIVIO.forEach(p => {
+    const a = p.archivio || {};
+    const id = a.id || 'senza-data';
+    if(!per[id]) per[id] = { id, nome: a.nome || 'Festa senza nome', data: a.data || '',
+                             archiviatoIl: a.archiviatoIl || '', righe: [] };
+    per[id].righe.push(p);
+  });
+  return Object.keys(per).map(k => per[k])
+    .sort((x, y) => String(y.data).localeCompare(String(x.data)));   /* la piu' recente in cima */
+}
+
+function regDisegnaArchivio(){
+  const el = $('reg_archivio');
+  if(!el) return;
+  el.textContent = '';
+  const gruppi = resArchivioGruppi();
+  const conta = $('reg_contaArchivio');
+  if(conta) conta.textContent = gruppi.length ? String(gruppi.length) : '';
+
+  if(!gruppi.length){
+    el.appendChild(crea('p', 'hint', 'Ancora nessuna festa archiviata.'));
+    return;
+  }
+
+  gruppi.forEach(g => {
+    const persone = g.righe.reduce((s, p) => s + regPartecipanti(p), 0);
+    const incassato = g.righe.reduce((s, p) => s + (Number(p.totale) || 0), 0);
+    const pezzi = g.righe.reduce((s, p) =>
+      s + (p.righe || []).reduce((q, r) => q + (Number(r.quantita) || 0), 0), 0);
+
+    const box = crea('div', 'festa-archiviata');
+    box.appendChild(crea('div', 'nome', (g.nome || '') + (g.data ? ' · ' + dataItaliana(g.data) : '')));
+    box.appendChild(crea('div', 'dettagli',
+      g.righe.length + (g.righe.length === 1 ? ' prenotazione' : ' prenotazioni') +
+      ' · ' + persone + ' partecipanti · ' + pezzi + ' portate · ' + regEuro(incassato) +
+      (g.archiviatoIl ? ' · archiviata il ' + dataItaliana(g.archiviatoIl.slice(0, 10)) : '')));
+
+    const az = crea('div', 'azioni-a');
+    const vedi = crea('button', 'btn btn-w', '👁️ Vedi l’elenco');
+    vedi.type = 'button';
+    vedi.addEventListener('click', () => regMostraArchivio(g));
+    az.appendChild(vedi);
+
+    const csv = crea('button', 'btn btn-w', '⬇️ Scarica in Excel');
+    csv.type = 'button';
+    csv.addEventListener('click', () => regCsvArchivio(g));
+    az.appendChild(csv);
+
+    const torna = crea('button', 'btn btn-w', '↩️ Riporta nel registro');
+    torna.type = 'button';
+    torna.title = 'Se hai archiviato per sbaglio';
+    torna.addEventListener('click', () => regRipristinaArchivio(g));
+    az.appendChild(torna);
+
+    box.appendChild(az);
+    el.appendChild(box);
+  });
+}
+
+/* Il foglio da stampare o mostrare a chi contesta qualcosa. */
+function regMostraArchivio(g){
+  const ordinate = g.righe.slice().sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'it'));
+  const corpo = ordinate.map(p => `<tr>
+      <td><b>${escHtml(p.nome)}</b>${p.appartamento ? '<br><small>' + escHtml(p.appartamento) + '</small>' : ''}</td>
+      <td class="m">${escHtml(p.codice)}</td>
+      <td class="c">${regPartecipanti(p)}</td>
+      <td>${escHtml((p.righe || []).map(r => r.quantita + ' × ' + r.nome).join(', ')) || '—'}</td>
+      <td class="r">${escHtml(regEuro(p.totale))}</td>
+      <td class="c">${p.pagato ? '✔' : ''}</td>
+    </tr>`).join('');
+  const persone = ordinate.reduce((s, p) => s + regPartecipanti(p), 0);
+  const totale = ordinate.reduce((s, p) => s + (Number(p.totale) || 0), 0);
+  regMostraFoglio('Festa archiviata', `
+    <h1>📦 ${escHtml(g.nome)}</h1>
+    <p class="sub">${g.data ? escHtml(dataItaliana(g.data)) + ' · ' : ''}${ordinate.length} prenotazioni · ${persone} partecipanti</p>
+    <table>
+      <thead><tr><th>Nome</th><th style="width:17%">Codice</th><th style="width:7%" class="c">Pers.</th>
+        <th style="width:30%">Ordine</th><th style="width:12%" class="r">Totale</th>
+        <th style="width:8%" class="c">Pag.</th></tr></thead>
+      <tbody>${corpo}</tbody>
+      <tfoot><tr><td><b>Totale</b></td><td></td><td class="c">${persone}</td><td></td>
+        <td class="r"><b>${escHtml(regEuro(totale))}</b></td><td></td></tr></tfoot>
+    </table>`);
+}
+
+function regCsvArchivio(g){
+  const q = s => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
+  const righe = [['Codice','Nome','Telefono','Appartamento','Adulti','Bambini','Ordine','Quota','Totale','Pagato','Note'].map(q).join(';')];
+  g.righe.forEach(p => {
+    const ordine = (p.righe || []).map(r => r.quantita + ' x ' + r.nome).join(' | ');
+    righe.push([p.codice, p.nome, p.telefono, p.appartamento, p.adulti, p.bambini,
+                ordine, p.coperto, p.totale, (p.pagato ? 'sì' : 'no'), p.note].map(q).join(';'));
+  });
+  const nome = 'prenotazioni-' + (g.data || g.id) + '.csv';
+  regScaricaFile(nome, '﻿' + righe.join('\r\n'), 'text/csv;charset=utf-8');
+  toast('Scaricato ' + nome, 5000);
+}
+
+/* ---- l'archiviazione vera ---- */
+function regArchivia(){
+  if(!regLoggato()){ toast('⚠️ Prima entra nel database, qui sopra.', 8000); return; }
+  if(!REGISTRO.length){ toast('Il registro è già vuoto: non c’è niente da archiviare.', 6000); return; }
+
+  const ev = (DATA.evento && DATA.evento.data) || '';
+  const titolo = (DATA.tema && DATA.tema.titoloFesta) || 'Festa';
+  const suggerito = titolo + (ev ? ' — ' + dataItaliana(ev) : '');
+  const nome = (prompt('Che nome do a questa festa nell’archivio?', suggerito) || '').trim();
+  if(!nome) return;
+
+  const persone = REGISTRO.reduce((s, p) => s + regPartecipanti(p), 0);
+  if(!confirm('Archivio «' + nome + '».\n\n' +
+      REGISTRO.length + ' prenotazioni, ' + persone + ' partecipanti.\n\n' +
+      'Escono dall’elenco ma restano nell’archivio qui sotto, complete.\n' +
+      'Il contatore dei posti torna a zero, così la festa nuova riparte pulita.\n\n' +
+      'Prima ti scarico una copia di sicurezza sul computer. Procedo?')) return;
+
+  /* rete di sicurezza: una copia sul computer prima di toccare il database */
+  try{ regEsportaCsv(); }catch(e){}
+
+  const marchio = {
+    id: (ev || oggiIso()) + '-' + Date.now().toString(36),
+    nome: nome,
+    data: ev || oggiIso(),
+    archiviatoIl: new Date().toISOString()
+  };
+
+  const daFare = REGISTRO.slice();
+  testo('reg_statoTesto', '⏳ Sto archiviando…');
+  fbToken().then(t => {
+    /* una alla volta: sono poche decine e cosi' si vede se qualcuna fallisce */
+    return daFare.reduce((catena, p) => catena.then(() => {
+      p.archivio = marchio;
+      p.stato = 'archivio';
+      return FB.aggiorna(t, p._id, { stato: 'archivio', json: jsonPulito(p) });
+    }), Promise.resolve());
+  }).then(() => {
+    return regCaricaCloud();      /* rilegge tutto: registro vuoto, archivio pieno */
+  }).then(() => {
+    toast('📦 Festa archiviata: ' + daFare.length + ' prenotazioni messe da parte. ' +
+          'Il registro è vuoto e il contatore dei posti è a zero.', 11000);
+  }).catch(e => {
+    toast('⚠️ Archiviazione interrotta: ' + e.message + '. Ricarico dal database.', 11000);
+    regCaricaCloud().catch(() => {});
+  });
+}
+
+function regRipristinaArchivio(g){
+  if(!regLoggato()){ toast('⚠️ Prima entra nel database.', 7000); return; }
+  if(!confirm('Riporto nel registro le ' + g.righe.length + ' prenotazioni di «' + g.nome + '»?\n\n' +
+              'Torneranno nell’elenco e nel conteggio dei posti, insieme a quelle della festa in corso.')) return;
+  fbToken().then(t => {
+    return g.righe.reduce((catena, p) => catena.then(() => {
+      delete p.archivio;
+      p.stato = 'attiva';
+      return FB.aggiorna(t, p._id, { stato: 'attiva', json: jsonPulito(p) });
+    }), Promise.resolve());
+  }).then(() => regCaricaCloud())
+    .then(() => toast('↩️ Prenotazioni riportate nel registro.', 7000))
+    .catch(e => { toast('⚠️ ' + e.message, 9000); regCaricaCloud().catch(() => {}); });
+}
+
 /* ============= RESOCONTO ECONOMICO PER IL CONDOMINIO =============
    Quanto si e' raccolto, quanto si e' speso, quanto avanza e dove va.
    Due cose il programma non le sa: quanto prende la bagnina e quale
