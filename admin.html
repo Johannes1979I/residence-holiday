@@ -4520,6 +4520,29 @@ function regEtichettaSpeciale(tipo){
    raggruppate dopo, quelle speciali (celiaci/lattosio). Una pizza speciale NON
    compare anche fra le normali: la sua quantita' viene sottratta, cosi' la
    pizzeria sa esattamente quante pizze "comuni" fare e quante separate. */
+/* Chi si porta la cena da casa compare nel registro (serve a noi sapere in
+   quanti sono) ma non nell'ordine per il ristorante: le voci a zero euro
+   non sono roba da cucinare. */
+function soloDaOrdinare(rp){
+  const gruppi = rp.gruppi
+    .map(g => {
+      const voci = g.voci.filter(v => (Number(v.prezzo) || 0) > 0 || (Number(v.importo) || 0) > 0);
+      const quantita = voci.reduce((s, v) => s + (Number(v.quantita) || 0), 0);
+      const importo  = voci.reduce((s, v) => s + (Number(v.importo)  || 0), 0);
+      return { nome: g.nome, voci, quantita, importo };
+    })
+    .filter(g => g.voci.length);
+  return {
+    gruppi,
+    normali: rp.normali.filter(v => (Number(v.prezzo) || 0) > 0 || (Number(v.importo) || 0) > 0),
+    speciali: rp.speciali,
+    totaleQuantita: gruppi.reduce((s, g) => s + g.quantita, 0) +
+                    rp.speciali.reduce((s, v) => s + (Number(v.quantita) || 0), 0),
+    totaleImporto:  gruppi.reduce((s, g) => s + g.importo, 0) +
+                    rp.speciali.reduce((s, v) => s + (Number(v.importo) || 0), 0)
+  };
+}
+
 function regRiepilogoPizze(){
   /* pizze totali per nome, con prezzo unitario dedotto dagli importi */
   const perNome = {};
@@ -4697,12 +4720,12 @@ function regDisegnaOrdine(){
 }
 
 function regTestoOrdine(){
-  const rp = regRiepilogoPizze();
+  const rp = soloDaOrdinare(regRiepilogoPizze());
   if(!rp.normali.length && !rp.speciali.length) return '';
   const ev = (DATA.evento && DATA.evento.data) || '';
 
   const r = [];
-  r.push('Ordine pizze — ' + ((DATA.tema && DATA.tema.titoloFesta) || 'festa') +
+  r.push('Ordine per ' + ((DATA.tema && DATA.tema.titoloFesta) || 'la festa') +
          (ev ? ' del ' + dataItaliana(ev) : ''));
   /* un blocco per categoria: pizze insieme, fritti insieme */
   rp.gruppi.forEach(g => {
@@ -5371,7 +5394,7 @@ function regDocumentoOrdine(){
      preparare, con quantita' e prezzi loro. Niente nomi dei condomini, niente
      quota della bagnina e niente conti di chi ha pagato — quelli riguardano
      noi e stanno nella «Lista per l'ingresso». */
-  const rp = regRiepilogoPizze();
+  const rp = soloDaOrdinare(regRiepilogoPizze());
   const sommaPizze = rp.totaleImporto;
 
   const titolo = (DATA.tema && DATA.tema.titoloFesta) || 'Festa';

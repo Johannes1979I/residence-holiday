@@ -23,8 +23,8 @@
     "postiTotali": 70
   },
   "menu": {
-    "descrizione": "Il menù è proposto dal ristorante \"Il Tempo Pieno\" di Montalto e prevede un'alternativa di mare ed una di terra per andare incontro a tutte le esigenze.",
-    "avviso": "Si sceglie un menù a testa, di terra o di mare. Bevande e dolce non sono compresi: ognuno porta i propri, come sempre.",
+    "descrizione": "Il menù è proposto dal ristorante \"Il Tempo Pieno\" di Montalto: un'alternativa di terra e una di mare. E per chi preferisce, c'è la terza strada: portarsi la cena da casa e stare comunque a tavola con tutti.",
+    "avviso": "Scegli una delle tre opzioni per ogni persona. Chi porta la cena da casa paga solo i 3 € della bagnina. Bevande e dolce non sono compresi in nessun caso: ognuno porta i propri, come sempre.",
     "copertoPersona": 3,
     "copertoEtichetta": "Quota assistenza in piscina",
     "copertoEmoji": "🛟",
@@ -49,6 +49,19 @@
             "nome": "Menù di mare",
             "descrizione": "Primo piatto: Risotto ai frutti di mare · Secondo piatto: Frittura di pesce",
             "prezzo": 30
+          }
+        ]
+      },
+      {
+        "id": "da-casa",
+        "nome": "Oppure",
+        "emoji": "🏠",
+        "tipo": "cibo",
+        "voci": [
+          {
+            "nome": "Porto la cena da casa",
+            "descrizione": "Niente da ordinare al ristorante: paghi solo la quota della bagnina",
+            "prezzo": 0
           }
         ]
       }
@@ -313,8 +326,8 @@
       "emoji": "🍽️",
       "salvatoIl": "2026-08-13",
       "menu": {
-        "descrizione": "Il menù è proposto dal ristorante \"Il Tempo Pieno\" di Montalto e prevede un'alternativa di mare ed una di terra per andare incontro a tutte le esigenze.",
-        "avviso": "Si sceglie un menù a testa, di terra o di mare. Bevande e dolce non sono compresi: ognuno porta i propri, come sempre.",
+        "descrizione": "Il menù è proposto dal ristorante \"Il Tempo Pieno\" di Montalto: un'alternativa di terra e una di mare. E per chi preferisce, c'è la terza strada: portarsi la cena da casa e stare comunque a tavola con tutti.",
+        "avviso": "Scegli una delle tre opzioni per ogni persona. Chi porta la cena da casa paga solo i 3 € della bagnina. Bevande e dolce non sono compresi in nessun caso: ognuno porta i propri, come sempre.",
         "copertoPersona": 3,
         "copertoEtichetta": "Quota assistenza in piscina",
         "copertoEmoji": "🛟",
@@ -339,6 +352,19 @@
                 "nome": "Menù di mare",
                 "descrizione": "Primo piatto: Risotto ai frutti di mare · Secondo piatto: Frittura di pesce",
                 "prezzo": 30
+              }
+            ]
+          },
+          {
+            "id": "da-casa",
+            "nome": "Oppure",
+            "emoji": "🏠",
+            "tipo": "cibo",
+            "voci": [
+              {
+                "nome": "Porto la cena da casa",
+                "descrizione": "Niente da ordinare al ristorante: paghi solo la quota della bagnina",
+                "prezzo": 0
               }
             ]
           }
@@ -451,7 +477,8 @@
     "Prenotazione obbligatoria entro giovedì 18 agosto: le portate vengono ordinate in base alle prenotazioni.",
     "Porta con te il voucher (stampato o sul telefono) e mostralo all'ingresso della festa.",
     "La prenotazione è confermata solo dopo il pagamento della quota alla bagnina.",
-    "Al costo del menù si aggiungono 3 € a persona per l'assistenza della bagnina durante la serata.",
+    "Per ogni persona si sceglie fra tre possibilità: menù di terra a 27 €, menù di mare a 30 €, oppure «porto la cena da casa» e non si ordina niente al ristorante.",
+    "I 3 € a persona per l'assistenza della bagnina si pagano in ogni caso, anche da chi si porta la cena da casa: la sicurezza in piscina vale per tutti.",
     "I bambini restano sotto la responsabilità dei genitori: in orario serale non c'è servizio di salvataggio.",
     "Le bevande non sono comprese nella prenotazione: ognuno porta le proprie e beve quello che ha portato.",
     "Lo stesso vale per il dolce: chi lo desidera se lo porta da casa.",
