@@ -42,12 +42,12 @@
         "voci": [
           {
             "nome": "Menù di terra",
-            "descrizione": "Mezze maniche al cinghiale · Cinghiale a buglione",
-            "prezzo": 27
+            "descrizione": "Primo piatto: Mezze maniche al cinghiale · Secondo piatto: Cinghiale a buglione",
+            "prezzo": 25
           },
           {
             "nome": "Menù di mare",
-            "descrizione": "Risotto ai frutti di mare · Frittura di pesce",
+            "descrizione": "Primo piatto: Risotto ai frutti di mare · Secondo piatto: Frittura di pesce",
             "prezzo": 30
           }
         ]
@@ -332,12 +332,12 @@
             "voci": [
               {
                 "nome": "Menù di terra",
-                "descrizione": "Mezze maniche al cinghiale · Cinghiale a buglione",
-                "prezzo": 27
+                "descrizione": "Primo piatto: Mezze maniche al cinghiale · Secondo piatto: Cinghiale a buglione",
+                "prezzo": 25
               },
               {
                 "nome": "Menù di mare",
-                "descrizione": "Risotto ai frutti di mare · Frittura di pesce",
+                "descrizione": "Primo piatto: Risotto ai frutti di mare · Secondo piatto: Frittura di pesce",
                 "prezzo": 30
               }
             ]
