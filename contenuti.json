@@ -580,5 +580,23 @@
         "sottotitolo": "Morti de Fame — Holiday 2026"
       }
     ]
+  },
+  "ascolto": {
+    "attivo": true,
+    "titolo": "La musica dell'estate",
+    "sottotitolo": "Le canzoni scritte per noi quest'anno: si ascoltano da qui, e il giorno della festa escono dalla cassa a bordo piscina.",
+    "nota": "I file stanno nel sito del Certamen Aquaticum: se le rifacciamo, qui si aggiornano da sole.",
+    "brani": [
+      {
+        "titolo": "Estate duemilaventisei",
+        "sottotitolo": "La sigla del Residence Holiday — tre minuti",
+        "file": "https://johannes1979i.github.io/certamen-aquaticum/audio/sigla.mp3"
+      },
+      {
+        "titolo": "Certamen Aquaticum",
+        "sottotitolo": "Il jingle del torneo di Ferragosto — tredici secondi",
+        "file": "https://johannes1979i.github.io/certamen-aquaticum/audio/jingle.mp3"
+      }
+    ]
   }
 }

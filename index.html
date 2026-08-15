@@ -434,6 +434,15 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
   box-shadow:var(--shadow-s); background:#fff; cursor:zoom-in;
 }
 .muro img{ width:100%; height:auto; display:block; }
+/* i brani da ascoltare: un riquadro per canzone, con il suo lettore */
+.brano{
+  background:#fff; border:1px solid rgba(13,43,62,.12); border-radius:16px;
+  padding:16px 18px; margin:0 auto 12px; max-width:620px; text-align:left;
+  box-shadow:0 6px 18px rgba(13,43,62,.06);
+}
+.brano b{ display:block; font-size:1.06rem; }
+.brano small{ display:block; color:#5b7183; margin:2px 0 10px; }
+.brano audio{ width:100%; display:block; }
 .muro figure.video{ cursor:default; background:#0d2b3e; }
 .muro video{ width:100%; height:auto; display:block; background:#0d2b3e; }
 .muro figure.video figcaption{ background:#fff; }
@@ -674,6 +683,16 @@ footer .servizio a:hover{ opacity:1; }
     <p class="occhiello">Il posto perfetto per una serata d'estate tutti insieme.</p>
     <img class="collage-festa" id="collageFesta" alt="La festa in piscina al Residence Holiday" loading="lazy" style="display:none" />
     <div class="galleria" id="galleria"></div>
+  </div>
+</section>
+
+<!-- =============================== MUSICA =============================== -->
+<section id="canzoni" style="display:none">
+  <div class="wrap">
+    <h2 class="titolo-sez" id="canzoniTitolo">La <span class="em">musica</span> dell'estate</h2>
+    <p class="occhiello" id="canzoniSotto"></p>
+    <div id="elencoCanzoni"></div>
+    <p class="album-nota" id="canzoniNota"></p>
   </div>
 </section>
 
@@ -1189,7 +1208,53 @@ function disegna(){
   caricaPosti();          /* dopo FB.cfg: serve il collegamento al database */
   avviaAggiornamentoPosti();
   avviaAlbum();
+  disegnaCanzoni();
   controllaPrenotazioneSalvata();
+}
+
+/* ========================= LA MUSICA DA ASCOLTARE ====================
+   Le canzoni della nostra estate, ascoltabili da qui. I file possono
+   stare in un altro sito nostro — la sigla e il jingle del Certamen —
+   e allora si scrive l'indirizzo intero: cosi' non ci sono due copie che
+   invecchiano in modo diverso, e se la canzone si rifà si aggiorna qui
+   da sola. Niente si scarica finché non si preme play: chi arriva per
+   prenotare non deve pagare quattro megabyte per una canzone che magari
+   non ascolta. */
+function disegnaCanzoni(){
+  var m = V(DATI.ascolto, {});
+  var brani = V(m.brani, []).filter(function(b){ return b && b.file; });
+  if(m.attivo === false || !brani.length) return;
+
+  if(m.titolo) testo('canzoniTitolo', m.titolo);
+  testo('canzoniSotto', V(m.sottotitolo, ''));
+  testo('canzoniNota', V(m.nota, ''));
+
+  var el = $('elencoCanzoni');
+  el.textContent = '';
+  brani.forEach(function(b){
+    var d = document.createElement('div');
+    d.className = 'brano';
+    var t = document.createElement('b');
+    t.textContent = V(b.titolo, 'Senza titolo');
+    d.appendChild(t);
+    if(b.sottotitolo){
+      var s = document.createElement('small');
+      s.textContent = b.sottotitolo;
+      d.appendChild(s);
+    }
+    var a = document.createElement('audio');
+    a.controls = true;
+    a.preload = 'none';
+    a.src = b.file;
+    a.setAttribute('aria-label', V(b.titolo, 'brano'));
+    /* una alla volta: se ne parte un'altra, questa si ferma */
+    a.addEventListener('play', function(){
+      [].forEach.call(el.querySelectorAll('audio'), function(x){ if(x !== a) x.pause(); });
+    });
+    d.appendChild(a);
+    el.appendChild(d);
+  });
+  $('canzoni').style.display = '';
 }
 
 /* ====================== PRENOTAZIONI CHIUSE ==========================
