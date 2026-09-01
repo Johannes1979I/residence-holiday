@@ -1733,7 +1733,10 @@ function disegnaMenu(menu){
       riga.appendChild(sx);
       if(v.prezzo !== null && v.prezzo !== undefined && v.prezzo !== ''){
         var p = document.createElement('span');
-        p.className = 'prezzo'; p.textContent = eur(v.prezzo);
+        p.className = 'prezzo';
+        /* a zero euro non si scrive il prezzo: a un pranzo dove ognuno porta
+           qualcosa, «€ 0» accanto a ogni voce sembra un errore */
+        p.textContent = (Number(v.prezzo) || 0) > 0 ? eur(v.prezzo) : '';
         riga.appendChild(p);
       }
       blocco.appendChild(riga);
@@ -1908,7 +1911,7 @@ function rigaVoce(cat, v, ic, iv){
 
   var pr = document.createElement('span');
   pr.className = 'pr';
-  pr.textContent = (v.prezzo === null || v.prezzo === undefined || v.prezzo === '') ? '' : eur(v.prezzo);
+  pr.textContent = ((Number(v.prezzo) || 0) > 0) ? eur(v.prezzo) : '';
   riga.appendChild(pr);
 
   var cont = document.createElement('div');

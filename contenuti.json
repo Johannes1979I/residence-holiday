@@ -6,70 +6,77 @@
     "emoji": "🌴"
   },
   "tema": {
-    "titoloFesta": "Serata Ristorante in Piscina",
-    "sottotitolo": "Cena sotto le stelle a bordo piscina",
-    "nomeTema": "Serata Ristorante",
+    "titoloFesta": "Il pranzo di fine estate",
+    "sottotitolo": "Ognuno porta qualcosa da condividere: in tavola finisce l'estate intera",
+    "nomeTema": "Pranzo di fine estate",
     "colorePrimario": "#e63946",
     "coloreSecondario": "#12b6c9",
     "coloreAccento": "#ffd23f"
   },
   "evento": {
-    "data": "2026-08-18",
-    "orario": "20:00",
-    "orarioFine": "23:00",
+    "data": "",
+    "orario": "13:00",
+    "orarioFine": "18:00",
     "luogo": "Piscina del Residence Holiday",
-    "descrizione": "Dopo il successo della cena del 08/08/2026 è il momento di replicare con un'altra serata da trascorrere tutti insieme in armonia! Scegli il tuo menù di terra o di mare e preparati a trascorrere una serata spensierata tra amici!\nIl menù della serata è curato dal ristorante \"Tempo Pieno\" di Montalto di Castro",
-    "dressCode": "Look Estivo!",
+    "descrizione": "L'ultima tavolata dell'estate, in piscina, con il sole ancora caldo. Si mangia quello che portiamo, si sta in acqua tutto il pomeriggio e non si guarda l'orologio.",
+    "dressCode": "Costume e buonumore",
     "postiTotali": 70
   },
   "menu": {
-    "descrizione": "Il menù è proposto dal ristorante \"Il Tempo Pieno\" di Montalto: un'alternativa di terra e una di mare. E per chi preferisce, c'è la terza strada: portarsi la cena da casa e stare comunque a tavola con tutti.",
-    "avviso": "Scegli una delle tre opzioni per ogni persona. Chi porta la cena da casa paga solo i 3 € della bagnina. Bevande e dolce non sono compresi in nessun caso: ognuno porta i propri, come sempre.",
+    "descrizione": "Niente ristorante e niente ordini: si fa alla vecchia maniera. Ognuno porta un piatto — quello che gli riesce meglio — abbondante per sé e per farlo assaggiare agli altri. Si mette tutto al centro e si scopre cosa sa fare il vicino di ombrellone.",
+    "avviso": "Segna qui sotto che cosa porti: serve a non ritrovarci con dodici insalate di riso e nessun dolce. Se porti più di una cosa, spuntale tutte.",
     "copertoPersona": 3,
     "copertoEtichetta": "Quota assistenza in piscina",
     "copertoEmoji": "🛟",
-    "copertoNota": "Anche di sera la nostra bagnina Aurora resta in servizio, per la sicurezza dei grandi e soprattutto dei bambini. I 3 € a persona coprono la sua presenza per tutta la durata della festa: un piccolo contributo che ci permette di goderci la serata in tranquillità.",
+    "copertoNota": "La nostra bagnina Aurora resta in servizio per tutto il pranzo, per la sicurezza dei grandi e soprattutto dei bambini. I 3 € a persona coprono la sua presenza: un piccolo contributo che ci lascia stare in acqua senza pensieri.",
     "speciali": {
       "glutine": false,
       "lattosio": false
     },
     "categorie": [
       {
-        "id": "menu-fisso",
-        "nome": "Le due proposte",
-        "emoji": "🍽️",
+        "id": "cosa-porti",
+        "nome": "Cosa porti",
+        "emoji": "🧺",
         "tipo": "cibo",
         "voci": [
           {
-            "nome": "Menù di terra",
-            "descrizione": "Primo piatto: Mezze maniche al cinghiale · Secondo piatto: Cinghiale a buglione",
-            "prezzo": 25
+            "nome": "Antipasti e stuzzichini",
+            "descrizione": "Tarallucci, olive, torta salata, quello che si spilucca",
+            "prezzo": 0
           },
           {
-            "nome": "Menù di mare",
-            "descrizione": "Primo piatto: Risotto ai frutti di mare · Secondo piatto: Frittura di pesce",
-            "prezzo": 30
-          }
-        ]
-      },
-      {
-        "id": "da-casa",
-        "nome": "Oppure",
-        "emoji": "🏠",
-        "tipo": "cibo",
-        "voci": [
+            "nome": "Un primo",
+            "descrizione": "Pasta fredda, insalata di riso, lasagne: quello che ti riesce meglio",
+            "prezzo": 0
+          },
           {
-            "nome": "Porto la cena da casa",
-            "descrizione": "Niente da ordinare al ristorante: paghi solo la quota della bagnina",
+            "nome": "Un secondo",
+            "descrizione": "Carne, pesce, frittate, polpette",
+            "prezzo": 0
+          },
+          {
+            "nome": "Un contorno o un'insalata",
+            "descrizione": "Verdure, patate, insalatone",
+            "prezzo": 0
+          },
+          {
+            "nome": "Un dolce",
+            "descrizione": "Crostate, ciambelloni, tiramisù",
+            "prezzo": 0
+          },
+          {
+            "nome": "Frutta",
+            "descrizione": "Anguria, melone, macedonia: a fine pranzo sparisce sempre",
             "prezzo": 0
           }
         ]
       }
     ],
-    "titoloScelta": "🍽️ Scegli il tuo menù",
-    "etichettaPortate": "🍽️ Menù scelti"
+    "titoloScelta": "🧺 Che cosa porti?",
+    "etichettaPortate": "🧺 Quello che porti"
   },
-  "menuAttivoId": "men-ristorante",
+  "menuAttivoId": "pranzo-fine-estate",
   "listini": [
     {
       "id": "pizzeria-tirreno",
@@ -372,20 +379,80 @@
         "titoloScelta": "🍽️ Scegli il tuo menù",
         "etichettaPortate": "🍽️ Menù scelti"
       }
+    },
+    {
+      "id": "pranzo-fine-estate",
+      "nome": "Pranzo di fine estate — ognuno porta qualcosa",
+      "emoji": "🧺",
+      "salvatoIl": "2026-08-20",
+      "menu": {
+        "descrizione": "Niente ristorante e niente ordini: si fa alla vecchia maniera. Ognuno porta un piatto — quello che gli riesce meglio — abbondante per sé e per farlo assaggiare agli altri. Si mette tutto al centro e si scopre cosa sa fare il vicino di ombrellone.",
+        "avviso": "Segna qui sotto che cosa porti: serve a non ritrovarci con dodici insalate di riso e nessun dolce. Se porti più di una cosa, spuntale tutte.",
+        "copertoPersona": 3,
+        "copertoEtichetta": "Quota assistenza in piscina",
+        "copertoEmoji": "🛟",
+        "copertoNota": "La nostra bagnina Aurora resta in servizio per tutto il pranzo, per la sicurezza dei grandi e soprattutto dei bambini. I 3 € a persona coprono la sua presenza: un piccolo contributo che ci lascia stare in acqua senza pensieri.",
+        "speciali": {
+          "glutine": false,
+          "lattosio": false
+        },
+        "categorie": [
+          {
+            "id": "cosa-porti",
+            "nome": "Cosa porti",
+            "emoji": "🧺",
+            "tipo": "cibo",
+            "voci": [
+              {
+                "nome": "Antipasti e stuzzichini",
+                "descrizione": "Tarallucci, olive, torta salata, quello che si spilucca",
+                "prezzo": 0
+              },
+              {
+                "nome": "Un primo",
+                "descrizione": "Pasta fredda, insalata di riso, lasagne: quello che ti riesce meglio",
+                "prezzo": 0
+              },
+              {
+                "nome": "Un secondo",
+                "descrizione": "Carne, pesce, frittate, polpette",
+                "prezzo": 0
+              },
+              {
+                "nome": "Un contorno o un'insalata",
+                "descrizione": "Verdure, patate, insalatone",
+                "prezzo": 0
+              },
+              {
+                "nome": "Un dolce",
+                "descrizione": "Crostate, ciambelloni, tiramisù",
+                "prezzo": 0
+              },
+              {
+                "nome": "Frutta",
+                "descrizione": "Anguria, melone, macedonia: a fine pranzo sparisce sempre",
+                "prezzo": 0
+              }
+            ]
+          }
+        ],
+        "titoloScelta": "🧺 Che cosa porti?",
+        "etichettaPortate": "🧺 Quello che porti"
+      }
     }
   ],
   "pagamento": {
     "attivo": true,
     "titolo": "Come si paga",
     "referente": "Alla bagnina della piscina Aurora",
-    "scadenza": "2026-08-16",
+    "scadenza": "",
     "orari": "in piscina, tutti i giorni dalle 10:00 alle 13:00 e dalle 16:00 alle 20:00",
     "istruzioni": "Porta l'importo del tuo voucher in contanti alla bagnina della piscina. La prenotazione è confermata solo dopo il pagamento: serve per ordinare le pizze in tempo.",
     "nota": "Se non riesci entro la scadenza, avvisa gli organizzatori."
   },
   "prenotazione": {
-    "messaggioBase": "Ciao! Ecco la mia prenotazione per la Serata Ristoante in Piscina del Residence Holiday.",
-    "scadenza": "2026-08-18",
+    "messaggioBase": "Ciao! Ecco la mia prenotazione per Il pranzo di fine estate del Residence Holiday.",
+    "scadenza": "",
     "chiediAppartamento": true,
     "prefissoCodice": "RHT",
     "chiuse": false,
@@ -474,16 +541,16 @@
     }
   },
   "regolamento": [
-    "Prenotazione obbligatoria entro giovedì 18 agosto: le portate vengono ordinate in base alle prenotazioni.",
-    "Porta con te il voucher (stampato o sul telefono) e mostralo all'ingresso della festa.",
-    "La prenotazione è confermata solo dopo il pagamento della quota alla bagnina.",
-    "Per ogni persona si sceglie fra tre possibilità: menù di terra a 25 €, menù di mare a 30 €, oppure «porto la cena da casa» e non si ordina niente al ristorante.",
-    "I 3 € a persona per l'assistenza della bagnina si pagano in ogni caso, anche da chi si porta la cena da casa: la sicurezza in piscina vale per tutti.",
-    "I bambini restano sotto la responsabilità dei genitori: in orario serale non c'è servizio di salvataggio.",
-    "Le bevande non sono comprese nella prenotazione: ognuno porta le proprie e beve quello che ha portato.",
-    "Lo stesso vale per il dolce: chi lo desidera se lo porta da casa.",
-    "I tavoli e le sedie del condominio sono davvero pochi: chi ha la possibilità di portare i propri è invitato a farlo, così ceniamo tutti comodamente seduti.",
-    "Rispettiamo il silenzio dopo le ore 23, come da regolamento condominiale."
+    "Prenotazione obbligatoria: serve a sapere quanti siamo, quanti tavoli servono e a non ritrovarci con dodici insalate di riso e nessun dolce.",
+    "Porta con te il voucher (stampato o sul telefono) e mostralo all'ingresso.",
+    "Ognuno porta un piatto abbondante: pensato per sé e per farne assaggiare agli altri. Si mette tutto al centro e si condivide.",
+    "Nella prenotazione segna che cosa porti: è così che in tavola ci finisce di tutto e non tutto uguale.",
+    "I 3 € a persona per l'assistenza della bagnina si pagano comunque: la sicurezza in acqua vale per tutti, e il pomeriggio in piscina è lungo.",
+    "Le bevande non sono comprese: ognuno porta le proprie.",
+    "Piatti, bicchieri e posate portateli da casa. Chi può, porti roba lavabile invece della plastica: la piscina ringrazia.",
+    "I tavoli e le sedie del condominio sono davvero pochi: chi ha la possibilità di portare i propri è invitato a farlo, così pranziamo tutti comodamente seduti.",
+    "I bambini restano sotto la responsabilità dei genitori.",
+    "A fine pranzo si rimette tutto a posto insieme: in mezz'ora, se lo facciamo in tanti, la piscina torna come l'abbiamo trovata."
   ],
   "foto": [
     "images/piscina-vasca.jpg",
@@ -504,7 +571,7 @@
     "email": ""
   },
   "locandina": {
-    "claim": "Tutti in piscina con Veronica la Sindaca dell'Holiday",
+    "claim": "Tutti a tavola, tutti in piscina!",
     "istruzioniQr": "Inquadra il QR con la fotocamera del telefono per vedere il menù e prenotare",
     "nota": "Prenotazioni entro mercoledì 5 agosto — quota da consegnare alla bagnina",
     "fotoClassica": "images/piscina-vasca.jpg",
