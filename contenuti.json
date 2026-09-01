@@ -33,48 +33,12 @@
       "glutine": false,
       "lattosio": false
     },
-    "categorie": [
-      {
-        "id": "cosa-porti",
-        "nome": "Cosa porti",
-        "emoji": "🧺",
-        "tipo": "cibo",
-        "voci": [
-          {
-            "nome": "Antipasti e stuzzichini",
-            "descrizione": "Tarallucci, olive, torta salata, quello che si spilucca",
-            "prezzo": 0
-          },
-          {
-            "nome": "Un primo",
-            "descrizione": "Pasta fredda, insalata di riso, lasagne: quello che ti riesce meglio",
-            "prezzo": 0
-          },
-          {
-            "nome": "Un secondo",
-            "descrizione": "Carne, pesce, frittate, polpette",
-            "prezzo": 0
-          },
-          {
-            "nome": "Un contorno o un'insalata",
-            "descrizione": "Verdure, patate, insalatone",
-            "prezzo": 0
-          },
-          {
-            "nome": "Un dolce",
-            "descrizione": "Crostate, ciambelloni, tiramisù",
-            "prezzo": 0
-          },
-          {
-            "nome": "Frutta",
-            "descrizione": "Anguria, melone, macedonia: a fine pranzo sparisce sempre",
-            "prezzo": 0
-          }
-        ]
-      }
-    ],
+    "categorie": [],
     "titoloScelta": "🧺 Che cosa porti?",
-    "etichettaPortate": "🧺 Quello che porti"
+    "etichettaPortate": "🧺 Quello che porti",
+    "formula": "faidate",
+    "titoloFaidate": "🧺 Ognuno porta qualcosa",
+    "testoFaidate": "Non si ordina niente e non c'è nessun conto da pagare al ristorante. Ognuno porta un piatto — quello che gli riesce meglio — abbondante per sé e per farne assaggiare agli altri. Si mette tutto al centro, si assaggia di tutto e si scopre cosa sa fare il vicino di ombrellone. L'unica cosa da versare sono i 3 € della bagnina."
   },
   "menuAttivoId": "pranzo-fine-estate",
   "listini": [
@@ -396,48 +360,12 @@
           "glutine": false,
           "lattosio": false
         },
-        "categorie": [
-          {
-            "id": "cosa-porti",
-            "nome": "Cosa porti",
-            "emoji": "🧺",
-            "tipo": "cibo",
-            "voci": [
-              {
-                "nome": "Antipasti e stuzzichini",
-                "descrizione": "Tarallucci, olive, torta salata, quello che si spilucca",
-                "prezzo": 0
-              },
-              {
-                "nome": "Un primo",
-                "descrizione": "Pasta fredda, insalata di riso, lasagne: quello che ti riesce meglio",
-                "prezzo": 0
-              },
-              {
-                "nome": "Un secondo",
-                "descrizione": "Carne, pesce, frittate, polpette",
-                "prezzo": 0
-              },
-              {
-                "nome": "Un contorno o un'insalata",
-                "descrizione": "Verdure, patate, insalatone",
-                "prezzo": 0
-              },
-              {
-                "nome": "Un dolce",
-                "descrizione": "Crostate, ciambelloni, tiramisù",
-                "prezzo": 0
-              },
-              {
-                "nome": "Frutta",
-                "descrizione": "Anguria, melone, macedonia: a fine pranzo sparisce sempre",
-                "prezzo": 0
-              }
-            ]
-          }
-        ],
+        "categorie": [],
         "titoloScelta": "🧺 Che cosa porti?",
-        "etichettaPortate": "🧺 Quello che porti"
+        "etichettaPortate": "🧺 Quello che porti",
+        "formula": "faidate",
+        "titoloFaidate": "🧺 Ognuno porta qualcosa",
+        "testoFaidate": "Non si ordina niente e non c'è nessun conto da pagare al ristorante. Ognuno porta un piatto — quello che gli riesce meglio — abbondante per sé e per farne assaggiare agli altri. Si mette tutto al centro, si assaggia di tutto e si scopre cosa sa fare il vicino di ombrellone. L'unica cosa da versare sono i 3 € della bagnina."
       }
     }
   ],

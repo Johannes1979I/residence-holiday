@@ -415,6 +415,16 @@ input[aria-invalid="true"]{ border-color:var(--c1); }
   .hero-grazie .testo{ font-size:.96rem; }
 }
 
+/* cucina fai da te: il riquadro che spiega la formula al posto del menù */
+.faidate{
+  background:#fff; border-radius:20px; padding:22px 24px; max-width:640px;
+  margin:0 auto 20px; box-shadow:var(--shadow-s); text-align:center; color:var(--ink);
+  border:2px solid var(--c3);
+}
+.faidate-titolo{ font-size:1.2rem; font-weight:bold; color:var(--c1); margin-bottom:8px; }
+.faidate p{ font-size:1.02rem; line-height:1.55; }
+@media(max-width:520px){ .faidate{ padding:18px 16px; } }
+
 /* prenotazioni chiuse: riquadro al posto del percorso a passi */
 .chiuse{
   background:#fff; border-radius:20px; padding:26px 24px; max-width:620px;
@@ -759,6 +769,12 @@ footer .servizio a:hover{ opacity:1; }
           <button type="button" class="btn btn-scuro btn-piccolo" id="btnRivedi">👁️ Rivedi il voucher</button>
           <button type="button" class="btn btn-chiaro btn-piccolo" id="btnCancella">🗑️ Cancella e ricomincia</button>
         </div>
+      </div>
+
+      <!-- cucina fai da te: si spiega la formula al posto del menù -->
+      <div class="faidate" id="faidateBox" style="display:none">
+        <div class="faidate-titolo" id="faidateTitolo">🧺 Ognuno porta qualcosa</div>
+        <p id="faidateTesto"></p>
       </div>
 
       <!-- prenotazioni chiuse: l'ordine è già partito per la pizzeria -->
@@ -1196,6 +1212,7 @@ function disegna(){
 
   disegnaGalleria(foto, V(res.nome, 'Residence'));
   disegnaMenu(menu);
+  applicaFormula();
   disegnaPagamento();
   disegnaRegolamento();
   preparaPrenotazione();
@@ -1303,7 +1320,8 @@ function applicaStato(stato, messaggio){
      passata non resta niente. Restano i ringraziamenti, la piscina e
      l'album — e basta. */
   mostra('festa', !conclusa);          /* data, orario, luogo, tema, dress code */
-  mostra('menu', !conclusa);
+  mostra('menu', !conclusa && !formulaFaidate());
+  mostra('faidateBox', !conclusa && formulaFaidate());
   mostra('regolamento', !conclusa);
   if(conclusa) mostra('pagamento', false);
   mostra('conto', !conclusa);
@@ -1705,6 +1723,21 @@ function categorie(){
 }
 function categorieDi(tipo){
   return categorie().filter(function(c){ return c.tipo === tipo; });
+}
+
+/* Con la formula «ognuno porta qualcosa» il menù non serve: sparisce la
+   sezione in home e al suo posto, nella prenotazione, si spiega come funziona. */
+function applicaFormula(){
+  var faidate = formulaFaidate();
+  var m = V(DATI.menu, {});
+  mostra('menu', !faidate);
+  mostra('faidateBox', faidate);
+  if(faidate){
+    if(m.titoloFaidate) testo('faidateTitolo', m.titoloFaidate);
+    testo('faidateTesto', V(m.testoFaidate,
+      'Non si ordina niente: ognuno porta un piatto, abbondante per sé e per farne ' +
+      'assaggiare agli altri. Si mette tutto al centro e si condivide.'));
+  }
 }
 
 function disegnaMenu(menu){
@@ -2196,6 +2229,7 @@ function aggiornaSubtotali(){
     }
 
     var nPizze = c.righe.reduce(function(s,r){ return s + (r.tipo === 'bevanda' ? 0 : r.quantita); }, 0);
+    if(!formulaFaidate())
     riga('', V((DATI.menu||{}).etichettaPortate, '🍕 Pizze e fritti'),
       nPizze ? (nPizze === 1 ? '1 porzione' : nPizze + ' porzioni') : 'niente ancora', c.subCibo);
 
@@ -2282,7 +2316,20 @@ function calcolaPassi(){
   var conBevande = categorieDi('bevanda').some(function(c){
     return Array.isArray(c.voci) && c.voci.length > 0;
   });
-  PASSI = conBevande ? [1,2,3,4] : [1,2,4];
+  /* Con la formula «ognuno porta qualcosa» non c'e' niente da ordinare:
+     il passo delle portate sparisce del tutto. */
+  var conCibo = !formulaFaidate() && categorieDi('cibo').some(function(c){
+    return Array.isArray(c.voci) && c.voci.length > 0;
+  });
+  PASSI = [1];
+  if(conCibo) PASSI.push(2);
+  if(conBevande) PASSI.push(3);
+  PASSI.push(4);
+}
+
+/* La festa e' «cucina fai da te»? Allora niente menu' e niente ordini. */
+function formulaFaidate(){
+  return V((DATI.menu || {}).formula, 'ristorante') === 'faidate';
 }
 
 /* senzaScorrimento: serve al primo disegno della pagina, altrimenti il sito si

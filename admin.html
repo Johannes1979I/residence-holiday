@@ -259,6 +259,11 @@
                   padding:14px 16px;margin:14px 0}
   .gh-scorciatoie > b{display:block;font-size:1rem;color:var(--ink)}
 
+  /* ---------- scelta della formula ---------- */
+  .formula-scelta{display:flex;flex-direction:column;gap:10px;background:#f7fbfd;
+                  border:1px solid var(--linea);border-radius:16px;padding:14px 16px;margin-bottom:14px}
+  .formula-scelta .reg-check{align-items:flex-start}
+
   /* ---------- feste archiviate ---------- */
   .festa-archiviata{border:1px solid var(--linea);border-radius:16px;padding:14px 16px;margin-bottom:12px;
                     background:#fbfcfd}
@@ -682,6 +687,32 @@
         dall’uno all’altro per la festa successiva senza perdere niente.
       </p>
 
+      <h3 class="sub-h">Come si mangia a questa festa</h3>
+      <div class="formula-scelta">
+        <label class="reg-check">
+          <input type="radio" name="m_formula" value="ristorante" id="m_formulaRist" />
+          <b>🍽️ Menù ordinato</b> — pizzeria o ristorante: si scelgono le portate e si paga il conto
+        </label>
+        <label class="reg-check">
+          <input type="radio" name="m_formula" value="faidate" id="m_formulaFai" />
+          <b>🧺 Cucina fai da te</b> — ognuno porta qualcosa da condividere: si paga solo la quota
+        </label>
+      </div>
+
+      <div id="m_bloccoFaidate" style="display:none">
+        <label for="m_faiTitolo">Titolo del riquadro sul sito</label>
+        <input id="m_faiTitolo" placeholder="🧺 Ognuno porta qualcosa" />
+        <label for="m_faiTesto">Come funziona</label>
+        <textarea id="m_faiTesto" rows="4"></textarea>
+        <p class="hint">
+          Compare al posto del menù, nella pagina della prenotazione. Con questa formula
+          <b>sparisce la sezione del menù dal sito</b> e nella prenotazione non c’è più il passo
+          per scegliere le portate: si prenota il posto e si paga solo la quota.
+        </p>
+      </div>
+
+      <div id="m_bloccoRistorante">
+
       <label for="m_desc">Descrizione del menù</label>
       <textarea id="m_desc" rows="2"></textarea>
       <p class="hint">Frase introduttiva sopra l’elenco, es. chi prepara le pizze.</p>
@@ -734,6 +765,7 @@
       </p>
       <div id="categorie"></div>
       <button class="add" id="btnAddCat">+ Aggiungi categoria</button>
+      </div>
     </div>
 
     </section>
@@ -1708,6 +1740,14 @@ async function init(){
    ========================================================= */
 /* Riempie la sola scheda del menu'. Sta a parte perche' serve due volte:
    all'apertura del pannello e quando si cambia listino. */
+/* Le due formule si escludono: o si ordina un menù, o ognuno porta qualcosa. */
+function mostraFormula(){
+  const fai = $('m_formulaFai') && $('m_formulaFai').checked;
+  const bf = $('m_bloccoFaidate'), br = $('m_bloccoRistorante');
+  if(bf) bf.style.display = fai ? '' : 'none';
+  if(br) br.style.display = fai ? 'none' : '';
+}
+
 function riempiMenu(me){
   me = me || {};
   $('m_desc').value    = me.descrizione||"";
@@ -1781,6 +1821,13 @@ function riempi(){
   musDisegna();
 
   $('al_attivo').checked = (al.attivo === true);
+  const formula = (me.formula === 'faidate') ? 'faidate' : 'ristorante';
+  $('m_formulaRist').checked = (formula === 'ristorante');
+  $('m_formulaFai').checked  = (formula === 'faidate');
+  $('m_faiTitolo').value = me.titoloFaidate||"";
+  $('m_faiTesto').value  = me.testoFaidate||"";
+  mostraFormula();
+
   const da = al.didascalieAuto || {};
   const righe = v => Array.isArray(v) ? v.join('\n') : (v || '');
   $('al_didAttive').checked = (da.attive !== false);
@@ -2138,6 +2185,9 @@ function collect(){
     copertoEtichetta: $('m_copertoEtichetta').value.trim(),
     copertoEmoji:     $('m_copertoEmoji').value.trim(),
     copertoNota:      $('m_copertoNota').value.trim(),
+    formula:        $('m_formulaFai').checked ? 'faidate' : 'ristorante',
+    titoloFaidate:  $('m_faiTitolo').value.trim(),
+    testoFaidate:   $('m_faiTesto').value.trim(),
     speciali:       { glutine: $('m_sp_glutine').checked, lattosio: $('m_sp_lattosio').checked },
     /* (il listino attivo viene riallineato subito dopo, vedi in fondo) */
     categorie:      raccogliCategorie()
@@ -3253,6 +3303,11 @@ function collegaEventi(){
     const t = ($('gh_token').value || '').trim() || (gh().token || '');
     if(!t){ toast('Qui non c’è nessun token da copiare: creane uno con il pulsante blu.', 8000); return; }
     regCopiaTesto(t, '📋 Token copiato. Incollalo nell’admin dell’altro dispositivo — e non lasciarlo in giro.');
+  });
+
+  /* formula della festa: menù ordinato oppure ognuno porta qualcosa */
+  ['m_formulaRist','m_formulaFai'].forEach(id => {
+    $(id).addEventListener('change', () => { mostraFormula(); tocca(); });
   });
 
   /* archivio delle feste passate */
