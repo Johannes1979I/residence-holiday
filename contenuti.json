@@ -14,7 +14,7 @@
     "coloreAccento": "#ffd23f"
   },
   "evento": {
-    "data": "",
+    "data": "2026-09-12",
     "orario": "13:00",
     "orarioFine": "18:00",
     "luogo": "Piscina del Residence Holiday",
@@ -373,14 +373,14 @@
     "attivo": true,
     "titolo": "Come si paga",
     "referente": "Alla bagnina della piscina Aurora",
-    "scadenza": "",
+    "scadenza": "2026-09-11",
     "orari": "in piscina, tutti i giorni dalle 10:00 alle 13:00 e dalle 16:00 alle 20:00",
     "istruzioni": "Porta l'importo del tuo voucher in contanti alla bagnina della piscina. La prenotazione è confermata solo dopo il pagamento: serve per ordinare le pizze in tempo.",
     "nota": "Se non riesci entro la scadenza, avvisa gli organizzatori."
   },
   "prenotazione": {
     "messaggioBase": "Ciao! Ecco la mia prenotazione per Il pranzo di fine estate del Residence Holiday.",
-    "scadenza": "",
+    "scadenza": "2026-09-10",
     "chiediAppartamento": true,
     "prefissoCodice": "RHT",
     "chiuse": false,
