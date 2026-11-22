@@ -204,25 +204,35 @@ lo inquadra con la fotocamera del telefono e prenota in un minuto.
 
 È il pezzo che ti fa arrivare **da sole** le prenotazioni. Si imposta una volta.
 
-1. Su Telegram cerca **@BotFather**, scrivi `/newbot` e segui le istruzioni.
-   Alla fine ricevi un **token** del bot (tipo `123456789:AA...`): copialo.
+Il sito **non contiene il token del bot**: manda ogni prenotazione a un piccolo script
+sul tuo account Google (l'«inoltro»), che la gira al bot. Token e id della chat stanno
+solo dentro lo script, che è privato.
+
+1. Su Telegram cerca **@BotFather**, scrivi `/newbot` (o usa il bot che hai già) e copia
+   il **token** (tipo `123456789:AA...`).
 2. Decidi **dove** vuoi ricevere le prenotazioni:
    - **sul tuo Telegram personale**: scrivi al bot **@userinfobot**, che ti risponde con il
      tuo **Id** (un numero); poi apri una chat con il tuo bot e premi **Avvia/Start**, così
      può scriverti;
    - **in un gruppo**: crea il gruppo, **aggiungi il bot** e prendi l'id del gruppo (con
      **@userinfobot** o **@RawDataBot**); inizia con `-100...`.
-3. Nell'admin apri **🔔 Avvisi automatici Telegram**, incolla **token** e **id**.
-4. Premi **✈️ Invia un messaggio di prova**: se su Telegram arriva, è tutto a posto.
-   Poi premi **🚀 Pubblica online** per attivarlo sul sito.
+3. Vai su **script.google.com** → **Nuovo progetto** e incolla il contenuto di
+   `strumenti/inoltro-telegram.gs`.
+4. **Impostazioni progetto** (ingranaggio) → **Proprietà script**: aggiungi
+   `TELEGRAM_BOT_TOKEN` (il token) e `TELEGRAM_CHAT_ID` (l'id).
+5. Nell'editor esegui la funzione **prova** e concedi l'autorizzazione: ti arriva un messaggio.
+6. **Esegui deployment → Nuovo deployment → App web**, «Esegui come: **Me**»,
+   «Chi ha accesso: **Chiunque**». Copia l'URL che finisce con `/exec`.
+7. Nell'admin apri **🔔 Avvisi automatici Telegram**, incolla l'URL, premi
+   **✈️ Invia un messaggio di prova** e poi **🚀 Pubblica online**.
 
 Da quel momento, ogni volta che un condomino conferma, la richiesta ti arriva su Telegram
 con tutti i dettagli e il link per registrarla.
 
-> **⚠️ Nota di sicurezza.** Il token finisce nel sito, che è pubblico: chi è pratico
-> potrebbe leggerlo. Per una festa tra condomini è un rischio minimo, ma **usa un bot
-> dedicato solo a questo**. Se un giorno qualcuno ne abusa, chiedi a BotFather un nuovo
-> token e rimettilo nell'admin.
+> **⚠️ Mai il token nel sito.** Tutto quello che pubblichi dall'admin finisce in un
+> repository pubblico. A luglio 2026 il token era scritto nei contenuti: qualcuno l'ha
+> raccolto da GitHub e ha trasformato il bot in un bot truffa. Se un giorno ti serve
+> cambiare token, lo cambi **solo** nelle Proprietà dello script.
 
 ### E l'avviso quando aggiorni i contenuti?
 C'è anche un avviso automatico che parte quando cambi i contenuti della festa (file

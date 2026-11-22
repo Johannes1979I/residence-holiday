@@ -986,15 +986,12 @@
         Così non dipende dal fatto che si ricordi di premere «invia».
       </p>
 
-      <label for="nt_token">Token del bot Telegram</label>
-      <input id="nt_token" placeholder="123456789:AAxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
-      <p class="hint">Te lo dà <b>@BotFather</b> quando crei il bot (comando <code>/newbot</code>).</p>
-
-      <label for="nt_chat">ID della chat o del gruppo che riceve gli avvisi</label>
-      <input id="nt_chat" placeholder="es. 123456789 oppure -1001234567890" autocomplete="off" />
+      <label for="nt_url">Indirizzo dell’inoltro (Google Apps Script)</label>
+      <input id="nt_url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" />
       <p class="hint">
-        È dove ti arrivano le prenotazioni. Per riceverle sul tuo Telegram personale scrivi al bot
-        <b>@userinfobot</b>: ti dice il tuo <b>Id</b>. Per un gruppo, aggiungi il bot al gruppo e usa l’id del gruppo (inizia con <code>-100</code>).
+        Il sito non conosce il token del bot: manda la prenotazione a un piccolo script sul tuo
+        account Google, che la gira al bot. Token del bot e id della chat stanno <b>solo lì</b>,
+        nelle «Proprietà script». Il codice e le istruzioni sono in <code>strumenti/inoltro-telegram.gs</code>.
       </p>
 
       <div class="reg-azioni">
@@ -1002,10 +999,9 @@
       </div>
 
       <div class="gh-box" style="margin-top:14px">
-        <b>⚠️ Nota importante.</b> Il token finisce nel sito, che è pubblico: chi è pratico potrebbe leggerlo.
-        Per la festa tra condomini è un rischio minimo, ma usa <b>un bot dedicato solo a questo</b> (non un bot
-        che usi per altro): al massimo qualcuno potrebbe scrivere nel gruppo tramite quel bot, e in quel caso
-        basta rigenerare il token da BotFather.
+        <b>⚠️ Mai il token del bot qui o nei contenuti.</b> Tutto quello che pubblichi finisce in un sito
+        pubblico: a luglio 2026 il token scritto qui è stato raccolto da GitHub e il bot è stato
+        trasformato in un bot truffa. Il token va solo nelle Proprietà dello script.
       </div>
     </div>
 
@@ -1534,7 +1530,7 @@ function schemaVuoto(){
            copertoEmoji:"", copertoNota:"", speciali:{ glutine:true, lattosio:true }, categorie:[] },
     pagamento:{ attivo:true, titolo:"Come si paga", referente:"", scadenza:"", orari:"", istruzioni:"", nota:"" },
     prenotazione:{ messaggioBase:"", scadenza:"", chiediAppartamento:true, prefissoCodice:"RH" },
-    notifiche:{ telegramBotToken:"", telegramChatId:"" },
+    notifiche:{ inoltroUrl:"" },
     regolamento:[],
     foto:[],
     condivisione:{ urlSito:"", linkGruppoTelegram:"", linkGruppoWhatsApp:"" },
@@ -1806,8 +1802,7 @@ function riempi(){
   $('pr_appart').value   = (pr.chiediAppartamento===false) ? "no" : "si";
   $('pr_prefisso').value = pr.prefissoCodice||"RH";
 
-  $('nt_token').value = nt.telegramBotToken||"";
-  $('nt_chat').value  = nt.telegramChatId||"";
+  $('nt_url').value = nt.inoltroUrl||"";
 
   const gr = d.ringraziamenti || {};
   $('gr_titolo').value   = gr.titolo||"";
@@ -2210,10 +2205,9 @@ function collect(){
     prefissoCodice:     ($('pr_prefisso').value.trim().toUpperCase() || 'RH')
   });
 
-  d.notifiche = Object.assign({}, d.notifiche, {
-    telegramBotToken: $('nt_token').value.trim(),
-    telegramChatId:   $('nt_chat').value.trim()
-  });
+  /* oggetto nuovo, non Object.assign: cosi' un vecchio token rimasto nei dati
+     caricati non torna mai nel sito pubblico */
+  d.notifiche = { inoltroUrl: $('nt_url').value.trim() };
 
   d.regolamento = [...document.querySelectorAll('#regole .reg-val')]
                     .map(x => x.value.trim()).filter(v => v !== '');
@@ -2297,8 +2291,8 @@ function avvisi(d){
   const p=[];
   if(!d.evento.data)                        p.push('la data della festa');
   if(!d.tema.titoloFesta)                   p.push('il titolo della festa');
-  if(!(d.notifiche && d.notifiche.telegramBotToken && d.notifiche.telegramChatId))
-                                            p.push('gli avvisi Telegram (token e chat) per ricevere le prenotazioni');
+  if(!(d.notifiche && d.notifiche.inoltroUrl))
+                                            p.push('l’indirizzo dell’inoltro Telegram per ricevere le prenotazioni');
   if(!d.menu.categorie.length)              p.push('almeno una categoria del menù');
   return p;
 }
@@ -2429,33 +2423,33 @@ function b64(str){
   return btoa(bin);
 }
 
-/* Invia un messaggio di prova al Telegram configurato, usando i valori appena
-   scritti nei campi (non serve aver pubblicato). */
+/* Invia un messaggio di prova attraverso l'inoltro scritto nel campo
+   (non serve aver pubblicato). */
 async function provaTelegram(){
-  const token = $('nt_token').value.trim();
-  const chat  = $('nt_chat').value.trim();
-  if(!token || !chat){
-    toast('⚠️ Inserisci prima il token del bot e l’id della chat.', 6000);
+  const url = $('nt_url').value.trim();
+  if(!/^https:\/\//.test(url)){
+    toast('⚠️ Inserisci prima l’indirizzo dell’inoltro (quello che finisce con /exec).', 6000);
     return;
   }
   toast('Invio il messaggio di prova…', 60000);
   try{
     const testo = '✅ Prova riuscita! Qui riceverai le prenotazioni della ' +
       (((DATA||{}).tema||{}).titoloFesta || 'festa') + '.';
-    const r = await fetch('https://api.telegram.org/bot'+token+'/sendMessage', {
+    const r = await fetch(url, {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ chat_id: chat, text: testo })
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ testo: testo })
     });
     const j = await r.json();
     if(j && j.ok){
       toast('✅ Messaggio inviato! Controlla Telegram. Ricordati di premere “Pubblica online” per attivarlo sul sito.', 8000);
     }else{
-      toast('⚠️ Telegram ha risposto: ' + ((j && j.description) || 'errore') +
-            '. Controlla token e id, e che il bot sia nel gruppo.', 9000);
+      toast('⚠️ L’inoltro ha risposto: ' + ((j && j.errore) || 'errore') +
+            '. Controlla le Proprietà dello script (token e id della chat).', 9000);
     }
   }catch(e){
-    toast('⚠️ Non riesco a contattare Telegram: ' + e.message, 8000);
+    toast('⚠️ Non riesco a contattare l’inoltro: ' + e.message +
+          '. Controlla l’indirizzo e che il deployment sia «Chiunque».', 9000);
   }
 }
 

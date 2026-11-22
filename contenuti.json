@@ -394,8 +394,7 @@
     "prossima": "La prossima cena la organizziamo presto: appena c’è la data, la trovate qui."
   },
   "notifiche": {
-    "telegramBotToken": "8857816817:AAEAO2_SADgpDs4aUTMOuoCmQWclxtgxOGs",
-    "telegramChatId": "1992022292"
+    "inoltroUrl": ""
   },
   "cloud": {
     "firebaseApiKey": "AIzaSyCB1Opg-CGCPTx4JDl7QNPYHMHVChYnHcw",

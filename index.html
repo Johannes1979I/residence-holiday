@@ -1002,7 +1002,7 @@ var RISERVA = {
   menu:{ descrizione:"", avviso:"", copertoPersona:0, copertoEtichetta:"", copertoEmoji:"🛟", copertoNota:"", speciali:{ glutine:true, lattosio:true }, categorie:[] },
   pagamento:{ attivo:false, titolo:"Come si paga", referente:"", scadenza:"", orari:"", istruzioni:"", nota:"" },
   prenotazione:{ messaggioBase:"", scadenza:"", chiediAppartamento:true, prefissoCodice:"RH" },
-  notifiche:{ telegramBotToken:"", telegramChatId:"" },
+  notifiche:{ inoltroUrl:"" },
   regolamento:[], foto:[],
   condivisione:{ urlSito:"", linkGruppoTelegram:"", linkGruppoWhatsApp:"" },
   contatti:{ organizzatore:"", telefono:"", email:"" },
@@ -2922,21 +2922,24 @@ function componiMessaggio(p){
   return r.join('\n');
 }
 
-/* Invia la prenotazione al Telegram degli organizzatori (bot). Ritorna una
-   Promise che si risolve a true/false. Viene chiamata alla conferma della
-   prenotazione (e, se allora era fallita, alla riapertura della pagina). */
+/* Invia la prenotazione al Telegram degli organizzatori. Il sito non conosce
+   il token del bot: manda il testo all'inoltro (Google Apps Script, vedi
+   strumenti/inoltro-telegram.gs), che lo gira al bot. Ritorna una Promise che
+   si risolve a true/false. Viene chiamata alla conferma della prenotazione
+   (e, se allora era fallita, alla riapertura della pagina). */
 function inviaPrenotazioneTelegram(p){
   var n = V(DATI.notifiche, {});
-  var token = String(V(n.telegramBotToken, '')).trim();
-  var chat  = String(V(n.telegramChatId, '')).trim();
+  var url = String(V(n.inoltroUrl, '')).trim();
 
   if(p.inviata) return Promise.resolve(true);   /* gia' inviata: non ripeto */
-  if(!token || !chat) return Promise.resolve(false);
+  if(!/^https:\/\//.test(url)) return Promise.resolve(false);
 
-  return fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+  /* text/plain: cosi' il browser non fa la richiesta preliminare CORS,
+     che Apps Script non sa gestire */
+  return fetch(url, {
     method:'POST',
-    headers:{ 'Content-Type':'application/json' },
-    body: JSON.stringify({ chat_id: chat, text: componiMessaggio(p), disable_web_page_preview:true })
+    headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify({ testo: componiMessaggio(p) })
   })
   .then(function(r){ return r.json(); })
   .then(function(j){

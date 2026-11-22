@@ -27,6 +27,7 @@ qr.js                         libreria QR code (window.QR)
 contenuti.json                tutti i contenuti del sito
 images/                       foto della piscina
 .github/workflows/telegram.yml  avviso automatico al gruppo Telegram
+strumenti/inoltro-telegram.gs  inoltro prenotazioni → bot (Google Apps Script, custodisce il token)
 .nojekyll                     disattiva Jekyll su GitHub Pages
 ```
 
